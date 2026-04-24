@@ -13,9 +13,6 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'wk49fyqm.us-east.insforge.app' },
     ],
   },
-  experimental: {
-    optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
-  },
 }
 
 export default nextConfig

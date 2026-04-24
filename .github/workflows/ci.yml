@@ -37,7 +37,7 @@ jobs:
       - name: Build
         run: |
           cd apps/web
-          npx next build
+          TURBOPACK=0 npx next build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
