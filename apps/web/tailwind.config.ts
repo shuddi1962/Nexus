@@ -4,50 +4,30 @@ const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Instrument Sans', 'sans-serif'],
+        display: ['Fraunces', 'serif'],
+      },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
         nexus: {
-          blue: '#0652DD',
+          bg: '#FAFAF8',
+          'bg-secondary': '#F4F3F0',
+          'bg-tertiary': '#EEECEA',
+          surface: '#FFFFFF',
           accent: '#1A1A2E',
+          'accent-2': '#16213E',
+          blue: '#0652DD',
+          'blue-light': '#EFF4FF',
+          violet: '#6C47FF',
+          'violet-light': '#F3EFFF',
+          green: '#12A150',
+          amber: '#D97706',
+          red: '#DC2626',
+          'text-primary': '#0A0A0A',
+          'text-secondary': '#525252',
+          'text-tertiary': '#8A8A8A',
         }
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
+      }
     }
   }
 }

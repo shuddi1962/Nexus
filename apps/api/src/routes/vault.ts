@@ -4,6 +4,7 @@ import { encryptKey, decryptKey } from '../lib/encryption'
 import { env } from '../lib/env'
 import { insforge, collections } from '../lib/insforge'
 import { logger } from '../lib/logger'
+import axios from 'axios'
 
 interface ApiKey {
   id: string
@@ -98,9 +99,38 @@ export async function vaultRoutes(app: FastifyInstance) {
 
       const decryptedKey = decryptKey(apiKey.encrypted_key, env.ENCRYPTION_KEY)
 
-      // TODO: Implement provider-specific testing logic
-      // For now, just mark as tested
-      const testStatus = 'active' // Placeholder
+      // Basic provider-specific testing logic
+      let testStatus = 'active'
+
+      try {
+        switch (apiKey.provider) {
+          case 'openrouter':
+            // Test OpenRouter API
+            const orResponse = await axios.get('https://openrouter.ai/api/v1/models', {
+              headers: { Authorization: `Bearer ${decryptedKey}` },
+              timeout: 5000,
+            })
+            testStatus = orResponse.data?.data ? 'active' : 'invalid'
+            break
+
+          case 'kie_ai':
+            // Test Kie.ai API
+            const kieResponse = await axios.get('https://api.kie.ai/v1/models', {
+              headers: { Authorization: `Bearer ${decryptedKey}` },
+              timeout: 5000,
+            })
+            testStatus = kieResponse.data ? 'active' : 'invalid'
+            break
+
+          default:
+            // For other providers, just mark as tested
+            testStatus = 'active'
+            break
+        }
+      } catch (error) {
+        logger.warn(`API key test failed for ${apiKey.provider}`, { error })
+        testStatus = 'invalid'
+      }
 
       await insforge.patch(`/collections/${collections.apiKeysVault}/${id}`, {
         last_tested_at: new Date().toISOString(),

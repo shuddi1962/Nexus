@@ -3,7 +3,7 @@ import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import multipart from '@fastify/multipart'
-import { env } from './src/lib/env'
+import { env } from './lib/env'
 import { logger } from './src/lib/logger'
 
 const server = Fastify({
@@ -41,8 +41,10 @@ await server.register(multipart, {
 // Register routes
 import { authRoutes } from './routes/auth'
 import { vaultRoutes } from './routes/vault'
+import { modelRoutes } from './routes/models'
 await server.register(authRoutes, { prefix: '/api' })
 await server.register(vaultRoutes, { prefix: '/api' })
+await server.register(modelRoutes, { prefix: '/api' })
 
 // Start background jobs
 import './jobs/sync-models'

@@ -1,7 +1,7 @@
 import { Queue, Worker } from 'bullmq'
 import { redis } from '../lib/redis'
 import { getDecryptedApiKey } from '../routes/vault'
-import { insforge, collections } from '../lib/insforge'
+import { insforge, collections, insert } from '../lib/insforge'
 import { logger } from '../lib/logger'
 import axios from 'axios'
 
@@ -27,10 +27,11 @@ export async function syncOpenRouterModels() {
     // Cache in Redis (6 hours)
     await redis.set('openrouter:models', JSON.stringify(models), 'EX', 21600)
 
-    // Store in database
-    await insforge.from(collections.platformSettings).upsert({
+    // Store in database using InsForge REST API
+    await insert(collections.platformSettings, {
       key: 'openrouter_models',
       value: JSON.stringify(models),
+      updated_at: new Date().toISOString(),
     })
 
     logger.info(`Synced ${models.length} OpenRouter models`)
