@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "9e1c8b3103f92fa8092568a44fe64858de7c5c9dc65ce4bea8f168080e889cfd"
+    },
+    "insforge": {
+      "source": "insforge/agent-skills",
+      "sourceType": "github",
+      "computedHash": "a7c89d0b2d3f2e9565e783eafba9a844917dd5d90908f44666dd2b30e1253998"
+    },
+    "insforge-cli": {
+      "source": "insforge/agent-skills",
+      "sourceType": "github",
+      "computedHash": "c3cc480cd9902f7167c5a9bf559413f077d15048a192849a5c29b14afd9ac2d7"
+    },
+    "insforge-debug": {
+      "source": "insforge/agent-skills",
+      "sourceType": "github",
+      "computedHash": "195f5c2db7a3f83e159f3e57ba60c37a983be2da708af40167651d2f88692f01"
+    },
+    "insforge-integrations": {
+      "source": "insforge/agent-skills",
+      "sourceType": "github",
+      "computedHash": "5a1d0bd2a27eb5dc60388d80d188ade0d04c044448bac3cfefa4bcd489ae3e34"
+    }
+  }
+}
