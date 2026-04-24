@@ -48,18 +48,18 @@ const DEMO_ACCOUNTS = [
 export default function DemoAccountsPage() {
   return (
     <div className="space-y-6">
-      <div className="card">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
         <h2 className="text-xl font-semibold mb-4">Demo Accounts</h2>
         <p className="text-nexus-text-secondary mb-6">
           These accounts are automatically created and can be used for testing different user roles and plans.
         </p>
       </div>
 
-      <div className="card">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-nexus-border">
+              <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 font-medium">Role</th>
                 <th className="text-left py-3 px-4 font-medium">Email</th>
                 <th className="text-left py-3 px-4 font-medium">Password</th>
@@ -70,7 +70,7 @@ export default function DemoAccountsPage() {
             </thead>
             <tbody>
               {DEMO_ACCOUNTS.map((account) => (
-                <tr key={account.email} className="border-b border-nexus-border">
+                <tr key={account.email} className="border-b border-gray-200">
                   <td className="py-3 px-4">{account.role}</td>
                   <td className="py-3 px-4 font-mono text-sm">{account.email}</td>
                   <td className="py-3 px-4 font-mono text-sm">{account.password}</td>
