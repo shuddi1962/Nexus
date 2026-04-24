@@ -4,9 +4,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,  // NEVER set to true
   },
-  eslint: {
-    ignoreDuringBuilds: false, // NEVER set to true
-  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
