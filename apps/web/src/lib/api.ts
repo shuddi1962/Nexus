@@ -372,8 +372,136 @@ class ApiClient {
       }
     })
 
+    return this.request(`/ads/reports/export/${reportType}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`)
+  }
+
+  // SEO endpoints
+  async performSiteAudit(url: string, auditType: 'quick' | 'full' | 'technical' | 'content' = 'full') {
+    return this.request('/seo/audit', {
+      method: 'POST',
+      body: JSON.stringify({ url, auditType })
+    })
+  }
+
+  async getAudits(params?: {
+    page?: number
+    limit?: number
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.set('page', params.page.toString())
+    if (params?.limit) queryParams.set('limit', params.limit.toString())
+
     const query = queryParams.toString()
-    return this.request(`/ads/reports/export/${reportType}${query ? `?${query}` : ''}`)
+    return this.request(`/seo/audits${query ? `?${query}` : ''}`)
+  }
+
+  async analyzeKeywords(keywords: string[], location?: string, language?: string) {
+    return this.request('/seo/keywords/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ keywords, location, language })
+    })
+  }
+
+  async getKeywordTracking(params?: {
+    keyword_ids?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.keyword_ids) queryParams.set('keyword_ids', params.keyword_ids)
+
+    const query = queryParams.toString()
+    return this.request(`/seo/keywords/tracking${query ? `?${query}` : ''}`)
+  }
+
+  async getBacklinks(domain: string, limit?: number) {
+    const queryParams = new URLSearchParams()
+    queryParams.set('domain', domain)
+    if (limit) queryParams.set('limit', limit.toString())
+
+    return this.request(`/seo/backlinks?${queryParams.toString()}`)
+  }
+
+  async getIndexingStatus(params?: {
+    url?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.url) queryParams.set('url', params.url)
+
+    const query = queryParams.toString()
+    return this.request(`/seo/indexing${query ? `?${query}` : ''}`)
+  }
+
+  async submitForIndexing(url: string, engines?: string[]) {
+    return this.request('/seo/indexing/submit', {
+      method: 'POST',
+      body: JSON.stringify({ url, engines: engines || ['google', 'bing'] })
+    })
+  }
+
+  // Content endpoints
+  async extractArticle(url: string) {
+    return this.request('/content/extract', {
+      method: 'POST',
+      body: JSON.stringify({ url })
+    })
+  }
+
+  async rewriteContent(data: {
+    content: string
+    instructions?: string
+    tone?: string
+    length?: string
+  }) {
+    return this.request('/content/rewrite', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async generateImage(data: {
+    prompt: string
+    style?: string
+    size?: string
+  }) {
+    return this.request('/content/generate-image', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async getArticles(params?: {
+    page?: number
+    limit?: number
+    status?: string
+    search?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.set('page', params.page.toString())
+    if (params?.limit) queryParams.set('limit', params.limit.toString())
+    if (params?.status) queryParams.set('status', params.status)
+    if (params?.search) queryParams.set('search', params.search)
+
+    const query = queryParams.toString()
+    return this.request(`/content/articles${query ? `?${query}` : ''}`)
+  }
+
+  async createArticle(article: {
+    title: string
+    content: string
+    excerpt?: string
+    url?: string
+    author?: string
+    published_date?: string
+    tags?: string[]
+    status?: 'draft' | 'published' | 'archived'
+    seo_title?: string
+    seo_description?: string
+    canonical_url?: string
+    featured_image?: string
+  }) {
+    return this.request('/content/articles', {
+      method: 'POST',
+      body: JSON.stringify(article)
+    })
   }
 
   // Vault endpoints (admin only)
