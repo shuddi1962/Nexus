@@ -437,70 +437,39 @@ class ApiClient {
     })
   }
 
-  // Content endpoints
-  async extractArticle(url: string) {
-    return this.request('/content/extract', {
+  // Site management endpoints
+  async connectSite(siteData: {
+    name: string
+    url: string
+    platform: 'wordpress' | 'ghost' | 'webflow' | 'shopify' | 'custom'
+    api_key?: string
+    username?: string
+    password?: string
+  }) {
+    return this.request('/sites/connect', {
       method: 'POST',
-      body: JSON.stringify({ url })
+      body: JSON.stringify(siteData)
     })
   }
 
-  async rewriteContent(data: {
-    content: string
-    instructions?: string
-    tone?: string
-    length?: string
-  }) {
-    return this.request('/content/rewrite', {
-      method: 'POST',
-      body: JSON.stringify(data)
+  async getConnectedSites() {
+    return this.request('/sites')
+  }
+
+  async syncSite(siteId: string) {
+    return this.request(`/sites/${siteId}/sync`, {
+      method: 'POST'
     })
   }
 
-  async generateImage(data: {
-    prompt: string
-    style?: string
-    size?: string
+  async publishToSite(siteId: string, articleData: {
+    article_id: string
+    publish_now?: boolean
+    scheduled_date?: string
   }) {
-    return this.request('/content/generate-image', {
+    return this.request(`/sites/${siteId}/publish`, {
       method: 'POST',
-      body: JSON.stringify(data)
-    })
-  }
-
-  async getArticles(params?: {
-    page?: number
-    limit?: number
-    status?: string
-    search?: string
-  }) {
-    const queryParams = new URLSearchParams()
-    if (params?.page) queryParams.set('page', params.page.toString())
-    if (params?.limit) queryParams.set('limit', params.limit.toString())
-    if (params?.status) queryParams.set('status', params.status)
-    if (params?.search) queryParams.set('search', params.search)
-
-    const query = queryParams.toString()
-    return this.request(`/content/articles${query ? `?${query}` : ''}`)
-  }
-
-  async createArticle(article: {
-    title: string
-    content: string
-    excerpt?: string
-    url?: string
-    author?: string
-    published_date?: string
-    tags?: string[]
-    status?: 'draft' | 'published' | 'archived'
-    seo_title?: string
-    seo_description?: string
-    canonical_url?: string
-    featured_image?: string
-  }) {
-    return this.request('/content/articles', {
-      method: 'POST',
-      body: JSON.stringify(article)
+      body: JSON.stringify(articleData)
     })
   }
 

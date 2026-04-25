@@ -790,6 +790,182 @@ Please provide a well-written, engaging rewrite that maintains the key informati
       reply.code(500).send({ error: 'Failed to submit URL for indexing' })
     }
   })
+
+  // Site Manager Routes
+
+  // Connect website
+  app.post('/sites/connect', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { name, url, platform, api_key, username, password } = request.body as {
+        name: string
+        url: string
+        platform: 'wordpress' | 'ghost' | 'webflow' | 'shopify' | 'custom'
+        api_key?: string
+        username?: string
+        password?: string
+      }
+
+      // Get user's organization
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(404).send({ error: 'Organization not found' })
+      }
+
+      const orgId = orgResult.data[0].id
+
+      // Encrypt credentials if provided
+      let encryptedCredentials = null
+      if (api_key || (username && password)) {
+        const credentials = { api_key, username, password }
+        const { encryptKey } = await import('../lib/encryption')
+        encryptedCredentials = encryptKey(JSON.stringify(credentials), process.env.ENCRYPTION_KEY!)
+      }
+
+      const siteData = {
+        org_id: orgId,
+        name,
+        url,
+        platform,
+        credentials_encrypted: encryptedCredentials,
+        status: 'connected',
+        last_sync: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      }
+
+      const result = await insforge.post(`/collections/${collections.connectedSites}`, siteData)
+      reply.code(201).send(result.data)
+    } catch (error) {
+      logger.error('Error connecting website:', error)
+      reply.code(500).send({ error: 'Failed to connect website' })
+    }
+  })
+
+  // Get connected sites
+  app.get('/sites', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+
+      // Get user's organization
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(404).send({ error: 'Organization not found' })
+      }
+
+      const orgId = orgResult.data[0].id
+
+      const sitesResult = await insforge.get(`/collections/${collections.connectedSites}`, {
+        params: { org_id: `eq.${orgId}` }
+      })
+
+      reply.send(sitesResult.data || [])
+    } catch (error) {
+      logger.error('Error fetching connected sites:', error)
+      reply.code(500).send({ error: 'Failed to fetch connected sites' })
+    }
+  })
+
+  // Publish article to site
+  app.post('/sites/:siteId/publish', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { siteId } = request.params as { siteId: string }
+      const { article_id, publish_now = true, scheduled_date } = request.body as {
+        article_id: string
+        publish_now?: boolean
+        scheduled_date?: string
+      }
+
+      // Get site and verify ownership
+      const siteResult = await insforge.get(`/collections/${collections.connectedSites}/${siteId}`)
+      if (!siteResult.data) {
+        return reply.code(404).send({ error: 'Site not found' })
+      }
+
+      const site = siteResult.data
+
+      // Verify organization ownership
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { id: `eq.${site.org_id}`, owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(403).send({ error: 'Access denied' })
+      }
+
+      // Get article
+      const articleResult = await insforge.get(`/collections/${collections.articles}/${article_id}`)
+      if (!articleResult.data) {
+        return reply.code(404).send({ error: 'Article not found' })
+      }
+
+      const article = articleResult.data
+
+      // Publish to the connected platform
+      const publishResult = await publishToPlatform(site, article, { publish_now, scheduled_date })
+
+      reply.send({
+        success: true,
+        publish_result: publishResult,
+        published_at: new Date().toISOString()
+      })
+    } catch (error) {
+      logger.error('Error publishing article:', error)
+      reply.code(500).send({ error: 'Failed to publish article' })
+    }
+  })
+
+  // Sync site content
+  app.post('/sites/:siteId/sync', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { siteId } = request.params as { siteId: string }
+
+      // Get site and verify ownership
+      const siteResult = await insforge.get(`/collections/${collections.connectedSites}/${siteId}`)
+      if (!siteResult.data) {
+        return reply.code(404).send({ error: 'Site not found' })
+      }
+
+      const site = siteResult.data
+
+      // Verify organization ownership
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { id: `eq.${site.org_id}`, owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(403).send({ error: 'Access denied' })
+      }
+
+      // Sync content from the platform
+      const syncResult = await syncSiteContent(site)
+
+      // Update last sync timestamp
+      await insforge.patch(`/collections/${collections.connectedSites}/${siteId}`, {
+        last_sync: new Date().toISOString(),
+      })
+
+      reply.send({
+        success: true,
+        sync_result: syncResult,
+        synced_at: new Date().toISOString()
+      })
+    } catch (error) {
+      logger.error('Error syncing site content:', error)
+      reply.code(500).send({ error: 'Failed to sync site content' })
+    }
+  })
 }
 
 // SEO Helper Functions
@@ -1005,4 +1181,287 @@ async function submitToSearchEngines(url: string, engines: string[]) {
   }
 
   return results
+}
+
+// Site Manager Helper Functions
+
+async function publishToPlatform(site: any, article: any, options: any) {
+  const { platform, credentials_encrypted } = site
+
+  // Decrypt credentials
+  const { decryptKey } = await import('../lib/encryption')
+  const credentials = JSON.parse(decryptKey(credentials_encrypted, process.env.ENCRYPTION_KEY!))
+
+  switch (platform) {
+    case 'wordpress':
+      return await publishToWordPress(site, article, credentials, options)
+    case 'ghost':
+      return await publishToGhost(site, article, credentials, options)
+    case 'webflow':
+      return await publishToWebflow(site, article, credentials, options)
+    default:
+      throw new Error(`Publishing to ${platform} not implemented yet`)
+  }
+}
+
+async function publishToWordPress(site: any, article: any, credentials: any, options: any) {
+  // WordPress REST API integration
+  const apiUrl = `${site.url}/wp-json/wp/v2/posts`
+  const auth = Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')
+
+  const postData = {
+    title: article.title,
+    content: article.content,
+    excerpt: article.excerpt,
+    status: options.publish_now ? 'publish' : 'draft',
+    date: options.scheduled_date || new Date().toISOString(),
+    meta: {
+      _yoast_wpseo_title: article.seo_title,
+      _yoast_wpseo_metadesc: article.seo_description,
+    }
+  }
+
+  const response = await axios.post(apiUrl, postData, {
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/json'
+    }
+  })
+
+  return {
+    platform: 'wordpress',
+    post_id: response.data.id,
+    url: response.data.link,
+    status: response.data.status
+  }
+}
+
+async function publishToGhost(site: any, article: any, credentials: any, options: any) {
+  // Ghost Admin API integration
+  const apiUrl = `${site.url}/ghost/api/admin/posts/`
+  const apiKey = credentials.api_key
+
+  const postData = {
+    posts: [{
+      title: article.title,
+      html: article.content,
+      excerpt: article.excerpt,
+      status: options.publish_now ? 'published' : 'draft',
+      published_at: options.scheduled_date || new Date().toISOString(),
+      meta_title: article.seo_title,
+      meta_description: article.seo_description,
+      tags: article.tags || []
+    }]
+  }
+
+  const response = await axios.post(apiUrl, postData, {
+    headers: {
+      'Authorization': `Ghost ${apiKey}`,
+      'Content-Type': 'application/json'
+    }
+  })
+
+  return {
+    platform: 'ghost',
+    post_id: response.data.posts[0].id,
+    url: response.data.posts[0].url,
+    status: response.data.posts[0].status
+  }
+}
+
+async function publishToWebflow(site: any, article: any, credentials: any, options: any) {
+  // Webflow CMS API integration
+  const apiUrl = `https://api.webflow.com/collections/${site.collection_id}/items`
+  const apiKey = credentials.api_key
+
+  const itemData = {
+    fields: {
+      name: article.title,
+      slug: article.title.toLowerCase().replace(/\s+/g, '-'),
+      'rich-text': article.content,
+      excerpt: article.excerpt,
+      _archived: false,
+      _draft: !options.publish_now,
+    }
+  }
+
+  const response = await axios.post(apiUrl, itemData, {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'accept-version': '1.0.0'
+    }
+  })
+
+  return {
+    platform: 'webflow',
+    item_id: response.data._id,
+    url: `${site.url}/${response.data.slug}`,
+    status: response.data._draft ? 'draft' : 'published'
+  }
+}
+
+async function syncSiteContent(site: any) {
+  const { platform, credentials_encrypted } = site
+
+  // Decrypt credentials
+  const { decryptKey } = await import('../lib/encryption')
+  const credentials = JSON.parse(decryptKey(credentials_encrypted, process.env.ENCRYPTION_KEY!))
+
+  switch (platform) {
+    case 'wordpress':
+      return await syncWordPressContent(site, credentials)
+    case 'ghost':
+      return await syncGhostContent(site, credentials)
+    case 'webflow':
+      return await syncWebflowContent(site, credentials)
+    default:
+      return { synced: 0, message: `Sync not implemented for ${platform}` }
+  }
+}
+
+async function syncWordPressContent(site: any, credentials: any) {
+  const apiUrl = `${site.url}/wp-json/wp/v2/posts`
+  const auth = Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')
+
+  const response = await axios.get(apiUrl, {
+    headers: {
+      'Authorization': `Basic ${auth}`
+    },
+    params: {
+      per_page: 100,
+      orderby: 'modified',
+      order: 'desc'
+    }
+  })
+
+  // Process and store WordPress posts
+  let synced = 0
+  for (const post of response.data) {
+    // Check if post already exists
+    const existingPosts = await insforge.get(`/collections/${collections.articles}`, {
+      params: {
+        url: `eq.${post.link}`,
+        org_id: `eq.${site.org_id}`
+      }
+    })
+
+    const articleData = {
+      org_id: site.org_id,
+      title: post.title.rendered,
+      content: post.content.rendered,
+      excerpt: post.excerpt.rendered,
+      url: post.link,
+      author: post.author,
+      published_date: post.date,
+      status: post.status === 'publish' ? 'published' : 'draft',
+      tags: post.tags || [],
+      created_at: post.date,
+      updated_at: post.modified,
+    }
+
+    if (existingPosts.data && existingPosts.data.length > 0) {
+      // Update existing
+      await insforge.patch(`/collections/${collections.articles}/${existingPosts.data[0].id}`, articleData)
+    } else {
+      // Create new
+      await insforge.post(`/collections/${collections.articles}`, articleData)
+      synced++
+    }
+  }
+
+  return { synced, total_posts: response.data.length }
+}
+
+async function syncGhostContent(site: any, credentials: any) {
+  const apiUrl = `${site.url}/ghost/api/content/posts/`
+  const apiKey = credentials.api_key
+
+  const response = await axios.get(apiUrl, {
+    headers: {
+      'Authorization': `Ghost ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    params: {
+      limit: 100,
+      order: 'updated_at DESC'
+    }
+  })
+
+  let synced = 0
+  for (const post of response.data.posts) {
+    const existingPosts = await insforge.get(`/collections/${collections.articles}`, {
+      params: {
+        url: `eq.${post.url}`,
+        org_id: `eq.${site.org_id}`
+      }
+    })
+
+    const articleData = {
+      org_id: site.org_id,
+      title: post.title,
+      content: post.html,
+      excerpt: post.excerpt,
+      url: post.url,
+      author: post.primary_author?.name,
+      published_date: post.published_at,
+      status: post.status === 'published' ? 'published' : 'draft',
+      tags: post.tags?.map((tag: any) => tag.name) || [],
+      seo_title: post.meta_title,
+      seo_description: post.meta_description,
+      created_at: post.created_at,
+      updated_at: post.updated_at,
+    }
+
+    if (existingPosts.data && existingPosts.data.length > 0) {
+      await insforge.patch(`/collections/${collections.articles}/${existingPosts.data[0].id}`, articleData)
+    } else {
+      await insforge.post(`/collections/${collections.articles}`, articleData)
+      synced++
+    }
+  }
+
+  return { synced, total_posts: response.data.posts.length }
+}
+
+async function syncWebflowContent(site: any, credentials: any) {
+  const apiUrl = `https://api.webflow.com/collections/${site.collection_id}/items`
+  const apiKey = credentials.api_key
+
+  const response = await axios.get(apiUrl, {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'accept-version': '1.0.0'
+    }
+  })
+
+  let synced = 0
+  for (const item of response.data.items) {
+    const existingPosts = await insforge.get(`/collections/${collections.articles}`, {
+      params: {
+        url: `eq.${site.url}/${item.slug}`,
+        org_id: `eq.${site.org_id}`
+      }
+    })
+
+    const articleData = {
+      org_id: site.org_id,
+      title: item.name,
+      content: item.fields['rich-text'] || '',
+      excerpt: item.fields.excerpt || '',
+      url: `${site.url}/${item.slug}`,
+      status: item._draft ? 'draft' : 'published',
+      created_at: item.createdOn,
+      updated_at: item.lastUpdated,
+    }
+
+    if (existingPosts.data && existingPosts.data.length > 0) {
+      await insforge.patch(`/collections/${collections.articles}/${existingPosts.data[0].id}`, articleData)
+    } else {
+      await insforge.post(`/collections/${collections.articles}`, articleData)
+      synced++
+    }
+  }
+
+  return { synced, total_items: response.data.items.length }
 }
