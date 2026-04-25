@@ -622,12 +622,12 @@ export default function ArticleToVideoPage() {
                   <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
                     No Video Generated
                   </h3>
-                  <p className="text-nexus-text-secondary mb-6">
-                    Extract an article and convert it to video to see the preview.
-                  </p>
-                  <Button
-                    onClick={() => document.querySelector('[data-value="extract"]')?.click()}
-                    className="bg-nexus-violet hover:bg-nexus-violet/90 text-white"
+                   <p className="text-nexus-text-secondary mb-6">
+                     Extract an article and convert it to video to see the preview.
+                   </p>
+                   <Button
+                     onClick={() => (document.querySelector('[data-value="extract"]') as HTMLElement)?.click()}
+                     className="bg-nexus-violet hover:bg-nexus-violet/90 text-white"
                   >
                     <FileText className="w-4 h-4 mr-2" />
                     Start Conversion
