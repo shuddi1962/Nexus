@@ -92,7 +92,6 @@ export function ContactsTable() {
         return 'bg-nexus-blue/10 text-nexus-blue border border-nexus-blue/20'
     }
   }
-  }
 
   return (
     <div className="overflow-x-auto">
