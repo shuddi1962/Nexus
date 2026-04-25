@@ -144,7 +144,6 @@ export default function AdsPage() {
         return 'bg-gray-100 text-gray-800'
     }
   }
-  }
 
   return (
     <div className="space-y-6">
