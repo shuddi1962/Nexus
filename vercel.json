@@ -4,11 +4,6 @@
   "installCommand": "npm ci",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "functions": {
-    "apps/api/src/**/*.ts": {
-      "runtime": "nodejs22.x"
-    }
-  },
   "env": {
     "NEXT_PUBLIC_APP_NAME": "NEXUS"
   },
