@@ -174,7 +174,7 @@ export default function VaultPage() {
 
   const handleAddKey = async () => {
     try {
-      await apiClient.addApiKey(newKeyForm)
+      await apiClient.addApiKey(newKeyForm.provider, newKeyForm.category, newKeyForm.key, newKeyForm.label)
       setIsAddDialogOpen(false)
       setNewKeyForm({ provider: '', category: '', key: '', label: '' })
       fetchApiKeys()
