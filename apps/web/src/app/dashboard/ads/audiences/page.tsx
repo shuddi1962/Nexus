@@ -29,7 +29,8 @@ import {
   Copy,
   Trash2,
   Eye,
-  RefreshCw
+  RefreshCw,
+  MoreHorizontal
 } from 'lucide-react'
 
 interface Audience {
