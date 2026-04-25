@@ -91,60 +91,6 @@ export default function AdsPage() {
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return 'bg-nexus-green text-white'
-      case 'disconnected':
-        return 'bg-nexus-red text-white'
-      case 'error':
-        return 'bg-nexus-red text-white'
-      case 'pending':
-        return 'bg-nexus-amber text-white'
-      default:
-        return 'bg-nexus-text-tertiary text-white'
-    }
-  }
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case 'meta':
-        return '📘'
-      case 'google':
-        return '🔍'
-      case 'tiktok':
-        return '🎵'
-      case 'twitter':
-        return '🐦'
-      case 'linkedin':
-        return '💼'
-      case 'snapchat':
-        return '👻'
-      case 'pinterest':
-        return '📌'
-      case 'youtube':
-        return '📺'
-      case 'amazon':
-        return '📦'
-      default:
-        return '📢'
-    }
-  }
-
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800'
-      case 'paused':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'completed':
-        return 'bg-blue-100 text-blue-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
