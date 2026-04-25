@@ -430,6 +430,14 @@ class ApiClient {
     return this.request(`/seo/indexing${query ? `?${query}` : ''}`)
   }
 
+  // Article extraction endpoints
+  async extractArticle(url: string) {
+    return this.request('/content/extract', {
+      method: 'POST',
+      body: JSON.stringify({ url })
+    })
+  }
+
   // Backlinks endpoints
   async getBacklinks(domain: string, limit?: number) {
     const queryParams = new URLSearchParams()
