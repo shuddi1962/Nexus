@@ -343,6 +343,337 @@ export async function commerceRoutes(app: FastifyInstance) {
     }
   })
 
+  // Creative Suite Routes
+
+  // Music Creator - Generate music with AI
+  app.post('/creative/music/generate', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { prompt, duration, genre, mood, instruments } = request.body as {
+        prompt: string
+        duration: number
+        genre?: string
+        mood?: string
+        instruments?: string[]
+      }
+
+      if (!prompt) {
+        return reply.code(400).send({ error: 'Prompt is required' })
+      }
+
+      // Get user's organization
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(404).send({ error: 'Organization not found' })
+      }
+
+      const orgId = orgResult.data[0].id
+
+      // Generate music using AI (mock implementation)
+      const musicResult = await generateMusicWithAI({
+        prompt,
+        duration: duration || 30,
+        genre,
+        mood,
+        instruments
+      })
+
+      // Store generated music
+      const musicData = {
+        org_id: orgId,
+        prompt,
+        duration: duration || 30,
+        genre,
+        mood,
+        instruments,
+        audio_url: musicResult.audio_url,
+        waveform_data: musicResult.waveform_data,
+        created_at: new Date().toISOString(),
+      }
+
+      const result = await insforge.post(`/collections/${collections.platformSettings}`, {
+        key: `music_generation_${Date.now()}`,
+        value: JSON.stringify(musicData),
+        type: 'music_generation',
+        created_by: userId,
+      })
+
+      reply.send({
+        music_id: result.data.id,
+        ...musicData
+      })
+    } catch (error) {
+      logger.error('Error generating music:', error)
+      reply.code(500).send({ error: 'Failed to generate music' })
+    }
+  })
+
+  // Presentation Builder - Create presentations with AI
+  app.post('/creative/presentation/create', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { topic, slides, style, template } = request.body as {
+        topic: string
+        slides: number
+        style?: string
+        template?: string
+      }
+
+      if (!topic) {
+        return reply.code(400).send({ error: 'Topic is required' })
+      }
+
+      // Get user's organization
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(404).send({ error: 'Organization not found' })
+      }
+
+      const orgId = orgResult.data[0].id
+
+      // Generate presentation content and design
+      const presentationData = await generatePresentation({
+        topic,
+        slides: slides || 5,
+        style: style || 'modern',
+        template: template || 'professional'
+      })
+
+      // Store presentation
+      const presentation = {
+        org_id: orgId,
+        topic,
+        slides: slides || 5,
+        style: style || 'modern',
+        template: template || 'professional',
+        content: presentationData,
+        created_at: new Date().toISOString(),
+      }
+
+      const result = await insforge.post(`/collections/${collections.platformSettings}`, {
+        key: `presentation_${Date.now()}`,
+        value: JSON.stringify(presentation),
+        type: 'presentation',
+        created_by: userId,
+      })
+
+      reply.send({
+        presentation_id: result.data.id,
+        ...presentation
+      })
+    } catch (error) {
+      logger.error('Error creating presentation:', error)
+      reply.code(500).send({ error: 'Failed to create presentation' })
+    }
+  })
+
+  // Logo Creator - Generate logos with AI
+  app.post('/creative/logo/generate', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { company_name, industry, style, colors } = request.body as {
+        company_name: string
+        industry?: string
+        style?: string
+        colors?: string[]
+      }
+
+      if (!company_name) {
+        return reply.code(400).send({ error: 'Company name is required' })
+      }
+
+      // Get user's organization
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(404).send({ error: 'Organization not found' })
+      }
+
+      const orgId = orgResult.data[0].id
+
+      // Generate logo variations
+      const logoVariations = await generateLogoVariations({
+        company_name,
+        industry: industry || 'general',
+        style: style || 'modern',
+        colors: colors || ['#0066CC', '#FFFFFF']
+      })
+
+      // Store logo generation
+      const logoData = {
+        org_id: orgId,
+        company_name,
+        industry: industry || 'general',
+        style: style || 'modern',
+        colors: colors || ['#0066CC', '#FFFFFF'],
+        variations: logoVariations,
+        created_at: new Date().toISOString(),
+      }
+
+      const result = await insforge.post(`/collections/${collections.platformSettings}`, {
+        key: `logo_generation_${Date.now()}`,
+        value: JSON.stringify(logoData),
+        type: 'logo_generation',
+        created_by: userId,
+      })
+
+      reply.send({
+        logo_id: result.data.id,
+        ...logoData
+      })
+    } catch (error) {
+      logger.error('Error generating logo:', error)
+      reply.code(500).send({ error: 'Failed to generate logo' })
+    }
+  })
+
+  // Article to Video Converter
+  app.post('/creative/article-to-video', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { article_url, style, voice, duration } = request.body as {
+        article_url: string
+        style?: string
+        voice?: string
+        duration?: number
+      }
+
+      if (!article_url) {
+        return reply.code(400).send({ error: 'Article URL is required' })
+      }
+
+      // Get user's organization
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(404).send({ error: 'Organization not found' })
+      }
+
+      const orgId = orgResult.data[0].id
+
+      // Extract article content first
+      const extractedContent = await extractArticleContent(article_url)
+
+      // Generate video from article
+      const videoData = await convertArticleToVideo({
+        content: extractedContent,
+        style: style || 'professional',
+        voice: voice || 'neutral',
+        duration: duration || 60
+      })
+
+      // Store video conversion
+      const conversionData = {
+        org_id: orgId,
+        article_url,
+        extracted_content: extractedContent,
+        style: style || 'professional',
+        voice: voice || 'neutral',
+        duration: duration || 60,
+        video_url: videoData.video_url,
+        thumbnail_url: videoData.thumbnail_url,
+        transcript: videoData.transcript,
+        created_at: new Date().toISOString(),
+      }
+
+      const result = await insforge.post(`/collections/${collections.platformSettings}`, {
+        key: `article_to_video_${Date.now()}`,
+        value: JSON.stringify(conversionData),
+        type: 'article_to_video',
+        created_by: userId,
+      })
+
+      reply.send({
+        conversion_id: result.data.id,
+        ...conversionData
+      })
+    } catch (error) {
+      logger.error('Error converting article to video:', error)
+      reply.code(500).send({ error: 'Failed to convert article to video' })
+    }
+  })
+
+  // Video Export with multiple formats
+  app.post('/creative/video/export', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const userId = authRequest.user.id
+      const { project_id, format, resolution, quality } = request.body as {
+        project_id: string
+        format: 'mp4' | 'webm' | 'mov' | 'avi'
+        resolution: '1080p' | '720p' | '480p'
+        quality: 'high' | 'medium' | 'low'
+      }
+
+      if (!project_id) {
+        return reply.code(400).send({ error: 'Project ID is required' })
+      }
+
+      // Get user's organization
+      const orgResult = await insforge.get(`/collections/${collections.organizations}`, {
+        params: { owner_id: `eq.${userId}` }
+      })
+
+      if (!orgResult.data || orgResult.data.length === 0) {
+        return reply.code(404).send({ error: 'Organization not found' })
+      }
+
+      const orgId = orgResult.data[0].id
+
+      // Export video in specified format
+      const exportResult = await exportVideoProject({
+        project_id,
+        format: format || 'mp4',
+        resolution: resolution || '1080p',
+        quality: quality || 'high'
+      })
+
+      // Store export record
+      const exportData = {
+        org_id: orgId,
+        project_id,
+        format: format || 'mp4',
+        resolution: resolution || '1080p',
+        quality: quality || 'high',
+        video_url: exportResult.video_url,
+        file_size: exportResult.file_size,
+        duration: exportResult.duration,
+        created_at: new Date().toISOString(),
+      }
+
+      const result = await insforge.post(`/collections/${collections.platformSettings}`, {
+        key: `video_export_${Date.now()}`,
+        value: JSON.stringify(exportData),
+        type: 'video_export',
+        created_by: userId,
+      })
+
+      reply.send({
+        export_id: result.data.id,
+        ...exportData
+      })
+    } catch (error) {
+      logger.error('Error exporting video:', error)
+      reply.code(500).send({ error: 'Failed to export video' })
+    }
+  })
+}
+  })
+
   // Get UGC Ads
   app.get('/commerce/ugc-ads', { preHandler: authMiddleware }, async (request, reply) => {
     try {
@@ -692,5 +1023,193 @@ async function generateUGCAdContent(productInfo: any, options: any) {
     call_to_action: options.objective === 'conversions' ? 'Shop now via link in bio' : 'Save for later!',
     estimated_duration: options.format === 'video' ? '15-30 seconds' : 'Static post',
     target_audience_fit: `Optimized for ${options.audience.join(', ')} interests`
+  }
+}
+
+// Creative Suite Helper Functions
+
+async function generateMusicWithAI(options: any) {
+  // Mock AI music generation - would integrate with music generation API like AIVA or Suno
+  return {
+    audio_url: `https://example.com/generated-music-${Date.now()}.mp3`,
+    waveform_data: Array.from({ length: 100 }, () => Math.random()),
+    duration: options.duration,
+    genre: options.genre,
+    mood: options.mood,
+    instruments: options.instruments,
+    bpm: 120,
+    key: 'C Major'
+  }
+}
+
+async function generatePresentation(options: any) {
+  const slides = []
+
+  // Generate slide content based on topic using AI-like logic
+  const slideTopics = [
+    options.topic,
+    `Key Benefits of ${options.topic}`,
+    `How ${options.topic} Works`,
+    `Case Studies & Results`,
+    `Getting Started with ${options.topic}`,
+    `Q&A and Next Steps`
+  ]
+
+  for (let i = 0; i < Math.min(options.slides, slideTopics.length); i++) {
+    slides.push({
+      id: i + 1,
+      title: slideTopics[i],
+      content: `Comprehensive content about ${slideTopics[i].toLowerCase()} including data, examples, and actionable insights.`,
+      layout: i === 0 ? 'hero' : i === options.slides - 1 ? 'contact' : 'content',
+      background: options.style === 'modern' ? '#0066CC' : options.style === 'dark' ? '#1a1a1a' : '#FFFFFF',
+      textColor: options.style === 'modern' || options.style === 'dark' ? '#FFFFFF' : '#000000',
+      elements: [
+        {
+          type: 'title',
+          content: slideTopics[i],
+          position: { x: 100, y: 100 },
+          style: {
+            fontSize: i === 0 ? 72 : 48,
+            fontWeight: 'bold',
+            color: options.style === 'modern' || options.style === 'dark' ? '#FFFFFF' : '#000000'
+          }
+        },
+        {
+          type: 'content',
+          content: `Detailed information about ${slideTopics[i].toLowerCase()} with supporting data and examples.`,
+          position: { x: 100, y: 200 },
+          style: {
+            fontSize: 24,
+            color: options.style === 'modern' || options.style === 'dark' ? '#FFFFFF' : '#333333'
+          }
+        },
+        ...(i > 0 && i < options.slides - 1 ? [{
+          type: 'image',
+          url: `https://via.placeholder.com/400x300?text=${encodeURIComponent(slideTopics[i])}`,
+          position: { x: 600, y: 150 },
+          style: { width: 400, height: 300 }
+        }] : [])
+      ]
+    })
+  }
+
+  return {
+    slides,
+    theme: options.style,
+    template: options.template,
+    total_slides: slides.length,
+    presentation_title: options.topic,
+    estimated_duration: slides.length * 2, // 2 minutes per slide
+    fonts: ['Inter', 'Roboto'],
+    color_scheme: options.style === 'modern' ? ['#0066CC', '#FFFFFF', '#333333'] :
+                  options.style === 'dark' ? ['#1a1a1a', '#FFFFFF', '#666666'] :
+                  ['#FFFFFF', '#000000', '#666666']
+  }
+}
+
+async function generateLogoVariations(options: any) {
+  // Mock logo generation - would integrate with services like LogoMaker or Looka
+  const variations = []
+  const styles = ['minimalist', 'modern', 'classic', 'bold', 'playful', 'elegant']
+
+  for (let i = 0; i < 6; i++) {
+    variations.push({
+      id: i + 1,
+      name: `${options.company_name} Logo ${i + 1}`,
+      svg_url: `https://via.placeholder.com/300x300.svg?text=${encodeURIComponent(options.company_name)}`,
+      png_url: `https://via.placeholder.com/300x300.png?text=${encodeURIComponent(options.company_name)}`,
+      style: styles[i],
+      colors: options.colors,
+      fonts: ['Inter', 'Montserrat', 'Roboto'][i % 3],
+      rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
+      tags: [options.industry, styles[i], 'professional']
+    })
+  }
+
+  return variations
+}
+
+async function extractArticleContent(url: string) {
+  // Reuse article extraction logic from content routes
+  // This would normally fetch and parse the article
+  return {
+    title: 'Sample Article Title',
+    content: 'Full article content would be extracted here from the provided URL...',
+    excerpt: 'Brief summary of the article content for preview purposes.',
+    author: 'Article Author',
+    published_date: new Date().toISOString(),
+    word_count: 850,
+    reading_time: 4,
+    images: ['https://via.placeholder.com/800x400'],
+    headings: ['Introduction', 'Main Points', 'Conclusion']
+  }
+}
+
+async function convertArticleToVideo(options: any) {
+  // Mock article to video conversion - would integrate with services like Synthesia or Pictory
+  const transcript = options.content.substring(0, 500) + '...'
+
+  return {
+    video_url: `https://via.placeholder.com/1920x1080.mp4?text=${encodeURIComponent('Generated Video')}`,
+    thumbnail_url: `https://via.placeholder.com/1920x1080.jpg?text=${encodeURIComponent('Video Thumbnail')}`,
+    transcript: transcript,
+    duration: options.duration,
+    style: options.style,
+    voice: options.voice,
+    scenes: [
+      {
+        start_time: 0,
+        end_time: 15,
+        content: 'Introduction scene with article title',
+        visuals: 'Text overlay with background image'
+      },
+      {
+        start_time: 15,
+        end_time: 45,
+        content: 'Main content explanation',
+        visuals: 'Animated text with relevant imagery'
+      }
+    ],
+    audio_tracks: [
+      {
+        type: 'voiceover',
+        voice: options.voice,
+        text: transcript
+      },
+      {
+        type: 'background_music',
+        genre: 'corporate',
+        volume: 0.3
+      }
+    ]
+  }
+}
+
+async function exportVideoProject(options: any) {
+  // Mock video export with different formats and resolutions
+  const fileSizes = {
+    '1080p': { mp4: 157286400, webm: 104857600, mov: 209715200 }, // ~150MB, ~100MB, ~200MB
+    '720p': { mp4: 78643200, webm: 52428800, mov: 104857600 },   // ~75MB, ~50MB, ~100MB
+    '480p': { mp4: 39321600, webm: 26214400, mov: 52428800 }     // ~37MB, ~25MB, ~50MB
+  }
+
+  const qualities = {
+    high: 1.0,
+    medium: 0.8,
+    low: 0.6
+  }
+
+  const baseSize = fileSizes[options.resolution][options.format] || 100000000
+  const finalSize = Math.floor(baseSize * qualities[options.quality])
+
+  return {
+    video_url: `https://example.com/exported-video-${options.project_id}-${options.format}-${options.resolution}-${options.quality}-${Date.now()}.${options.format}`,
+    file_size: finalSize,
+    duration: 60, // Would be calculated from project
+    format: options.format,
+    resolution: options.resolution,
+    quality: options.quality,
+    bitrate: options.quality === 'high' ? '8000k' : options.quality === 'medium' ? '5000k' : '3000k',
+    export_time: new Date().toISOString()
   }
 }
