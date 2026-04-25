@@ -1,10 +1,21 @@
 {
-  "buildCommand": "cd apps/web && npx next build",
+  "buildCommand": "cd apps/web && npm run build",
   "outputDirectory": "apps/web/.next",
   "installCommand": "npm ci",
   "framework": "nextjs",
   "regions": ["iad1"],
+  "functions": {
+    "apps/api/src/**/*.ts": {
+      "runtime": "nodejs22.x"
+    }
+  },
   "env": {
     "NEXT_PUBLIC_APP_NAME": "NEXUS"
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
 }

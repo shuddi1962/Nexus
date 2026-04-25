@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # NEXUS Frontend (Next.js)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api
+      - NEXT_PUBLIC_WS_URL=ws://localhost:3001
+      - NEXT_PUBLIC_APP_NAME=NEXUS
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_INSFORGE_URL=https://aev8u7h7.us-east.insforge.app
+      - NEXT_PUBLIC_INSFORGE_ANON_KEY=${NEXT_PUBLIC_INSFORGE_ANON_KEY}
+    depends_on:
+      - backend
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    networks:
+      - nexus
+
+  # NEXUS Backend (Fastify)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - INSFORGE_URL=https://aev8u7h7.us-east.insforge.app
+      - INSFORGE_API_KEY=${INSFORGE_API_KEY}
+      - INSFORGE_DB_NAME=nexus
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - REDIS_URL=redis://redis:6379
+      - FRONTEND_URL=http://localhost:3000
+      - SYSTEM_SMTP_HOST=${SYSTEM_SMTP_HOST}
+      - SYSTEM_SMTP_USER=${SYSTEM_SMTP_USER}
+      - SYSTEM_SMTP_PASS=${SYSTEM_SMTP_PASS}
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    networks:
+      - nexus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nexus
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL (optional - for local development if not using InsForge)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: nexus
+  #     POSTGRES_USER: nexus
+  #     POSTGRES_PASSWORD: nexus_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - nexus
+
+volumes:
+  redis_data:
+  # postgres_data:
+
+networks:
+  nexus:
+    driver: bridge

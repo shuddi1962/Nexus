@@ -1,0 +1,29 @@
+[build]
+  command = "cd apps/web && npm run build"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://api.nexus.app/:splat"
+  status = 200
+
+[functions]
+  directory = "apps/api/src"
+
+[[edge_functions]]
+  function = "middleware"
+  path = "/"
+
+[build_processing]
+  skip_processing = false
+[build_processing.css]
+  bundle = true
+  minify = true
+[build_processing.js]
+  bundle = true
+  minify = true
+[build_processing.html]
+  pretty_urls = true

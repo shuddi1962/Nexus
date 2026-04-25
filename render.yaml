@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: nexus-frontend
+    runtime: static
+    buildCommand: "cd apps/web && npm ci && npm run build"
+    staticPublishPath: "apps/web/.next"
+    pullRequestPreviewsEnabled: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_APP_NAME
+        value: NEXUS
+
+  - type: web
+    name: nexus-backend
+    runtime: node
+    buildCommand: "cd apps/api && npm ci"
+    startCommand: "cd apps/api && npm run start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - fromSecret: insforge-url
+      - fromSecret: insforge-api-key
+      - fromSecret: jwt-secret
+      - fromSecret: jwt-refresh-secret
+      - fromSecret: encryption-key
+      - fromSecret: redis-url
+    healthCheckPath: /api/health
+    disk:
+      name: cache
+      mountPath: /tmp
+      sizeGB: 1
