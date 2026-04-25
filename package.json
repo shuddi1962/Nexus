@@ -23,7 +23,7 @@
     "deploy:railway": "railway up",
     "deploy:render": "render deploy",
     "deploy:aws": "npm run build && aws s3 sync apps/web/.next s3://nexus-frontend --delete && aws ecs update-service --cluster nexus-cluster --service nexus-service --force-new-deployment",
-    "seed:demo": "cd apps/api && npm run seed:demo",
+    "seed:demo": "cd apps/api && npm run seed",
     "postinstall": "npm run seed:demo"
   },
   "devDependencies": {
