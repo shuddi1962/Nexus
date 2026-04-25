@@ -28,22 +28,6 @@ import {
 } from 'lucide-react'
 
 
-    platform: 'TikTok',
-    accountId: '456789123',
-    accountName: 'NEXUS TikTok Ads',
-    status: 'disconnected',
-    balance: 0,
-    currency: 'USD',
-    campaigns: 0,
-    totalSpend: 0,
-    impressions: 0,
-    clicks: 0,
-    conversions: 0,
-  },
-]
-
-
-
 interface AdAccount {
   id: string
   platform: string
