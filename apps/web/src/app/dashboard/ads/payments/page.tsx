@@ -53,6 +53,13 @@ export default function AdsPaymentsPage() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [processingPayment, setProcessingPayment] = useState(false)
 
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+    }).format(amount)
+  }
+
   useEffect(() => {
     fetchPayments()
     fetchPaymentMethods()
@@ -99,13 +106,6 @@ export default function AdsPaymentsPage() {
     } finally {
       setProcessingPayment(false)
     }
-  }
-
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).format(amount)
   }
 
   const getStatusIcon = (status: string) => {
