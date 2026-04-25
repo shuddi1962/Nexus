@@ -193,7 +193,7 @@ export default function MarketingHomepage() {
   // Preload critical images for better Core Web Vitals
   useEffect(() => {
     // Preload hero image
-    const heroImage = new Image()
+    const heroImage = new window.Image()
     heroImage.src = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=80'
 
     // Preload testimonial avatars
@@ -207,7 +207,7 @@ export default function MarketingHomepage() {
     ]
 
     avatarUrls.forEach(url => {
-      const img = new Image()
+      const img = new window.Image()
       img.src = url
     })
   }, [])
