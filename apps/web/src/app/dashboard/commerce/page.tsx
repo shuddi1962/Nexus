@@ -735,7 +735,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Audience Engagement Rates</div>
                       <div className="space-y-2">
-                        {Object.entries(adIntelligence.platform_insights.audience_engagement_rates).map(([platform, rate]: [string, number]) => (
+                        {Object.entries(adIntelligence.platform_insights.audience_engagement_rates).map(([platform, rate]) => (
                           <div key={platform} className="flex items-center justify-between">
                             <span className="text-sm text-nexus-text-primary capitalize">{platform}</span>
                             <div className="flex items-center space-x-2">
@@ -807,7 +807,7 @@ export default function CommercePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {Object.entries(adIntelligence.recommendations.optimal_budget_allocation).map(([platform, percentage]: [string, number]) => (
+                    {Object.entries(adIntelligence.recommendations.optimal_budget_allocation).map(([platform, percentage]) => (
                       <div key={platform} className="flex items-center justify-between">
                         <span className="text-sm text-nexus-text-primary capitalize">{platform}</span>
                         <div className="flex items-center space-x-2">
