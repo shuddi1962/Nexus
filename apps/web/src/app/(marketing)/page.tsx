@@ -364,7 +364,7 @@ export default function MarketingHomepage() {
           >
             <p className="text-nexus-surface/60 mb-8">Trusted by 12,000+ businesses worldwide</p>
             <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-              {companyLogos.map((company, index) => (
+              {companyLogos.map((company: string, index: number) => (
                 <div key={index} className="text-nexus-surface/80 font-semibold text-lg">
                   {company}
                 </div>
@@ -447,7 +447,7 @@ export default function MarketingHomepage() {
           >
             <p className="text-nexus-text-secondary mb-8">Join thousands of businesses already using NEXUS</p>
             <div className="flex flex-wrap justify-center items-center gap-12">
-              {companyLogos.map((company, index) => (
+              {companyLogos.map((company: string, index: number) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0 }}
@@ -489,7 +489,7 @@ export default function MarketingHomepage() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {featureHighlights.map((feature, index) => (
+            {featureHighlights.map((feature: any, index: number) => (
               <motion.div
                 key={index}
                 variants={fadeInUp}
@@ -532,7 +532,7 @@ export default function MarketingHomepage() {
             viewport={{ once: true }}
             className="grid grid-cols-2 lg:grid-cols-4 gap-8"
           >
-            {stats.map((stat, index) => (
+            {stats.map((stat: any, index: number) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -574,7 +574,7 @@ export default function MarketingHomepage() {
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-center mb-8">
               <div className="bg-nexus-surface p-1 rounded-lg border border-nexus-border">
-                {['crm', 'marketing', 'creative', 'ads', 'automation', 'commerce'].map((tab) => (
+                {['crm', 'marketing', 'creative', 'ads', 'automation', 'commerce'].map((tab: string) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}

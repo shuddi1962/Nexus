@@ -341,7 +341,7 @@ export default function CommercePage() {
 
               {/* Product Results */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {researchResults.map((product, index) => (
+                {researchResults.map((product: ProductResult, index: number) => (
                   <Card key={index} className="border-nexus-border hover:shadow-lg transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
@@ -400,7 +400,7 @@ export default function CommercePage() {
                       </div>
 
                       <div className="flex flex-wrap gap-1 mb-3">
-                        {product.tags.slice(0, 3).map((tag, tagIndex) => (
+                        {product.tags.slice(0, 3).map((tag: string, tagIndex: number) => (
                           <Badge key={tagIndex} variant="secondary" className="text-xs border-nexus-border">
                             {tag}
                           </Badge>
@@ -592,7 +592,7 @@ export default function CommercePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {marketTrends.emerging_trends.map((trend, index) => (
+                    {marketTrends.emerging_trends.map((trend: string, index: number) => (
                       <div key={index} className="flex items-center space-x-3 p-3 bg-nexus-bg-secondary rounded-lg">
                         <TrendingUp className="w-5 h-5 text-nexus-violet" />
                         <span className="text-nexus-text-primary">{trend}</span>
@@ -612,7 +612,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Preferred Channels</div>
                       <div className="flex flex-wrap gap-1">
-                        {marketTrends.consumer_behavior.preferred_channels.map((channel, index) => (
+                        {marketTrends.consumer_behavior.preferred_channels.map((channel: string, index: number) => (
                           <Badge key={index} className="bg-nexus-blue text-white">
                             {channel}
                           </Badge>
@@ -633,7 +633,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Peak Months</div>
                       <div className="flex flex-wrap gap-1">
-                        {['November', 'December'].map((month, index) => (
+                        {['November', 'December'].map((month: string, index: number) => (
                           <Badge key={index} className="bg-nexus-green text-white">
                             {month}
                           </Badge>
@@ -643,7 +643,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Slow Months</div>
                       <div className="flex flex-wrap gap-1">
-                        {['January', 'February'].map((month, index) => (
+                        {['January', 'February'].map((month: string, index: number) => (
                           <Badge key={index} className="bg-nexus-amber text-white">
                             {month}
                           </Badge>
@@ -735,7 +735,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Audience Engagement Rates</div>
                       <div className="space-y-2">
-                        {Object.entries(adIntelligence.platform_insights.audience_engagement_rates).map(([platform, rate]) => (
+                        {Object.entries(adIntelligence.platform_insights.audience_engagement_rates).map(([platform, rate]: [string, number]) => (
                           <div key={platform} className="flex items-center justify-between">
                             <span className="text-sm text-nexus-text-primary capitalize">{platform}</span>
                             <div className="flex items-center space-x-2">
@@ -760,7 +760,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Top Age Groups</div>
                       <div className="flex flex-wrap gap-1">
-                        {adIntelligence.audience_insights.demographics.age_groups.map((age: string, index) => (
+                        {adIntelligence.audience_insights.demographics.age_groups.map((age: string, index: number) => (
                           <Badge key={index} className="bg-nexus-blue text-white">
                             {age}
                           </Badge>
@@ -789,7 +789,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Top Interests</div>
                       <div className="flex flex-wrap gap-1">
-                        {adIntelligence.audience_insights.interests.map((interest, index) => (
+                        {adIntelligence.audience_insights.interests.map((interest: string, index: number) => (
                           <Badge key={index} variant="outline" className="border-nexus-border">
                             {interest}
                           </Badge>
@@ -807,7 +807,7 @@ export default function CommercePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {Object.entries(adIntelligence.recommendations.optimal_budget_allocation).map(([platform, percentage]) => (
+                    {Object.entries(adIntelligence.recommendations.optimal_budget_allocation).map(([platform, percentage]: [string, number]) => (
                       <div key={platform} className="flex items-center justify-between">
                         <span className="text-sm text-nexus-text-primary capitalize">{platform}</span>
                         <div className="flex items-center space-x-2">
@@ -827,7 +827,7 @@ export default function CommercePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {adIntelligence.recommendations.creative_suggestions.map((suggestion, index) => (
+                    {adIntelligence.recommendations.creative_suggestions.map((suggestion: string, index: number) => (
                       <div key={index} className="flex items-start space-x-3 p-3 bg-nexus-bg-secondary rounded-lg">
                         <Lightbulb className="w-5 h-5 text-nexus-amber mt-0.5" />
                         <span className="text-sm text-nexus-text-primary">{suggestion}</span>
