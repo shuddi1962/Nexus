@@ -430,6 +430,15 @@ class ApiClient {
     return this.request(`/seo/indexing${query ? `?${query}` : ''}`)
   }
 
+  // Backlinks endpoints
+  async getBacklinks(domain: string, limit?: number) {
+    const queryParams = new URLSearchParams()
+    queryParams.set('domain', domain)
+    if (limit) queryParams.set('limit', limit.toString())
+
+    return this.request(`/seo/backlinks?${queryParams.toString()}`)
+  }
+
   async submitForIndexing(url: string, engines?: string[]) {
     return this.request('/seo/indexing/submit', {
       method: 'POST',
