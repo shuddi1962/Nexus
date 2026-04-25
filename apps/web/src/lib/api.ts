@@ -438,6 +438,18 @@ class ApiClient {
     })
   }
 
+  async convertArticleToVideo(options: {
+    article_url: string
+    style: string
+    voice: string
+    duration: number
+  }) {
+    return this.request('/content/convert-to-video', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    })
+  }
+
   // Backlinks endpoints
   async getBacklinks(domain: string, limit?: number) {
     const queryParams = new URLSearchParams()
