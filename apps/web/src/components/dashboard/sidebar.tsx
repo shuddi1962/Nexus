@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { Menu, X } from 'lucide-react'
 import {
   Home,
   Users,
@@ -119,18 +121,42 @@ const navigation = [
   },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { user } = useAuth()
 
   return (
-    <div className="w-64 bg-nexus-surface border-r border-nexus-border flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-nexus-border">
-        <Link href="/dashboard" className="flex items-center">
-          <div className="text-2xl font-bold text-nexus-text-primary">NEXUS</div>
-        </Link>
-      </div>
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-nexus-surface border-r border-nexus-border flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Logo */}
+        <div className="p-6 border-b border-nexus-border flex items-center justify-between">
+          <Link href="/dashboard" className="flex items-center" onClick={onClose}>
+            <div className="text-2xl font-bold text-nexus-text-primary">NEXUS</div>
+          </Link>
+          <button
+            onClick={onClose}
+            className="p-2 text-nexus-text-secondary hover:text-nexus-text-primary lg:hidden"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4">

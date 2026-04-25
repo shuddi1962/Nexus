@@ -1,13 +1,27 @@
 'use client'
 
-import { Bell, Search, Settings } from 'lucide-react'
+import { Bell, Search, Settings, Menu } from 'lucide-react'
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="bg-nexus-surface border-b border-nexus-border px-6 py-4">
+    <header className="bg-nexus-surface border-b border-nexus-border px-4 sm:px-6 py-4">
       <div className="flex items-center justify-between">
+        {/* Mobile menu button */}
+        <div className="lg:hidden">
+          <button
+            onClick={onMenuClick}
+            className="p-2 text-nexus-text-secondary hover:text-nexus-text-primary"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+
         {/* Search */}
-        <div className="flex-1 max-w-lg">
+        <div className="flex-1 max-w-lg ml-4 lg:ml-0">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-nexus-text-tertiary" />
@@ -21,7 +35,7 @@ export function Header() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Notifications */}
           <button className="p-2 text-nexus-text-secondary hover:text-nexus-text-primary relative">
             <Bell className="h-6 w-6" />
