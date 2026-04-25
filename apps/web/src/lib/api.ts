@@ -190,6 +190,192 @@ class ApiClient {
     })
   }
 
+  // Payment endpoints
+  async getPayments(params?: { page?: number; limit?: number }) {
+    const query = new URLSearchParams()
+    if (params?.page) query.set('page', params.page.toString())
+    if (params?.limit) query.set('limit', params.limit.toString())
+
+    return this.request(`/ads/payments?${query.toString()}`)
+  }
+
+  async processPayment(data: { account_id: string; amount: number; currency?: string }) {
+    return this.request('/ads/payments/process', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getPaymentMethods() {
+    return this.request('/ads/payments/methods')
+  }
+
+  // Creative endpoints
+  async getCreatives(accountId: string, params?: {
+    type?: string
+    status?: string
+    campaign_id?: string
+    page?: number
+    limit?: number
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.type) queryParams.set('type', params.type)
+    if (params?.status) queryParams.set('status', params.status)
+    if (params?.campaign_id) queryParams.set('campaign_id', params.campaign_id)
+    if (params?.page) queryParams.set('page', params.page.toString())
+    if (params?.limit) queryParams.set('limit', params.limit.toString())
+
+    const query = queryParams.toString()
+    return this.request(`/ads/accounts/${accountId}/creatives${query ? `?${query}` : ''}`)
+  }
+
+  async createCreative(accountId: string, creative: {
+    name: string
+    type: 'image' | 'video' | 'carousel' | 'text'
+    campaign_id?: string
+    status?: 'active' | 'draft' | 'archived'
+    format?: string
+    dimensions?: string
+    file_size?: number
+    url?: string
+    content?: any
+    tags?: string[]
+  }) {
+    return this.request(`/ads/accounts/${accountId}/creatives`, {
+      method: 'POST',
+      body: JSON.stringify(creative),
+    })
+  }
+
+  async updateCreative(creativeId: string, updates: Partial<{
+    name: string
+    type: string
+    campaign_id: string
+    status: string
+    format: string
+    dimensions: string
+    file_size: number
+    url: string
+    content: any
+    tags: string[]
+  }>) {
+    return this.request(`/ads/creatives/${creativeId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+  }
+
+  async deleteCreative(creativeId: string) {
+    return this.request(`/ads/creatives/${creativeId}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async duplicateCreative(creativeId: string) {
+    return this.request(`/ads/creatives/${creativeId}/duplicate`, {
+      method: 'POST',
+    })
+  }
+
+  async getCreativeAnalytics(creativeId: string, params?: {
+    start_date?: string
+    end_date?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.start_date) queryParams.set('start_date', params.start_date)
+    if (params?.end_date) queryParams.set('end_date', params.end_date)
+
+    const query = queryParams.toString()
+    return this.request(`/ads/creatives/${creativeId}/analytics${query ? `?${query}` : ''}`)
+  }
+
+  // Reporting endpoints
+  async getCampaignPerformanceReport(params?: {
+    start_date?: string
+    end_date?: string
+    campaign_ids?: string
+    group_by?: 'day' | 'week' | 'month'
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.start_date) queryParams.set('start_date', params.start_date)
+    if (params?.end_date) queryParams.set('end_date', params.end_date)
+    if (params?.campaign_ids) queryParams.set('campaign_ids', params.campaign_ids)
+    if (params?.group_by) queryParams.set('group_by', params.group_by)
+
+    const query = queryParams.toString()
+    return this.request(`/ads/reports/campaign-performance${query ? `?${query}` : ''}`)
+  }
+
+  async getROIAnalysisReport(params?: {
+    start_date?: string
+    end_date?: string
+    attribution_window?: number
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.start_date) queryParams.set('start_date', params.start_date)
+    if (params?.end_date) queryParams.set('end_date', params.end_date)
+    if (params?.attribution_window) queryParams.set('attribution_window', params.attribution_window.toString())
+
+    const query = queryParams.toString()
+    return this.request(`/ads/reports/roi-analysis${query ? `?${query}` : ''}`)
+  }
+
+  async getAudiencePerformanceReport(params?: {
+    start_date?: string
+    end_date?: string
+    audience_ids?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.start_date) queryParams.set('start_date', params.start_date)
+    if (params?.end_date) queryParams.set('end_date', params.end_date)
+    if (params?.audience_ids) queryParams.set('audience_ids', params.audience_ids)
+
+    const query = queryParams.toString()
+    return this.request(`/ads/reports/audience-performance${query ? `?${query}` : ''}`)
+  }
+
+  async getCreativeComparisonReport(params?: {
+    start_date?: string
+    end_date?: string
+    creative_ids?: string
+    campaign_id?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.start_date) queryParams.set('start_date', params.start_date)
+    if (params?.end_date) queryParams.set('end_date', params.end_date)
+    if (params?.creative_ids) queryParams.set('creative_ids', params.creative_ids)
+    if (params?.campaign_id) queryParams.set('campaign_id', params.campaign_id)
+
+    const query = queryParams.toString()
+    return this.request(`/ads/reports/creative-comparison${query ? `?${query}` : ''}`)
+  }
+
+  async getBudgetOptimizationReport(params?: {
+    current_budget?: number
+    target_roas?: number
+    risk_tolerance?: 'low' | 'medium' | 'high'
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.current_budget) queryParams.set('current_budget', params.current_budget.toString())
+    if (params?.target_roas) queryParams.set('target_roas', params.target_roas.toString())
+    if (params?.risk_tolerance) queryParams.set('risk_tolerance', params.risk_tolerance)
+
+    const query = queryParams.toString()
+    return this.request(`/ads/reports/budget-optimization${query ? `?${query}` : ''}`)
+  }
+
+  async exportReport(reportType: string, params?: any) {
+    const queryParams = new URLSearchParams()
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.set(key, value.toString())
+      }
+    })
+
+    const query = queryParams.toString()
+    return this.request(`/ads/reports/export/${reportType}${query ? `?${query}` : ''}`)
+  }
+
   // Vault endpoints (admin only)
   async getApiKeys() {
     return this.request('/admin/vault')

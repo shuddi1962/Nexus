@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/lib/auth'
+import { apiClient } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Plus,
   Search,
@@ -16,113 +19,97 @@ import {
   FileText,
   Upload,
   Download,
-  Eye
+  Eye,
+  RefreshCw
 } from 'lucide-react'
 
-// Mock creatives data
-const creatives = [
-  {
-    id: '1',
-    name: 'Product Launch Hero Image',
-    type: 'image',
-    platform: 'Meta',
-    campaign: 'Q2 Product Launch',
-    status: 'active',
-    format: 'Single image',
-    dimensions: '1200x628',
-    fileSize: '2.1 MB',
-    url: '/placeholder-image.jpg',
-    performance: {
-      impressions: 45000,
-      clicks: 285,
-      ctr: 0.63,
-    },
-    tags: ['hero', 'product', 'launch'],
-    createdAt: '2026-04-01T10:00:00Z',
-  },
-  {
-    id: '2',
-    name: 'Brand Video - 15s',
-    type: 'video',
-    platform: 'Meta',
-    campaign: 'Brand Awareness 2026',
-    status: 'active',
-    format: 'Video',
-    dimensions: '1920x1080',
-    fileSize: '45.8 MB',
-    url: '/placeholder-video.mp4',
-    duration: '00:15',
-    performance: {
-      impressions: 32000,
-      clicks: 210,
-      ctr: 0.66,
-    },
-    tags: ['brand', 'video', 'awareness'],
-    createdAt: '2026-04-02T14:30:00Z',
-  },
-  {
-    id: '3',
-    name: 'Testimonial Carousel',
-    type: 'carousel',
-    platform: 'Meta',
-    campaign: 'Holiday Sale',
-    status: 'active',
-    format: 'Carousel',
-    dimensions: '1200x628',
-    fileSize: '8.3 MB',
-    url: '/placeholder-carousel.jpg',
-    slides: 3,
-    performance: {
-      impressions: 78000,
-      clicks: 420,
-      ctr: 0.54,
-    },
-    tags: ['testimonial', 'carousel', 'social proof'],
-    createdAt: '2026-03-15T09:15:00Z',
-  },
-  {
-    id: '4',
-    name: 'Search Ad Headline',
-    type: 'text',
-    platform: 'Google',
-    campaign: 'Brand Awareness 2026',
-    status: 'active',
-    format: 'Text ad',
-    headline: 'NEXUS - All-in-One Business Platform',
-    description: 'Replace 55+ tools with one powerful platform. Start your free trial today.',
-    performance: {
-      impressions: 7500,
-      clicks: 58,
-      ctr: 0.77,
-    },
-    tags: ['search', 'brand', 'text'],
-    createdAt: '2026-04-03T11:45:00Z',
-  },
-  {
-    id: '5',
-    name: 'TikTok Product Demo',
-    type: 'video',
-    platform: 'TikTok',
-    campaign: 'Product Launch',
-    status: 'draft',
-    format: 'Vertical video',
-    dimensions: '1080x1920',
-    fileSize: '28.4 MB',
-    url: '/placeholder-tiktok.mp4',
-    duration: '00:30',
-    performance: {
-      impressions: 0,
-      clicks: 0,
-      ctr: 0,
-    },
-    tags: ['tiktok', 'demo', 'vertical'],
-    createdAt: '2026-04-10T16:20:00Z',
-  },
-]
+interface Creative {
+  id: string
+  name: string
+  type: 'image' | 'video' | 'carousel' | 'text'
+  platform: string
+  campaign_id?: string
+  status: 'active' | 'draft' | 'archived'
+  format: string
+  dimensions?: string
+  file_size?: number
+  url?: string
+  content?: any
+  performance: {
+    impressions: number
+    clicks: number
+    conversions: number
+    ctr: number
+    cpc: number
+  }
+  tags: string[]
+  created_at: string
+}
 
 export default function CreativesPage() {
+  const { user } = useAuth()
+  const [creatives, setCreatives] = useState<Creative[]>([])
+  const [adAccounts, setAdAccounts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedCreatives, setSelectedCreatives] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [selectedAccount, setSelectedAccount] = useState<string>('')
+  const [selectedType, setSelectedType] = useState<string>('')
+  const [selectedStatus, setSelectedStatus] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [refreshing, setRefreshing] = useState(false)
+
+  useEffect(() => {
+    fetchAdAccounts()
+  }, [])
+
+  useEffect(() => {
+    if (selectedAccount) {
+      fetchCreatives()
+    }
+  }, [selectedAccount, selectedType, selectedStatus])
+
+  const fetchAdAccounts = async () => {
+    try {
+      const data = await apiClient.getAdAccounts()
+      setAdAccounts(data)
+      if (data.length > 0 && !selectedAccount) {
+        setSelectedAccount(data[0].id)
+      }
+    } catch (error) {
+      console.error('Error fetching ad accounts:', error)
+    }
+  }
+
+  const fetchCreatives = async () => {
+    if (!selectedAccount) return
+
+    try {
+      setLoading(true)
+      const params: any = {}
+
+      if (selectedType) params.type = selectedType
+      if (selectedStatus) params.status = selectedStatus
+
+      const data = await apiClient.getCreatives(selectedAccount, params)
+      setCreatives(data.creatives || [])
+    } catch (error) {
+      console.error('Error fetching creatives:', error)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await fetchCreatives()
+  }
+
+  const filteredCreatives = creatives.filter(creative =>
+    creative.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    creative.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  )
 
   const toggleCreative = (creativeId: string) => {
     setSelectedCreatives(prev =>
@@ -181,19 +168,41 @@ export default function CreativesPage() {
     }
   }
 
+  if (loading && !creatives.length) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-nexus-text-primary">Creative Library</h1>
+            <p className="text-nexus-text-secondary">Loading creatives...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Creative Library</h1>
-          <p className="text-gray-600">Manage your ad creatives, images, videos, and text content.</p>
+          <h1 className="text-2xl font-bold text-nexus-text-primary">Creative Library</h1>
+          <p className="text-nexus-text-secondary">Manage your ad creatives, images, videos, and text content.</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}>
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="border-nexus-border hover:bg-nexus-bg-secondary"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="border-nexus-border hover:bg-nexus-bg-secondary">
             {viewMode === 'grid' ? 'List View' : 'Grid View'}
           </Button>
-          <Button>
+          <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
             <Upload className="w-4 h-4 mr-2" />
             Upload Creative
           </Button>
@@ -201,38 +210,56 @@ export default function CreativesPage() {
       </div>
 
       {/* Filters and Search */}
-      <Card>
+      <Card className="border-nexus-border">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-nexus-text-tertiary h-4 w-4" />
                 <Input
                   placeholder="Search creatives..."
-                  className="pl-10"
+                  className="pl-10 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>All Types</option>
-                <option>Image</option>
-                <option>Video</option>
-                <option>Carousel</option>
-                <option>Text</option>
-              </select>
-              <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>All Platforms</option>
-                <option>Meta</option>
-                <option>Google</option>
-                <option>TikTok</option>
-              </select>
-              <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>All Status</option>
-                <option>Active</option>
-                <option>Draft</option>
-                <option>Archived</option>
-              </select>
+              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                <SelectTrigger className="w-40 border-nexus-border">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {adAccounts.map(account => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.platform} - {account.account_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-32 border-nexus-border">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="image">Image</SelectItem>
+                  <SelectItem value="video">Video</SelectItem>
+                  <SelectItem value="carousel">Carousel</SelectItem>
+                  <SelectItem value="text">Text</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-32 border-nexus-border">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -268,8 +295,8 @@ export default function CreativesPage() {
       {/* Creatives Display */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {creatives.map((creative) => (
-            <Card key={creative.id} className="hover:shadow-lg transition-shadow">
+          {filteredCreatives.map((creative) => (
+            <Card key={creative.id} className="hover:shadow-lg transition-shadow border-nexus-border">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -277,9 +304,9 @@ export default function CreativesPage() {
                       type="checkbox"
                       checked={selectedCreatives.includes(creative.id)}
                       onChange={() => toggleCreative(creative.id)}
-                      className="rounded border-gray-300"
+                      className="rounded border-nexus-border"
                     />
-                    <div className="text-gray-600">{getTypeIcon(creative.type)}</div>
+                    <div className="text-nexus-text-secondary">{getTypeIcon(creative.type)}</div>
                     <div className="text-lg">{getPlatformIcon(creative.platform)}</div>
                   </div>
                   <Badge className={getStatusColor(creative.status)}>
@@ -289,60 +316,60 @@ export default function CreativesPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Creative Preview */}
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="aspect-video bg-nexus-bg-secondary rounded-lg flex items-center justify-center">
                   {creative.type === 'image' || creative.type === 'carousel' ? (
-                    <Image className="w-8 h-8 text-gray-400" />
+                    <Image className="w-8 h-8 text-nexus-text-tertiary" />
                   ) : creative.type === 'video' ? (
-                    <Video className="w-8 h-8 text-gray-400" />
+                    <Video className="w-8 h-8 text-nexus-text-tertiary" />
                   ) : (
-                    <FileText className="w-8 h-8 text-gray-400" />
+                    <FileText className="w-8 h-8 text-nexus-text-tertiary" />
                   )}
                 </div>
 
                 {/* Creative Info */}
                 <div>
-                  <h3 className="font-medium text-gray-900 line-clamp-2">{creative.name}</h3>
-                  <p className="text-sm text-gray-600">{creative.campaign}</p>
+                  <h3 className="font-medium text-nexus-text-primary line-clamp-2">{creative.name}</h3>
+                  <p className="text-sm text-nexus-text-secondary">{creative.format}</p>
                 </div>
 
                 {/* Performance */}
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
-                    <div className="text-gray-600">Impressions</div>
-                    <div className="font-semibold">{creative.performance.impressions.toLocaleString()}</div>
+                    <div className="text-nexus-text-tertiary">Impressions</div>
+                    <div className="font-semibold text-nexus-text-primary">{creative.performance.impressions.toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-gray-600">Clicks</div>
-                    <div className="font-semibold">{creative.performance.clicks}</div>
+                    <div className="text-nexus-text-tertiary">Clicks</div>
+                    <div className="font-semibold text-nexus-text-primary">{creative.performance.clicks}</div>
                   </div>
                   <div>
-                    <div className="text-gray-600">CTR</div>
-                    <div className="font-semibold">{creative.performance.ctr}%</div>
+                    <div className="text-nexus-text-tertiary">CTR</div>
+                    <div className="font-semibold text-nexus-text-primary">{creative.performance.ctr.toFixed(2)}%</div>
                   </div>
                 </div>
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1">
                   {creative.tags.slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
+                    <Badge key={tag} variant="secondary" className="text-xs border-nexus-border">
                       {tag}
                     </Badge>
                   ))}
                   {creative.tags.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs border-nexus-border">
                       +{creative.tags.length - 3}
                     </Badge>
                   )}
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <Button variant="ghost" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
+                <div className="flex items-center justify-between pt-2 border-t border-nexus-border">
+                  <Button variant="ghost" size="sm" className="hover:bg-nexus-bg-secondary">
+                    <Eye className="w-4 h-4 mr-2 text-nexus-blue" />
                     Preview
                   </Button>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="w-4 h-4" />
+                  <Button variant="ghost" size="sm" className="hover:bg-nexus-bg-secondary">
+                    <MoreHorizontal className="w-4 h-4 text-nexus-text-tertiary" />
                   </Button>
                 </div>
               </CardContent>
@@ -351,73 +378,73 @@ export default function CreativesPage() {
         </div>
       ) : (
         /* List View */
-        <Card>
+        <Card className="border-nexus-border">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
+                  <tr className="border-b border-nexus-border bg-nexus-bg">
                     <th className="px-6 py-3 text-left">
                       <input
                         type="checkbox"
-                        checked={selectedCreatives.length === creatives.length}
+                        checked={selectedCreatives.length === filteredCreatives.length}
                         onChange={toggleAllCreatives}
-                        className="rounded border-gray-300"
+                        className="rounded border-nexus-border"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Creative
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Platform
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Performance
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {creatives.map((creative) => (
-                    <tr key={creative.id} className="hover:bg-gray-50">
+                <tbody className="bg-white divide-y divide-nexus-border">
+                  {filteredCreatives.map((creative) => (
+                    <tr key={creative.id} className="hover:bg-nexus-bg-secondary">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={selectedCreatives.includes(creative.id)}
                           onChange={() => toggleCreative(creative.id)}
-                          className="rounded border-gray-300"
+                          className="rounded border-nexus-border"
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="text-gray-600 mr-3">{getTypeIcon(creative.type)}</div>
+                          <div className="text-nexus-text-secondary mr-3">{getTypeIcon(creative.type)}</div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-nexus-text-primary">
                               {creative.name}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              {creative.format} • {creative.dimensions || creative.headline?.substring(0, 30) + '...'}
+                            <div className="text-sm text-nexus-text-secondary">
+                              {creative.format} • {creative.dimensions || 'N/A'}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant="outline" className="capitalize">
+                        <Badge variant="outline" className="capitalize border-nexus-border">
                           {creative.type}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <span className="text-lg mr-2">{getPlatformIcon(creative.platform)}</span>
-                          <span className="text-sm text-gray-900">{creative.platform}</span>
+                          <span className="text-sm text-nexus-text-primary">{creative.platform}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -428,32 +455,32 @@ export default function CreativesPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
-                            <div className="text-gray-600">Imp.</div>
-                            <div className="font-semibold">{creative.performance.impressions.toLocaleString()}</div>
+                            <div className="text-nexus-text-tertiary">Imp.</div>
+                            <div className="font-semibold text-nexus-text-primary">{creative.performance.impressions.toLocaleString()}</div>
                           </div>
                           <div>
-                            <div className="text-gray-600">Clicks</div>
-                            <div className="font-semibold">{creative.performance.clicks}</div>
+                            <div className="text-nexus-text-tertiary">Clicks</div>
+                            <div className="font-semibold text-nexus-text-primary">{creative.performance.clicks}</div>
                           </div>
                           <div>
-                            <div className="text-gray-600">CTR</div>
-                            <div className="font-semibold">{creative.performance.ctr}%</div>
+                            <div className="text-nexus-text-tertiary">CTR</div>
+                            <div className="font-semibold text-nexus-text-primary">{creative.performance.ctr.toFixed(2)}%</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
+                          <Button variant="ghost" size="sm" className="hover:bg-nexus-bg-secondary">
+                            <Eye className="w-4 h-4 text-nexus-blue" />
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
+                          <Button variant="ghost" size="sm" className="hover:bg-nexus-bg-secondary">
+                            <Edit className="w-4 h-4 text-nexus-text-tertiary" />
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            <Copy className="w-4 h-4" />
+                          <Button variant="ghost" size="sm" className="hover:bg-nexus-bg-secondary">
+                            <Copy className="w-4 h-4 text-nexus-text-tertiary" />
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="w-4 h-4" />
+                          <Button variant="ghost" size="sm" className="hover:bg-nexus-bg-secondary">
+                            <MoreHorizontal className="w-4 h-4 text-nexus-text-tertiary" />
                           </Button>
                         </div>
                       </td>
@@ -466,64 +493,84 @@ export default function CreativesPage() {
         </Card>
       )}
 
+      {filteredCreatives.length === 0 && !loading && (
+        <Card className="border-nexus-border">
+          <CardContent className="text-center py-12">
+            <FileText className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">No Creatives Found</h3>
+            <p className="text-nexus-text-secondary mb-6">
+              {selectedAccount ? 'No creatives found for this account. Upload your first creative to get started.' : 'Select an ad account to view creatives.'}
+            </p>
+            {selectedAccount && (
+              <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Creative
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Image className="w-8 h-8 text-blue-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {creatives.filter(c => c.type === 'image' || c.type === 'carousel').length}
+      {filteredCreatives.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="border-nexus-border">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Image className="w-8 h-8 text-nexus-blue mr-3" />
+                <div>
+                  <div className="text-2xl font-bold text-nexus-text-primary">
+                    {filteredCreatives.filter(c => c.type === 'image' || c.type === 'carousel').length}
+                  </div>
+                  <div className="text-sm text-nexus-text-secondary">Image Creatives</div>
                 </div>
-                <div className="text-sm text-gray-600">Image Creatives</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Video className="w-8 h-8 text-green-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {creatives.filter(c => c.type === 'video').length}
+          <Card className="border-nexus-border">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Video className="w-8 h-8 text-nexus-green mr-3" />
+                <div>
+                  <div className="text-2xl font-bold text-nexus-text-primary">
+                    {filteredCreatives.filter(c => c.type === 'video').length}
+                  </div>
+                  <div className="text-sm text-nexus-text-secondary">Video Creatives</div>
                 </div>
-                <div className="text-sm text-gray-600">Video Creatives</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <FileText className="w-8 h-8 text-purple-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {creatives.filter(c => c.type === 'text').length}
+          <Card className="border-nexus-border">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <FileText className="w-8 h-8 text-nexus-violet mr-3" />
+                <div>
+                  <div className="text-2xl font-bold text-nexus-text-primary">
+                    {filteredCreatives.filter(c => c.type === 'text').length}
+                  </div>
+                  <div className="text-sm text-nexus-text-secondary">Text Creatives</div>
                 </div>
-                <div className="text-sm text-gray-600">Text Creatives</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Eye className="w-8 h-8 text-orange-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {(creatives.reduce((sum, c) => sum + c.performance.impressions, 0) / 1000000).toFixed(1)}M
+          <Card className="border-nexus-border">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Eye className="w-8 h-8 text-nexus-amber mr-3" />
+                <div>
+                  <div className="text-2xl font-bold text-nexus-text-primary">
+                    {(filteredCreatives.reduce((sum, c) => sum + c.performance.impressions, 0) / 1000000).toFixed(1)}M
+                  </div>
+                  <div className="text-sm text-nexus-text-secondary">Total Impressions</div>
                 </div>
-                <div className="text-sm text-gray-600">Total Impressions</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

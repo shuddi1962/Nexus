@@ -52,6 +52,12 @@ await server.register(adsRoutes, { prefix: '/api' })
 
 // Start background jobs
 import './jobs/sync-models'
+import { scheduleRulesProcessing } from './jobs/rules-processor'
+import { scheduleAdSync } from './jobs/ad-sync'
+
+// Schedule background jobs
+scheduleRulesProcessing().catch(console.error)
+scheduleAdSync().catch(console.error)
 
 // Health check
 server.get('/health', async () => {

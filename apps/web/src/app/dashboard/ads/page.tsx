@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/lib/auth'
 import { apiClient } from '@/lib/api'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import Link from 'next/link'
 import {
   Plus,
   TrendingUp,
@@ -21,7 +21,10 @@ import {
   Settings,
   ExternalLink,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  BarChart3,
+  Zap,
+  CreditCard
 } from 'lucide-react'
 
 
@@ -196,10 +199,12 @@ export default function AdsPage() {
             Settings
           </Button>
           <Link href="/dashboard/ads/campaigns">
+          <Link href="/dashboard/ads/campaigns">
             <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
               <Plus className="w-4 h-4 mr-2" />
               Manage Campaigns
             </Button>
+          </Link>
           </Link>
         </div>
       </div>
@@ -380,9 +385,28 @@ export default function AdsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-nexus-text-primary">Campaign Performance</CardTitle>
+          <Link href="/dashboard/ads/analytics">
             <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
-              View All Campaigns
+              <BarChart3 className="w-4 h-4 mr-2 text-nexus-blue" />
+              Analytics
             </Button>
+          </Link>
+          <Link href="/dashboard/ads/rules">
+            <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <Zap className="w-4 h-4 mr-2 text-nexus-violet" />
+              Rules
+            </Button>
+          </Link>
+          <Link href="/dashboard/ads/payments">
+            <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <CreditCard className="w-4 h-4 mr-2 text-nexus-green" />
+              Payments
+            </Button>
+          </Link>
+          <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
+            <Settings className="w-4 h-4 mr-2 text-nexus-blue" />
+            Settings
+          </Button>
           </div>
         </CardHeader>
         <CardContent>
