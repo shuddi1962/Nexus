@@ -53,7 +53,7 @@ export default function AdsPaymentsPage() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [processingPayment, setProcessingPayment] = useState(false)
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency: (amount: number, currency?: string) => string = (amount, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
