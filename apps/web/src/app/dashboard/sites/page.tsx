@@ -1,221 +1,205 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/lib/auth'
-import { apiClient } from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
-  Plus,
   Globe,
+  Search,
+  Plus,
   Settings,
-  RefreshCw,
+  BarChart3,
+  Eye,
+  Edit,
+  Trash2,
   ExternalLink,
   CheckCircle,
-  AlertCircle,
-  Sync,
-  Upload,
-  Link,
-  Key,
-  User,
-  Lock
+  AlertTriangle,
+  RefreshCw,
+  Zap,
+  Target,
+  Users,
+  DollarSign
 } from 'lucide-react'
 
-interface ConnectedSite {
+interface Site {
   id: string
   name: string
   url: string
-  platform: 'wordpress' | 'ghost' | 'webflow' | 'shopify' | 'custom'
-  status: 'connected' | 'disconnected' | 'error'
-  last_sync?: string
-  created_at: string
+  status: 'active' | 'maintenance' | 'error'
+  type: 'blog' | 'landing' | 'ecommerce' | 'business'
+  visitors: number
+  bounceRate: number
+  avgSession: number
+  conversions: number
+  lastUpdated: string
+  seoScore: number
+}
+
+interface SEOIssue {
+  id: string
+  page: string
+  issue: string
+  severity: 'critical' | 'warning' | 'info'
+  impact: 'high' | 'medium' | 'low'
+  recommendation: string
+  status: 'open' | 'fixed' | 'ignored'
 }
 
 export default function SitesPage() {
-  const { user } = useAuth()
-  const [sites, setSites] = useState<ConnectedSite[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showConnectDialog, setShowConnectDialog] = useState(false)
-  const [syncingSite, setSyncingSite] = useState<string | null>(null)
+  const [selectedSite, setSelectedSite] = useState<string | null>(null)
 
-  // Connect site form
-  const [connectForm, setConnectForm] = useState({
-    name: '',
-    url: '',
-    platform: '' as ConnectedSite['platform'],
-    api_key: '',
-    username: '',
-    password: '',
-    useCredentials: false
-  })
-
-  useEffect(() => {
-    fetchSites()
-  }, [])
-
-  const fetchSites = async () => {
-    try {
-      setLoading(true)
-      const data = await apiClient.getConnectedSites()
-      setSites(data || [])
-    } catch (error) {
-      console.error('Error fetching sites:', error)
-    } finally {
-      setLoading(false)
+  // Mock sites data
+  const sites: Site[] = [
+    {
+      id: '1',
+      name: 'NEXUS Marketing Blog',
+      url: 'https://blog.nexus.app',
+      status: 'active',
+      type: 'blog',
+      visitors: 15420,
+      bounceRate: 42.3,
+      avgSession: 185,
+      conversions: 234,
+      lastUpdated: '2026-04-24T10:30:00Z',
+      seoScore: 87
+    },
+    {
+      id: '2',
+      name: 'NEXUS Landing Page',
+      url: 'https://nexus.app/landing',
+      status: 'active',
+      type: 'landing',
+      visitors: 28340,
+      bounceRate: 38.7,
+      avgSession: 142,
+      conversions: 1456,
+      lastUpdated: '2026-04-24T09:45:00Z',
+      seoScore: 92
+    },
+    {
+      id: '3',
+      name: 'NEXUS Store',
+      url: 'https://store.nexus.app',
+      status: 'maintenance',
+      type: 'ecommerce',
+      visitors: 8940,
+      bounceRate: 51.2,
+      avgSession: 298,
+      conversions: 89,
+      lastUpdated: '2026-04-23T14:20:00Z',
+      seoScore: 78
+    },
+    {
+      id: '4',
+      name: 'NEXUS Business Site',
+      url: 'https://business.nexus.app',
+      status: 'active',
+      type: 'business',
+      visitors: 12340,
+      bounceRate: 35.8,
+      avgSession: 234,
+      conversions: 456,
+      lastUpdated: '2026-04-24T08:15:00Z',
+      seoScore: 89
     }
-  }
+  ]
 
-  const handleConnectSite = async () => {
-    if (!connectForm.name || !connectForm.url || !connectForm.platform) return
-
-    try {
-      await apiClient.connectSite({
-        name: connectForm.name,
-        url: connectForm.url,
-        platform: connectForm.platform,
-        ...(connectForm.useCredentials && {
-          api_key: connectForm.api_key,
-          username: connectForm.username,
-          password: connectForm.password
-        })
-      })
-
-      setConnectForm({
-        name: '',
-        url: '',
-        platform: '' as any,
-        api_key: '',
-        username: '',
-        password: '',
-        useCredentials: false
-      })
-      setShowConnectDialog(false)
-      fetchSites()
-      alert('Site connected successfully!')
-    } catch (error) {
-      console.error('Error connecting site:', error)
-      alert('Failed to connect site. Please check your credentials and try again.')
+  const seoIssues: SEOIssue[] = [
+    {
+      id: '1',
+      page: '/blog/marketing-automation-guide',
+      issue: 'Missing meta description',
+      severity: 'warning',
+      impact: 'medium',
+      recommendation: 'Add a compelling meta description under 160 characters',
+      status: 'open'
+    },
+    {
+      id: '2',
+      page: '/pricing',
+      issue: 'Page title too long',
+      severity: 'info',
+      impact: 'low',
+      recommendation: 'Shorten title to under 60 characters for better display',
+      status: 'open'
+    },
+    {
+      id: '3',
+      page: '/features',
+      issue: 'Missing alt text on images',
+      severity: 'critical',
+      impact: 'high',
+      recommendation: 'Add descriptive alt text to all images for accessibility',
+      status: 'fixed'
+    },
+    {
+      id: '4',
+      page: '/contact',
+      issue: 'Slow loading time',
+      severity: 'warning',
+      impact: 'medium',
+      recommendation: 'Optimize images and reduce server response time',
+      status: 'open'
     }
-  }
-
-  const handleSyncSite = async (siteId: string) => {
-    try {
-      setSyncingSite(siteId)
-      await apiClient.syncSite(siteId)
-      fetchSites()
-      alert('Site synced successfully!')
-    } catch (error) {
-      console.error('Error syncing site:', error)
-      alert('Failed to sync site.')
-    } finally {
-      setSyncingSite(null)
-    }
-  }
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'wordpress':
-        return '📝'
-      case 'ghost':
-        return '👻'
-      case 'webflow':
-        return '🎨'
-      case 'shopify':
-        return '🛒'
-      default:
-        return '🌐'
-    }
-  }
-
-  const getPlatformName = (platform: string) => {
-    switch (platform) {
-      case 'wordpress':
-        return 'WordPress'
-      case 'ghost':
-        return 'Ghost'
-      case 'webflow':
-        return 'Webflow'
-      case 'shopify':
-        return 'Shopify'
-      default:
-        return 'Custom'
-    }
-  }
+  ]
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'connected':
-        return 'bg-nexus-green text-white'
-      case 'disconnected':
-        return 'bg-nexus-red text-white'
+      case 'active':
+        return 'bg-green-100 text-green-800'
+      case 'maintenance':
+        return 'bg-yellow-100 text-yellow-800'
       case 'error':
-        return 'bg-nexus-amber text-white'
+        return 'bg-red-100 text-red-800'
       default:
-        return 'bg-nexus-text-tertiary text-white'
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
-  const getConnectionInstructions = (platform: string) => {
-    switch (platform) {
-      case 'wordpress':
-        return {
-          title: 'WordPress Setup',
-          steps: [
-            'Install and activate the "Application Passwords" plugin',
-            'Go to Users → Profile and generate an Application Password',
-            'Use your WordPress username and the generated password',
-            'Ensure REST API is enabled (usually enabled by default)'
-          ]
-        }
-      case 'ghost':
-        return {
-          title: 'Ghost Setup',
-          steps: [
-            'Go to Settings → Integrations in your Ghost admin',
-            'Create a new Custom Integration',
-            'Copy the Admin API Key',
-            'Use the key in the API Key field above'
-          ]
-        }
-      case 'webflow':
-        return {
-          title: 'Webflow Setup',
-          steps: [
-            'Go to Site Settings → Apps & Integrations',
-            'Generate an API token',
-            'Find your Collection ID from the CMS API docs',
-            'Use the token in the API Key field'
-          ]
-        }
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'blog':
+        return 'bg-blue-100 text-blue-800'
+      case 'landing':
+        return 'bg-purple-100 text-purple-800'
+      case 'ecommerce':
+        return 'bg-green-100 text-green-800'
+      case 'business':
+        return 'bg-orange-100 text-orange-800'
       default:
-        return {
-          title: 'Custom Platform',
-          steps: [
-            'Ensure your platform supports REST API',
-            'Generate API credentials if required',
-            'Test the connection before saving'
-          ]
-        }
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-nexus-text-primary">Site Manager</h1>
-            <p className="text-nexus-text-secondary">Loading connected sites...</p>
-          </div>
-        </div>
-      </div>
-    )
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return 'bg-red-100 text-red-800'
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'info':
+        return 'bg-blue-100 text-blue-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getSEOColor = (score: number) => {
+    if (score >= 90) return 'text-green-600'
+    if (score >= 70) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
   return (
@@ -223,378 +207,495 @@ export default function SitesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-nexus-text-primary">Site Manager</h1>
-          <p className="text-nexus-text-secondary">Connect and manage your websites for seamless content publishing.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Site Manager</h1>
+          <p className="text-gray-600">Monitor and optimize your websites and landing pages.</p>
         </div>
-        <Dialog open={showConnectDialog} onOpenChange={setShowConnectDialog}>
-          <DialogTrigger asChild>
-            <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Connect Site
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle className="text-nexus-text-primary">Connect New Website</DialogTitle>
-            </DialogHeader>
-            <ConnectSiteForm
-              form={connectForm}
-              setForm={setConnectForm}
-              onSubmit={handleConnectSite}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center space-x-3">
+          <Button variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Sync Data
+          </Button>
+          <Button variant="outline">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Analytics
+          </Button>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Site
+          </Button>
+        </div>
       </div>
 
-      {/* Sites Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-nexus-border">
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Globe className="w-8 h-8 text-nexus-blue mr-3" />
+              <Globe className="w-8 h-8 text-blue-500 mr-3" />
               <div>
-                <div className="text-2xl font-bold text-nexus-text-primary">
-                  {sites.length}
-                </div>
-                <div className="text-sm text-nexus-text-secondary">Connected Sites</div>
+                <div className="text-2xl font-bold">{sites.length}</div>
+                <div className="text-sm text-gray-600">Total Sites</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-nexus-border">
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <CheckCircle className="w-8 h-8 text-nexus-green mr-3" />
+              <Users className="w-8 h-8 text-green-500 mr-3" />
               <div>
-                <div className="text-2xl font-bold text-nexus-text-primary">
-                  {sites.filter(s => s.status === 'connected').length}
+                <div className="text-2xl font-bold">
+                  {sites.reduce((sum, site) => sum + site.visitors, 0).toLocaleString()}
                 </div>
-                <div className="text-sm text-nexus-text-secondary">Active Connections</div>
+                <div className="text-sm text-gray-600">Total Visitors</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-nexus-border">
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Sync className="w-8 h-8 text-nexus-violet mr-3" />
+              <Target className="w-8 h-8 text-purple-500 mr-3" />
               <div>
-                <div className="text-2xl font-bold text-nexus-text-primary">
-                  {sites.filter(s => s.last_sync).length}
+                <div className="text-2xl font-bold">
+                  {sites.reduce((sum, site) => sum + site.conversions, 0)}
                 </div>
-                <div className="text-sm text-nexus-text-secondary">Recently Synced</div>
+                <div className="text-sm text-gray-600">Conversions</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <CheckCircle className="w-8 h-8 text-orange-500 mr-3" />
+              <div>
+                <div className="text-2xl font-bold">
+                  {Math.round(sites.reduce((sum, site) => sum + site.seoScore, 0) / sites.length)}
+                </div>
+                <div className="text-sm text-gray-600">Avg. SEO Score</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Connected Sites */}
-      <Card className="border-nexus-border">
-        <CardHeader>
-          <CardTitle className="text-nexus-text-primary">Connected Websites</CardTitle>
-          <p className="text-sm text-nexus-text-secondary">
-            Manage your website connections and publishing destinations.
-          </p>
-        </CardHeader>
-        <CardContent>
-          {sites.length === 0 ? (
-            <div className="text-center py-12">
-              <Globe className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">No Sites Connected</h3>
-              <p className="text-nexus-text-secondary mb-6">
-                Connect your first website to start publishing content automatically.
-              </p>
-              <Button
-                onClick={() => setShowConnectDialog(true)}
-                className="bg-nexus-blue hover:bg-nexus-accent text-white"
-              >
-                <Link className="w-4 h-4 mr-2" />
-                Connect Your First Site
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {sites.map((site) => (
-                <div key={site.id} className="p-4 border border-nexus-border rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-4">
-                      <div className="text-2xl">{getPlatformIcon(site.platform)}</div>
+      <Tabs defaultValue="sites" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="sites">My Sites</TabsTrigger>
+          <TabsTrigger value="seo">SEO Issues</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="sites" className="space-y-6">
+          {/* Sites Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {sites.map((site) => (
+              <Card key={site.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Globe className="w-5 h-5 text-gray-600" />
+                      </div>
                       <div>
-                        <h3 className="font-medium text-nexus-text-primary">{site.name}</h3>
-                        <p className="text-sm text-nexus-text-secondary">{site.url}</p>
+                        <CardTitle className="text-lg">{site.name}</CardTitle>
+                        <a
+                          href={site.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                        >
+                          {site.url}
+                          <ExternalLink className="w-3 h-3 ml-1" />
+                        </a>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <Badge className={getStatusColor(site.status)}>
+                      {site.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Badge className={getTypeColor(site.type)}>
+                      {site.type}
+                    </Badge>
+                    <span className={`text-sm font-medium ${getSEOColor(site.seoScore)}`}>
+                      SEO: {site.seoScore}/100
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Visitors:</span>
+                      <div className="font-semibold">{site.visitors.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Bounce Rate:</span>
+                      <div className="font-semibold">{site.bounceRate}%</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Avg. Session:</span>
+                      <div className="font-semibold">{formatTime(site.avgSession)}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Conversions:</span>
+                      <div className="font-semibold">{site.conversions}</div>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-500">
+                    Last updated: {new Date(site.lastUpdated).toLocaleDateString()}
+                  </div>
+
+                  <div className="flex items-center space-x-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setSelectedSite(site.id)}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      View
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Analytics
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="seo" className="space-y-6">
+          {/* SEO Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <AlertTriangle className="w-8 h-8 text-red-500 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold">
+                      {seoIssues.filter(i => i.severity === 'critical').length}
+                    </div>
+                    <div className="text-sm text-gray-600">Critical Issues</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <AlertTriangle className="w-8 h-8 text-yellow-500 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold">
+                      {seoIssues.filter(i => i.severity === 'warning').length}
+                    </div>
+                    <div className="text-sm text-gray-600">Warnings</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <CheckCircle className="w-8 h-8 text-green-500 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold">
+                      {seoIssues.filter(i => i.status === 'fixed').length}
+                    </div>
+                    <div className="text-sm text-gray-600">Fixed Issues</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* SEO Issues List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO Issues & Recommendations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {seoIssues.map((issue) => (
+                  <div key={issue.id} className="flex items-start space-x-4 p-4 border rounded-lg">
+                    <div className="flex-shrink-0 mt-1">
+                      {issue.severity === 'critical' ? (
+                        <AlertTriangle className="w-5 h-5 text-red-500" />
+                      ) : issue.severity === 'warning' ? (
+                        <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-blue-500" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h3 className="font-medium text-gray-900">{issue.issue}</h3>
+                        <Badge className={getSeverityColor(issue.severity)}>
+                          {issue.severity}
+                        </Badge>
+                        <Badge variant="outline">
+                          {issue.impact} impact
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">
+                        <strong>Page:</strong> {issue.page}
+                      </div>
+                      <div className="text-sm text-gray-700 bg-blue-50 p-3 rounded">
+                        <strong>Recommendation:</strong> {issue.recommendation}
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0 flex items-center space-x-2">
+                      <Badge className={
+                        issue.status === 'fixed' ? 'bg-green-100 text-green-800' :
+                        issue.status === 'ignored' ? 'bg-gray-100 text-gray-800' :
+                        'bg-blue-100 text-blue-800'
+                      }>
+                        {issue.status}
+                      </Badge>
+                      <Button variant="outline" size="sm">
+                        Fix
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEO Tools */}
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO Optimization Tools</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+                  <Search className="w-6 h-6" />
+                  <span className="text-sm">Keyword Research</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+                  <Target className="w-6 h-6" />
+                  <span className="text-sm">Meta Tag Generator</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+                  <BarChart3 className="w-6 h-6" />
+                  <span className="text-sm">Page Speed Test</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+                  <CheckCircle className="w-6 h-6" />
+                  <span className="text-sm">SEO Audit</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Zap className="w-8 h-8 text-green-500 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold">1.8s</div>
+                    <div className="text-sm text-gray-600">Avg. Load Time</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Globe className="w-8 h-8 text-blue-500 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold">99.2%</div>
+                    <div className="text-sm text-gray-600">Uptime</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <DollarSign className="w-8 h-8 text-purple-500 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold">$2.34</div>
+                    <div className="text-sm text-gray-600">Cost per Visit</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Site Performance */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Site Performance Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {sites.map((site) => (
+                  <div key={site.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-900">{site.name}</h3>
                       <Badge className={getStatusColor(site.status)}>
                         {site.status}
                       </Badge>
-                      <Badge variant="outline" className="border-nexus-border">
-                        {getPlatformName(site.platform)}
-                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <div className="text-gray-600">Load Time</div>
+                        <div className="font-semibold">1.2s</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">First Paint</div>
+                        <div className="font-semibold">0.8s</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Lighthouse Score</div>
+                        <div className="font-semibold">92</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Core Web Vitals</div>
+                        <div className="font-semibold text-green-600">Pass</div>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-nexus-text-secondary">
-                      {site.last_sync
-                        ? `Last synced: ${new Date(site.last_sync).toLocaleDateString()}`
-                        : 'Never synced'
-                      }
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(site.url, '_blank')}
-                        className="border-nexus-border hover:bg-nexus-bg-secondary"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2 text-nexus-blue" />
-                        Visit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSyncSite(site.id)}
-                        disabled={syncingSite === site.id}
-                        className="border-nexus-border hover:bg-nexus-bg-secondary"
-                      >
-                        {syncingSite === site.id ? (
-                          <RefreshCw className="w-4 h-4 mr-2 animate-spin text-nexus-blue" />
-                        ) : (
-                          <Sync className="w-4 h-4 mr-2 text-nexus-blue" />
-                        )}
-                        Sync
-                      </Button>
-                      <Button variant="ghost" size="sm" className="hover:bg-nexus-bg-secondary">
-                        <Settings className="w-4 h-4 text-nexus-text-tertiary" />
-                      </Button>
-                    </div>
+        <TabsContent value="monitoring" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Site Monitoring</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Monitoring Frequency</Label>
+                    <Select defaultValue="5min">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1min">Every minute</SelectItem>
+                        <SelectItem value="5min">Every 5 minutes</SelectItem>
+                        <SelectItem value="15min">Every 15 minutes</SelectItem>
+                        <SelectItem value="1hour">Every hour</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Alert Thresholds</Label>
+                    <Select defaultValue="medium">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low (5xx errors)</SelectItem>
+                        <SelectItem value="medium">Medium (4xx + 5xx)</SelectItem>
+                        <SelectItem value="high">High (3xx + 4xx + 5xx)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Publishing Stats */}
-      {sites.length > 0 && (
-        <Card className="border-nexus-border">
-          <CardHeader>
-            <CardTitle className="text-nexus-text-primary">Publishing Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-nexus-bg-secondary rounded-lg">
-                <div className="text-2xl font-bold text-nexus-text-primary mb-1">0</div>
-                <div className="text-sm text-nexus-text-secondary">Articles Published Today</div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span>Uptime monitoring</span>
+                    <input type="checkbox" defaultChecked className="rounded" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>SSL certificate monitoring</span>
+                    <input type="checkbox" defaultChecked className="rounded" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Broken link detection</span>
+                    <input type="checkbox" defaultChecked className="rounded" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Performance monitoring</span>
+                    <input type="checkbox" defaultChecked className="rounded" />
+                  </div>
+                </div>
               </div>
-              <div className="text-center p-4 bg-nexus-bg-secondary rounded-lg">
-                <div className="text-2xl font-bold text-nexus-text-primary mb-1">0</div>
-                <div className="text-sm text-nexus-text-secondary">Scheduled for Publishing</div>
-              </div>
-              <div className="text-center p-4 bg-nexus-bg-secondary rounded-lg">
-                <div className="text-2xl font-bold text-nexus-text-primary mb-1">0</div>
-                <div className="text-sm text-nexus-text-secondary">Failed Publications</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  )
-}
+            </CardContent>
+          </Card>
 
-function ConnectSiteForm({ form, setForm, onSubmit }: {
-  form: any
-  setForm: (form: any) => void
-  onSubmit: () => void
-}) {
-  const instructions = form.platform ? getConnectionInstructions(form.platform) : null
-
-  return (
-    <div className="space-y-6">
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="basic">Basic Info</TabsTrigger>
-          <TabsTrigger value="credentials">Credentials</TabsTrigger>
-          <TabsTrigger value="help">Setup Help</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="basic" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-nexus-text-primary">Site Name *</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="My Blog"
-                className="mt-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
-              />
-            </div>
-            <div>
-              <Label className="text-nexus-text-primary">Platform *</Label>
-              <Select value={form.platform} onValueChange={(value: any) => setForm({ ...form, platform: value })}>
-                <SelectTrigger className="mt-1 border-nexus-border">
-                  <SelectValue placeholder="Select platform" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="wordpress">WordPress</SelectItem>
-                  <SelectItem value="ghost">Ghost</SelectItem>
-                  <SelectItem value="webflow">Webflow</SelectItem>
-                  <SelectItem value="shopify">Shopify</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-nexus-text-primary">Website URL *</Label>
-            <Input
-              value={form.url}
-              onChange={(e) => setForm({ ...form, url: e.target.value })}
-              placeholder="https://example.com"
-              className="mt-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="useCredentials"
-              checked={form.useCredentials}
-              onChange={(e) => setForm({ ...form, useCredentials: e.target.checked })}
-              className="rounded border-nexus-border"
-            />
-            <Label htmlFor="useCredentials" className="text-nexus-text-primary">
-              I have API credentials for this site
-            </Label>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="credentials" className="space-y-4">
-          {form.platform === 'wordpress' && (
-            <div className="space-y-4">
-              <div className="p-4 bg-nexus-blue/10 rounded-lg">
-                <p className="text-sm text-nexus-text-primary">
-                  WordPress requires Application Passwords for API access.
-                </p>
-              </div>
-              <div>
-                <Label className="text-nexus-text-primary">Username *</Label>
-                <Input
-                  value={form.username}
-                  onChange={(e) => setForm({ ...form, username: e.target.value })}
-                  placeholder="admin"
-                  className="mt-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
-                />
-              </div>
-              <div>
-                <Label className="text-nexus-text-primary">Application Password *</Label>
-                <Input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="xxxx xxxx xxxx xxxx"
-                  className="mt-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
-                />
-              </div>
-            </div>
-          )}
-
-          {(form.platform === 'ghost' || form.platform === 'webflow') && (
-            <div className="space-y-4">
-              <div className="p-4 bg-nexus-violet/10 rounded-lg">
-                <p className="text-sm text-nexus-text-primary">
-                  {form.platform === 'ghost' ? 'Ghost requires an Admin API Key.' : 'Webflow requires an API token.'}
-                </p>
-              </div>
-              <div>
-                <Label className="text-nexus-text-primary">API Key *</Label>
-                <Input
-                  value={form.api_key}
-                  onChange={(e) => setForm({ ...form, api_key: e.target.value })}
-                  placeholder="Your API key"
-                  className="mt-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
-                />
-              </div>
-            </div>
-          )}
-
-          {form.platform === 'custom' && (
-            <div className="space-y-4">
-              <div className="p-4 bg-nexus-amber/10 rounded-lg">
-                <p className="text-sm text-nexus-text-primary">
-                  For custom platforms, provide API credentials if your CMS supports REST API.
-                </p>
-              </div>
-              <div>
-                <Label className="text-nexus-text-primary">API Key (Optional)</Label>
-                <Input
-                  value={form.api_key}
-                  onChange={(e) => setForm({ ...form, api_key: e.target.value })}
-                  placeholder="API key if required"
-                  className="mt-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
-                />
-              </div>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="help" className="space-y-4">
-          {instructions ? (
-            <div>
-              <h3 className="font-medium text-nexus-text-primary mb-4">{instructions.title}</h3>
-              <ol className="space-y-3">
-                {instructions.steps.map((step, index) => (
-                  <li key={index} className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-nexus-blue text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      {index + 1}
+          {/* Recent Alerts */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  {
+                    site: 'NEXUS Store',
+                    alert: 'High response time detected',
+                    severity: 'warning',
+                    time: '2026-04-24T14:30:00Z'
+                  },
+                  {
+                    site: 'NEXUS Blog',
+                    alert: 'SSL certificate expires in 30 days',
+                    severity: 'info',
+                    time: '2026-04-24T12:15:00Z'
+                  },
+                  {
+                    site: 'NEXUS Landing',
+                    alert: 'Broken link detected on /pricing',
+                    severity: 'warning',
+                    time: '2026-04-24T10:45:00Z'
+                  }
+                ].map((alert, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      {alert.severity === 'warning' ? (
+                        <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-blue-500" />
+                      )}
+                      <div>
+                        <div className="font-medium text-gray-900">{alert.site}</div>
+                        <div className="text-sm text-gray-600">{alert.alert}</div>
+                      </div>
                     </div>
-                    <p className="text-sm text-nexus-text-secondary">{step}</p>
-                  </li>
+                    <div className="text-right">
+                      <Badge className={getSeverityColor(alert.severity)}>
+                        {alert.severity}
+                      </Badge>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(alert.time).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </ol>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Settings className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
-              <p className="text-nexus-text-secondary">
-                Select a platform to see setup instructions.
-              </p>
-            </div>
-          )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
-
-      <div className="flex justify-end space-x-3 pt-4">
-        <Button
-          variant="outline"
-          className="border-nexus-border hover:bg-nexus-bg-secondary"
-          onClick={() => setForm({
-            name: '',
-            url: '',
-            platform: '' as any,
-            api_key: '',
-            username: '',
-            password: '',
-            useCredentials: false
-          })}
-        >
-          Reset
-        </Button>
-        <Button
-          onClick={onSubmit}
-          disabled={!form.name || !form.url || !form.platform}
-          className="bg-nexus-blue hover:bg-nexus-accent text-white"
-        >
-          Connect Site
-        </Button>
-      </div>
     </div>
   )
 }
