@@ -760,7 +760,7 @@ export default function CommercePage() {
                     <div>
                       <div className="text-sm text-nexus-text-secondary mb-2">Top Age Groups</div>
                       <div className="flex flex-wrap gap-1">
-                        {adIntelligence.audience_insights.demographics.age_groups.map((age, index) => (
+                        {adIntelligence.audience_insights.demographics.age_groups.map((age: string, index) => (
                           <Badge key={index} className="bg-nexus-blue text-white">
                             {age}
                           </Badge>
