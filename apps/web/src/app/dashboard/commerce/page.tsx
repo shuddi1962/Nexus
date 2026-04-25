@@ -740,7 +740,7 @@ export default function CommercePage() {
                             <span className="text-sm text-nexus-text-primary capitalize">{platform}</span>
                             <div className="flex items-center space-x-2">
                               <Progress value={rate as number} className="w-16 h-2" />
-                              <span className="text-sm font-medium text-nexus-text-primary">{rate}%</span>
+                              <span className="text-sm font-medium text-nexus-text-primary">{rate as number}%</span>
                             </div>
                           </div>
                         ))}
