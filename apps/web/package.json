@@ -15,6 +15,7 @@
     "react-dom": "^18.3.1",
     "framer-motion": "^12.0.0",
     "lucide-react": "^0.400.0",
+    "@radix-ui/react-select": "^2.0.0",
     "three": "^0.162.0",
     "zod": "^3.23.8",
     "clsx": "^2.1.1",

@@ -1,7 +1,13 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/lib/auth'
+import { apiClient } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import Link from 'next/link'
 import {
   Plus,
   TrendingUp,
@@ -13,41 +19,12 @@ import {
   AlertTriangle,
   CheckCircle,
   Settings,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  RefreshCw
 } from 'lucide-react'
 
-// Mock ad account data
-const adAccounts = [
-  {
-    id: '1',
-    platform: 'Meta',
-    accountId: '123456789',
-    accountName: 'NEXUS Marketing',
-    status: 'connected',
-    balance: 2500.00,
-    currency: 'USD',
-    campaigns: 12,
-    totalSpend: 15420.50,
-    impressions: 2450000,
-    clicks: 12850,
-    conversions: 342,
-  },
-  {
-    id: '2',
-    platform: 'Google',
-    accountId: '987654321',
-    accountName: 'NEXUS Search Ads',
-    status: 'connected',
-    balance: 1800.00,
-    currency: 'USD',
-    campaigns: 8,
-    totalSpend: 8750.25,
-    impressions: 1800000,
-    clicks: 9200,
-    conversions: 198,
-  },
-  {
-    id: '3',
+
     platform: 'TikTok',
     accountId: '456789123',
     accountName: 'NEXUS TikTok Ads',
@@ -62,59 +39,111 @@ const adAccounts = [
   },
 ]
 
-// Mock campaign data
-const recentCampaigns = [
-  {
-    id: '1',
-    name: 'Q2 Product Launch',
-    platform: 'Meta',
-    status: 'active',
-    budget: 5000,
-    spent: 2340.50,
-    impressions: 450000,
-    clicks: 2850,
-    ctr: 0.63,
-    cpc: 0.82,
-    conversions: 45,
-    roas: 3.2,
-  },
-  {
-    id: '2',
-    name: 'Brand Awareness 2026',
-    platform: 'Google',
-    status: 'active',
-    budget: 3000,
-    spent: 1850.75,
-    impressions: 320000,
-    clicks: 2100,
-    ctr: 0.66,
-    cpc: 0.88,
-    conversions: 28,
-    roas: 2.8,
-  },
-  {
-    id: '3',
-    name: 'Holiday Sale',
-    platform: 'Meta',
-    status: 'paused',
-    budget: 8000,
-    spent: 4560.25,
-    impressions: 780000,
-    clicks: 4200,
-    ctr: 0.54,
-    cpc: 1.09,
-    conversions: 89,
-    roas: 4.1,
-  },
-]
+
+
+interface AdAccount {
+  id: string
+  platform: string
+  account_id: string
+  account_name: string
+  status: string
+  currency: string
+  connected_at: string
+  synced_at?: string
+}
 
 export default function AdsPage() {
-  const totalSpend = adAccounts.reduce((sum, account) => sum + account.totalSpend, 0)
-  const totalImpressions = adAccounts.reduce((sum, account) => sum + account.impressions, 0)
-  const totalClicks = adAccounts.reduce((sum, account) => sum + account.clicks, 0)
-  const totalConversions = adAccounts.reduce((sum, account) => sum + account.conversions, 0)
-  const overallCTR = totalClicks / totalImpressions * 100
-  const overallCPC = totalSpend / totalClicks
+  const { user } = useAuth()
+  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([])
+  const [loading, setLoading] = useState(true)
+  const [analytics, setAnalytics] = useState<any>(null)
+  const [connecting, setConnecting] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchAdAccounts()
+    fetchAnalytics()
+  }, [])
+
+  const fetchAdAccounts = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getAdAccounts()
+      setAdAccounts(data)
+    } catch (error) {
+      console.error('Error fetching ad accounts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchAnalytics = async () => {
+    try {
+      const data = await apiClient.getAdsAnalytics()
+      setAnalytics(data)
+    } catch (error) {
+      console.error('Error fetching analytics:', error)
+    }
+  }
+
+  const handleConnectAccount = async (platform: string) => {
+    try {
+      setConnecting(platform)
+      const response = await apiClient.connectAdAccount(platform)
+
+      // Open OAuth URL in new window
+      window.open(response.oauth_url, '_blank', 'width=600,height=700')
+
+      // Refresh accounts after a delay
+      setTimeout(() => {
+        fetchAdAccounts()
+        setConnecting(null)
+      }, 2000)
+    } catch (error) {
+      console.error('Error connecting ad account:', error)
+      setConnecting(null)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'connected':
+        return 'bg-nexus-green text-white'
+      case 'disconnected':
+        return 'bg-nexus-red text-white'
+      case 'error':
+        return 'bg-nexus-red text-white'
+      case 'pending':
+        return 'bg-nexus-amber text-white'
+      default:
+        return 'bg-nexus-text-tertiary text-white'
+    }
+  }
+
+  const getPlatformIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'meta':
+        return '📘'
+      case 'google':
+        return '🔍'
+      case 'tiktok':
+        return '🎵'
+      case 'twitter':
+        return '🐦'
+      case 'linkedin':
+        return '💼'
+      case 'snapchat':
+        return '👻'
+      case 'pinterest':
+        return '📌'
+      case 'youtube':
+        return '📺'
+      case 'amazon':
+        return '📦'
+      default:
+        return '📢'
+    }
+  }
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -147,192 +176,232 @@ export default function AdsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ads Manager</h1>
-          <p className="text-gray-600">Manage your advertising campaigns across all platforms.</p>
+          <h1 className="text-2xl font-bold text-nexus-text-primary">Ads Manager</h1>
+          <p className="text-nexus-text-secondary">Manage your advertising campaigns across all platforms.</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
+          <Button
+            variant="outline"
+            className="border-nexus-border hover:bg-nexus-bg-secondary"
+            onClick={() => fetchAnalytics()}
+          >
+            <RefreshCw className="w-4 h-4 mr-2 text-nexus-blue" />
+            Refresh Data
+          </Button>
+          <Button
+            variant="outline"
+            className="border-nexus-border hover:bg-nexus-bg-secondary"
+          >
+            <Settings className="w-4 h-4 mr-2 text-nexus-blue" />
             Settings
           </Button>
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Campaign
-          </Button>
+          <Link href="/dashboard/ads/campaigns">
+            <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Manage Campaigns
+            </Button>
+          </Link>
         </div>
       </div>
 
       {/* Account Connections */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {adAccounts.map((account) => (
-          <Card key={account.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <span className="text-lg mr-2">{getPlatformIcon(account.platform)}</span>
-                {account.platform}
-              </CardTitle>
-              <Badge
-                variant={account.status === 'connected' ? 'default' : 'secondary'}
-                className={account.status === 'connected' ? 'bg-green-100 text-green-800' : ''}
-              >
-                {account.status}
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-600">{account.accountName}</p>
-                  <p className="text-xs text-gray-500">ID: {account.accountId}</p>
+        {loading ? (
+          // Loading state
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="border-nexus-border">
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-nexus-bg-secondary rounded animate-pulse" />
+                  <div className="h-4 bg-nexus-bg-secondary rounded w-20 animate-pulse" />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-600">Balance</p>
-                    <p className="font-semibold">${account.balance.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Campaigns</p>
-                    <p className="font-semibold">{account.campaigns}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="h-4 bg-nexus-bg-secondary rounded w-32 animate-pulse" />
+                  <div className="h-4 bg-nexus-bg-secondary rounded w-24 animate-pulse" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="h-3 bg-nexus-bg-secondary rounded animate-pulse" />
+                    <div className="h-3 bg-nexus-bg-secondary rounded animate-pulse" />
                   </div>
                 </div>
-
-                {account.status === 'connected' ? (
-                  <Button variant="outline" size="sm" className="w-full">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open {account.platform}
+              </CardContent>
+            </Card>
+          ))
+        ) : adAccounts.length === 0 ? (
+          // No accounts connected
+          <Card className="border-nexus-border md:col-span-3">
+            <CardContent className="py-12 text-center">
+              <Target className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">No Ad Accounts Connected</h3>
+              <p className="text-nexus-text-secondary mb-6">Connect your advertising accounts to start managing campaigns.</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {['Meta', 'Google', 'TikTok', 'Twitter', 'LinkedIn', 'Snapchat'].map((platform) => (
+                  <Button
+                    key={platform}
+                    variant="outline"
+                    className="border-nexus-border hover:bg-nexus-bg-secondary"
+                    onClick={() => handleConnectAccount(platform.toLowerCase())}
+                    disabled={connecting === platform.toLowerCase()}
+                  >
+                    {connecting === platform.toLowerCase() ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <span className="mr-2">{getPlatformIcon(platform.toLowerCase())}</span>
+                    )}
+                    Connect {platform}
                   </Button>
-                ) : (
-                  <Button size="sm" className="w-full">
-                    Connect Account
-                  </Button>
-                )}
+                ))}
               </div>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          adAccounts.map((account) => (
+            <Card key={account.id} className="border-nexus-border">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium flex items-center text-nexus-text-primary">
+                  <span className="text-lg mr-2">{getPlatformIcon(account.platform)}</span>
+                  {account.platform}
+                </CardTitle>
+                <Badge className={getStatusColor(account.status)}>
+                  {account.status}
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-nexus-text-primary">{account.account_name}</p>
+                    <p className="text-xs text-nexus-text-tertiary">ID: {account.account_id}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-nexus-text-secondary">Currency</p>
+                      <p className="font-semibold text-nexus-text-primary">{account.currency}</p>
+                    </div>
+                    <div>
+                      <p className="text-nexus-text-secondary">Status</p>
+                      <p className="font-semibold text-nexus-text-primary capitalize">{account.status}</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-nexus-border">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-nexus-text-tertiary">Connected</span>
+                      <span className="text-xs text-nexus-text-tertiary">
+                        {new Date(account.connected_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-nexus-border hover:bg-nexus-bg-secondary"
+                    onClick={() => fetchAnalytics()}
+                  >
+                    <Eye className="w-4 h-4 mr-2 text-nexus-blue" />
+                    View Analytics
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Overall Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${totalSpend.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              +12.5% from last month
-            </p>
-          </CardContent>
-        </Card>
+      {analytics && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="border-nexus-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-nexus-text-primary">Total Spend</CardTitle>
+              <DollarSign className="h-4 w-4 text-nexus-text-tertiary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-nexus-text-primary">
+                ${analytics.spend?.toLocaleString() || '0'}
+              </div>
+              <p className="text-xs text-nexus-text-secondary">
+                Last 30 days
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Impressions</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{(totalImpressions / 1000000).toFixed(1)}M</div>
-            <p className="text-xs text-muted-foreground">
-              +8.2% from last month
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-nexus-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-nexus-text-primary">Impressions</CardTitle>
+              <Eye className="h-4 w-4 text-nexus-text-tertiary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-nexus-text-primary">
+                {(analytics.impressions / 1000000).toFixed(1)}M
+              </div>
+              <p className="text-xs text-nexus-text-secondary">
+                Total reach
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Click Rate</CardTitle>
-            <MousePointer className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallCTR.toFixed(2)}%</div>
-            <p className="text-xs text-muted-foreground">
+          <Card className="border-nexus-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-nexus-text-primary">Click Rate</CardTitle>
+              <MousePointer className="h-4 w-4 text-nexus-text-tertiary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-nexus-text-primary">
+                {analytics.ctr?.toFixed(2) || '0.00'}%
+              </div>
+              <p className="text-xs text-nexus-text-secondary">
               +0.3% from last month
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversions</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalConversions}</div>
-            <p className="text-xs text-muted-foreground">
-              +15.7% from last month
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="border-nexus-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-nexus-text-primary">Conversions</CardTitle>
+              <Target className="h-4 w-4 text-nexus-text-tertiary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-nexus-text-primary">
+                {analytics.conversions || 0}
+              </div>
+              <p className="text-xs text-nexus-text-secondary">
+                Goal completions
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Recent Campaigns */}
-      <Card>
+      <Card className="border-nexus-border">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Recent Campaigns</CardTitle>
-            <Button variant="outline">
+            <CardTitle className="text-nexus-text-primary">Campaign Performance</CardTitle>
+            <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
               View All Campaigns
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentCampaigns.map((campaign) => (
-              <div key={campaign.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                <div className="flex items-center space-x-4">
-                  <div className="text-2xl">{getPlatformIcon(campaign.platform)}</div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{campaign.name}</h3>
-                    <p className="text-sm text-gray-600">{campaign.platform} • {campaign.status}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-4 gap-6 text-sm">
-                  <div>
-                    <p className="text-gray-600">Spent</p>
-                    <p className="font-semibold">${campaign.spent.toLocaleString()}</p>
-                    <Progress value={(campaign.spent / campaign.budget) * 100} className="w-16 h-1 mt-1" />
-                  </div>
-                  <div>
-                    <p className="text-gray-600">CTR</p>
-                    <p className="font-semibold">{campaign.ctr}%</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">CPC</p>
-                    <p className="font-semibold">${campaign.cpc}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">ROAS</p>
-                    <p className="font-semibold">{campaign.roas}x</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Badge className={getStatusColor(campaign.status)}>
-                    {campaign.status}
-                  </Badge>
-                  <Button variant="ghost" size="sm">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+          <div className="py-12 text-center">
+            <Target className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">No Campaigns Yet</h3>
+            <p className="text-nexus-text-secondary mb-6">
+              Connect an ad account and create your first campaign to start advertising.
+            </p>
+            <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Campaign
+            </Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Performance Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2" />
-              Performance Trends
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+    </div>
+  )
+}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Daily Budget Utilization</span>

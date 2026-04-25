@@ -43,10 +43,12 @@ import { authRoutes } from './routes/auth'
 import { vaultRoutes } from './routes/vault'
 import { modelRoutes } from './routes/models'
 import { crmRoutes } from './routes/crm'
+import { adsRoutes } from './routes/ads'
 await server.register(authRoutes, { prefix: '/api' })
 await server.register(vaultRoutes, { prefix: '/api' })
 await server.register(modelRoutes, { prefix: '/api' })
 await server.register(crmRoutes, { prefix: '/api' })
+await server.register(adsRoutes, { prefix: '/api' })
 
 // Start background jobs
 import './jobs/sync-models'

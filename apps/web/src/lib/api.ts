@@ -126,6 +126,70 @@ class ApiClient {
     return this.request(`/crm/contacts/search?q=${encodeURIComponent(query)}`)
   }
 
+  // Ads endpoints
+  async getAdAccounts() {
+    return this.request('/ads/accounts')
+  }
+
+  async connectAdAccount(platform: string) {
+    return this.request(`/ads/accounts/connect/${platform}`, {
+      method: 'POST',
+    })
+  }
+
+  async getCampaigns(accountId: string) {
+    return this.request(`/ads/accounts/${accountId}/campaigns`)
+  }
+
+  async createCampaign(accountId: string, campaign: any) {
+    return this.request(`/ads/accounts/${accountId}/campaigns`, {
+      method: 'POST',
+      body: JSON.stringify(campaign),
+    })
+  }
+
+  async updateCampaign(campaignId: string, updates: any) {
+    return this.request(`/ads/campaigns/${campaignId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+  }
+
+  async getAdsAnalytics(params?: {
+    account_id?: string
+    campaign_id?: string
+    start_date?: string
+    end_date?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.account_id) queryParams.set('account_id', params.account_id)
+    if (params?.campaign_id) queryParams.set('campaign_id', params.campaign_id)
+    if (params?.start_date) queryParams.set('start_date', params.start_date)
+    if (params?.end_date) queryParams.set('end_date', params.end_date)
+
+    const query = queryParams.toString()
+    return this.request(`/ads/analytics${query ? `?${query}` : ''}`)
+  }
+
+  async createAdRule(rule: {
+    name: string
+    description?: string
+    metric: string
+    condition: string
+    threshold: number
+    timeWindow: number
+    action: string
+    scope: string
+    campaign_ids?: string[]
+    account_ids?: string[]
+    enabled: boolean
+  }) {
+    return this.request('/ads/rules', {
+      method: 'POST',
+      body: JSON.stringify(rule),
+    })
+  }
+
   // Vault endpoints (admin only)
   async getApiKeys() {
     return this.request('/admin/vault')
