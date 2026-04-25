@@ -1,443 +1,686 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useAuth } from '@/lib/auth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Slider } from '@/components/ui/slider'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { ColorPicker } from '@/components/ui/color-picker'
 import {
-  Download,
-  Upload,
-  Undo,
-  Redo,
-  Square,
-  Circle,
+  Palette,
   Type,
   Image,
-  Move,
+  Square,
+  Circle,
+  Triangle,
+  Minus,
+  Undo,
+  Redo,
+  Download,
+  Upload,
+  Save,
   Copy,
   Trash2,
+  Move,
+  RotateCw,
   ZoomIn,
   ZoomOut,
-  Palette,
-  Settings
+  Maximize,
+  Grid3X3,
+  Eye,
+  EyeOff,
+  Settings,
+  Layers,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Bold,
+  Italic,
+  Underline,
+  Zap
 } from 'lucide-react'
+import { fabric } from 'fabric'
 
-interface CanvasElement {
+interface DesignProject {
   id: string
-  type: 'rectangle' | 'circle' | 'text' | 'image'
-  x: number
-  y: number
-  width: number
-  height: number
-  fill: string
-  stroke: string
-  text?: string
-  fontSize?: number
-  src?: string
+  name: string
+  canvas: any
+  thumbnail: string
+  created_at: string
+  updated_at: string
 }
 
 export default function DesignStudioPage() {
+  const { user } = useAuth()
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [elements, setElements] = useState<CanvasElement[]>([])
-  const [selectedTool, setSelectedTool] = useState<'select' | 'rectangle' | 'circle' | 'text' | 'image'>('select')
-  const [selectedElement, setSelectedElement] = useState<string | null>(null)
-  const [fillColor, setFillColor] = useState('#3B82F6')
-  const [strokeColor, setStrokeColor] = useState('#000000')
-  const [fontSize, setFontSize] = useState(16)
+  const [canvas, setCanvas] = useState<fabric.Canvas | null>(null)
+  const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null)
+  const [projects, setProjects] = useState<DesignProject[]>([])
+  const [currentProject, setCurrentProject] = useState<DesignProject | null>(null)
+  const [tool, setTool] = useState<'select' | 'text' | 'rectangle' | 'circle' | 'triangle' | 'line' | 'image'>('select')
+  const [color, setColor] = useState('#000000')
+  const [fontSize, setFontSize] = useState([16])
+  const [opacity, setOpacity] = useState([1])
+  const [showGrid, setShowGrid] = useState(false)
   const [zoom, setZoom] = useState(1)
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showTextPanel, setShowTextPanel] = useState(false)
+  const [showImagePanel, setShowImagePanel] = useState(false)
 
-  const canvasWidth = 800
-  const canvasHeight = 600
+  // Canvas dimensions for different platforms
+  const canvasSizes = {
+    instagram: { width: 1080, height: 1080 },
+    facebook: { width: 1200, height: 630 },
+    twitter: { width: 1200, height: 675 },
+    linkedin: { width: 1200, height: 627 },
+    pinterest: { width: 1000, height: 1500 },
+    story: { width: 1080, height: 1920 },
+    custom: { width: 800, height: 600 }
+  }
 
-  const addElement = useCallback((type: CanvasElement['type'], x: number, y: number) => {
-    const newElement: CanvasElement = {
-      id: Date.now().toString(),
-      type,
-      x,
-      y,
-      width: type === 'circle' ? 100 : 200,
-      height: type === 'circle' ? 100 : 100,
-      fill: fillColor,
-      stroke: strokeColor,
-      text: type === 'text' ? 'New Text' : undefined,
-      fontSize: type === 'text' ? fontSize : undefined,
+  const [currentSize, setCurrentSize] = useState(canvasSizes.instagram)
+
+  useEffect(() => {
+    if (canvasRef.current && !canvas) {
+      initializeCanvas()
     }
+  }, [canvasRef.current])
 
-    setElements(prev => [...prev, newElement])
-    setSelectedElement(newElement.id)
-  }, [fillColor, strokeColor, fontSize])
+  const initializeCanvas = useCallback(() => {
+    if (!canvasRef.current) return
 
-  const updateElement = useCallback((id: string, updates: Partial<CanvasElement>) => {
-    setElements(prev => prev.map(el => el.id === id ? { ...el, ...updates } : el))
-  }, [])
-
-  const deleteElement = useCallback((id: string) => {
-    setElements(prev => prev.filter(el => el.id !== id))
-    setSelectedElement(null)
-  }, [])
-
-  const duplicateElement = useCallback((id: string) => {
-    const element = elements.find(el => el.id === id)
-    if (element) {
-      const newElement = {
-        ...element,
-        id: Date.now().toString(),
-        x: element.x + 20,
-        y: element.y + 20,
-      }
-      setElements(prev => [...prev, newElement])
-      setSelectedElement(newElement.id)
-    }
-  }, [elements])
-
-  const drawCanvas = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-
-    // Draw grid
-    ctx.strokeStyle = '#E5E7EB'
-    ctx.lineWidth = 1
-    for (let x = 0; x <= canvasWidth; x += 20) {
-      ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, canvasHeight)
-      ctx.stroke()
-    }
-    for (let y = 0; y <= canvasHeight; y += 20) {
-      ctx.beginPath()
-      ctx.moveTo(0, y)
-      ctx.lineTo(canvasWidth, y)
-      ctx.stroke()
-    }
-
-    // Draw elements
-    elements.forEach(element => {
-      ctx.save()
-
-      if (element.type === 'rectangle') {
-        ctx.fillStyle = element.fill
-        ctx.strokeStyle = element.stroke
-        ctx.lineWidth = 2
-        ctx.fillRect(element.x, element.y, element.width, element.height)
-        ctx.strokeRect(element.x, element.y, element.width, element.height)
-      } else if (element.type === 'circle') {
-        ctx.fillStyle = element.fill
-        ctx.strokeStyle = element.stroke
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        ctx.arc(element.x + element.width/2, element.y + element.height/2, element.width/2, 0, 2 * Math.PI)
-        ctx.fill()
-        ctx.stroke()
-      } else if (element.type === 'text' && element.text) {
-        ctx.fillStyle = element.fill
-        ctx.font = `${element.fontSize || 16}px Arial`
-        ctx.fillText(element.text, element.x, element.y + (element.fontSize || 16))
-      }
-
-      // Draw selection outline
-      if (selectedElement === element.id) {
-        ctx.strokeStyle = '#3B82F6'
-        ctx.lineWidth = 2
-        ctx.setLineDash([5, 5])
-        if (element.type === 'circle') {
-          ctx.beginPath()
-          ctx.arc(element.x + element.width/2, element.y + element.height/2, element.width/2 + 5, 0, 2 * Math.PI)
-          ctx.stroke()
-        } else {
-          ctx.strokeRect(element.x - 5, element.y - 5, element.width + 10, element.height + 10)
-        }
-        ctx.setLineDash([])
-      }
-
-      ctx.restore()
-    })
-  }, [elements, selectedElement])
-
-  // Redraw when elements change
-  React.useEffect(() => {
-    drawCanvas()
-  }, [drawCanvas])
-
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const rect = canvas.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / zoom
-    const y = (e.clientY - rect.top) / zoom
-
-    // Check if clicking on existing element
-    const clickedElement = elements.find(el => {
-      return x >= el.x && x <= el.x + el.width && y >= el.y && y <= el.y + el.height
+    const fabricCanvas = new fabric.Canvas(canvasRef.current, {
+      width: currentSize.width,
+      height: currentSize.height,
+      backgroundColor: '#ffffff',
     })
 
-    if (clickedElement) {
-      setSelectedElement(clickedElement.id)
-    } else {
-      setSelectedElement(null)
-      if (selectedTool !== 'select') {
-        addElement(selectedTool, x, y)
-      }
+    // Enable object selection
+    fabricCanvas.on('selection:created', (e) => {
+      setSelectedObject(e.selected?.[0] || null)
+    })
+
+    fabricCanvas.on('selection:updated', (e) => {
+      setSelectedObject(e.selected?.[0] || null)
+    })
+
+    fabricCanvas.on('selection:cleared', () => {
+      setSelectedObject(null)
+    })
+
+    setCanvas(fabricCanvas)
+  }, [currentSize])
+
+  useEffect(() => {
+    if (canvas) {
+      canvas.setDimensions({ width: currentSize.width, height: currentSize.height })
+      canvas.renderAll()
+    }
+  }, [currentSize, canvas])
+
+  const addText = () => {
+    if (!canvas) return
+
+    const text = new fabric.IText('Click to edit text', {
+      left: 100,
+      top: 100,
+      fontSize: fontSize[0],
+      fill: color,
+      fontFamily: 'Arial',
+    })
+
+    canvas.add(text)
+    canvas.setActiveObject(text)
+    setSelectedObject(text)
+  }
+
+  const addRectangle = () => {
+    if (!canvas) return
+
+    const rect = new fabric.Rect({
+      left: 100,
+      top: 100,
+      width: 100,
+      height: 100,
+      fill: color,
+      opacity: opacity[0],
+    })
+
+    canvas.add(rect)
+    canvas.setActiveObject(rect)
+    setSelectedObject(rect)
+  }
+
+  const addCircle = () => {
+    if (!canvas) return
+
+    const circle = new fabric.Circle({
+      radius: 50,
+      left: 100,
+      top: 100,
+      fill: color,
+      opacity: opacity[0],
+    })
+
+    canvas.add(circle)
+    canvas.setActiveObject(circle)
+    setSelectedObject(circle)
+  }
+
+  const addTriangle = () => {
+    if (!canvas) return
+
+    const triangle = new fabric.Triangle({
+      width: 100,
+      height: 100,
+      left: 100,
+      top: 100,
+      fill: color,
+      opacity: opacity[0],
+    })
+
+    canvas.add(triangle)
+    canvas.setActiveObject(triangle)
+    setSelectedObject(triangle)
+  }
+
+  const addLine = () => {
+    if (!canvas) return
+
+    const line = new fabric.Line([50, 100, 200, 100], {
+      stroke: color,
+      strokeWidth: 2,
+      opacity: opacity[0],
+    })
+
+    canvas.add(line)
+    canvas.setActiveObject(line)
+    setSelectedObject(line)
+  }
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !canvas) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const imgUrl = e.target?.result as string
+      fabric.Image.fromURL(imgUrl, (img) => {
+        img.scaleToWidth(200)
+        canvas.add(img)
+        canvas.setActiveObject(img)
+        setSelectedObject(img)
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const updateSelectedObject = (property: string, value: any) => {
+    if (!selectedObject || !canvas) return
+
+    selectedObject.set(property, value)
+    canvas.renderAll()
+  }
+
+  const deleteSelectedObject = () => {
+    if (!selectedObject || !canvas) return
+
+    canvas.remove(selectedObject)
+    setSelectedObject(null)
+  }
+
+  const duplicateSelectedObject = () => {
+    if (!selectedObject || !canvas) return
+
+    selectedObject.clone((cloned: fabric.Object) => {
+      cloned.set({
+        left: (selectedObject.left || 0) + 10,
+        top: (selectedObject.top || 0) + 10,
+      })
+      canvas.add(cloned)
+      canvas.setActiveObject(cloned)
+      setSelectedObject(cloned)
+    })
+  }
+
+  const bringToFront = () => {
+    if (!selectedObject || !canvas) return
+    canvas.bringToFront(selectedObject)
+  }
+
+  const sendToBack = () => {
+    if (!selectedObject || !canvas) return
+    canvas.sendToBack(selectedObject)
+  }
+
+  const alignLeft = () => {
+    if (!selectedObject || !canvas) return
+    selectedObject.set('left', 0)
+    canvas.renderAll()
+  }
+
+  const alignCenter = () => {
+    if (!selectedObject || !canvas) return
+    const canvasWidth = canvas.getWidth()
+    const objectWidth = selectedObject.getScaledWidth()
+    selectedObject.set('left', (canvasWidth - objectWidth) / 2)
+    canvas.renderAll()
+  }
+
+  const alignRight = () => {
+    if (!selectedObject || !canvas) return
+    const canvasWidth = canvas.getWidth()
+    const objectWidth = selectedObject.getScaledWidth()
+    selectedObject.set('left', canvasWidth - objectWidth)
+    canvas.renderAll()
+  }
+
+  const zoomIn = () => {
+    if (!canvas) return
+    const newZoom = Math.min(zoom * 1.2, 3)
+    setZoom(newZoom)
+    canvas.setZoom(newZoom)
+  }
+
+  const zoomOut = () => {
+    if (!canvas) return
+    const newZoom = Math.max(zoom / 1.2, 0.1)
+    setZoom(newZoom)
+    canvas.setZoom(newZoom)
+  }
+
+  const fitToScreen = () => {
+    if (!canvas) return
+    canvas.setZoom(1)
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
+    setZoom(1)
+  }
+
+  const exportCanvas = (format: 'png' | 'jpg' | 'svg' | 'pdf') => {
+    if (!canvas) return
+
+    switch (format) {
+      case 'png':
+        const pngData = canvas.toDataURL({ format: 'png' })
+        downloadImage(pngData, 'design.png')
+        break
+      case 'jpg':
+        const jpgData = canvas.toDataURL({ format: 'jpeg', quality: 0.8 })
+        downloadImage(jpgData, 'design.jpg')
+        break
+      case 'svg':
+        // SVG export would require additional implementation
+        alert('SVG export coming soon!')
+        break
+      case 'pdf':
+        // PDF export would require additional implementation
+        alert('PDF export coming soon!')
+        break
     }
   }
 
-  const exportCanvas = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
+  const downloadImage = (dataUrl: string, filename: string) => {
     const link = document.createElement('a')
-    link.download = 'design.png'
-    link.href = canvas.toDataURL()
+    link.download = filename
+    link.href = dataUrl
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
   }
 
-  const selectedElementData = elements.find(el => el.id === selectedElement)
+  const undo = () => {
+    if (!canvas) return
+    // Fabric.js doesn't have built-in undo/redo, would need to implement
+    alert('Undo functionality coming soon!')
+  }
+
+  const redo = () => {
+    if (!canvas) return
+    // Fabric.js doesn't have built-in undo/redo, would need to implement
+    alert('Redo functionality coming soon!')
+  }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex">
-      {/* Toolbar */}
-      <div className="w-16 bg-gray-100 border-r border-gray-200 flex flex-col items-center py-4 space-y-2">
-        <Button
-          variant={selectedTool === 'select' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setSelectedTool('select')}
-          className="w-10 h-10 p-0"
-        >
-          <Move className="w-4 h-4" />
-        </Button>
-
-        <Button
-          variant={selectedTool === 'rectangle' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setSelectedTool('rectangle')}
-          className="w-10 h-10 p-0"
-        >
-          <Square className="w-4 h-4" />
-        </Button>
-
-        <Button
-          variant={selectedTool === 'circle' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setSelectedTool('circle')}
-          className="w-10 h-10 p-0"
-        >
-          <Circle className="w-4 h-4" />
-        </Button>
-
-        <Button
-          variant={selectedTool === 'text' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setSelectedTool('text')}
-          className="w-10 h-10 p-0"
-        >
-          <Type className="w-4 h-4" />
-        </Button>
-
-        <Button
-          variant={selectedTool === 'image' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setSelectedTool('image')}
-          className="w-10 h-10 p-0"
-        >
-          <Image className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* Canvas Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}>
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-            <span className="text-sm text-gray-600">{Math.round(zoom * 100)}%</span>
-            <Button variant="outline" onClick={() => setZoom(Math.min(3, zoom + 0.25))}>
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Button variant="outline">
-              <Undo className="w-4 h-4 mr-2" />
-              Undo
-            </Button>
-            <Button variant="outline">
-              <Redo className="w-4 h-4 mr-2" />
-              Redo
-            </Button>
-            <Button onClick={exportCanvas}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
+    <div className="h-screen flex flex-col bg-nexus-bg">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-nexus-border bg-white">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl font-bold text-nexus-text-primary">Design Studio</h1>
+          <Select value={`${currentSize.width}x${currentSize.height}`} onValueChange={(value) => {
+            const [width, height] = value.split('x').map(Number)
+            setCurrentSize({ width, height })
+          }}>
+            <SelectTrigger className="w-40 border-nexus-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={`${canvasSizes.instagram.width}x${canvasSizes.instagram.height}`}>Instagram Post</SelectItem>
+              <SelectItem value={`${canvasSizes.facebook.width}x${canvasSizes.facebook.height}`}>Facebook Post</SelectItem>
+              <SelectItem value={`${canvasSizes.twitter.width}x${canvasSizes.twitter.height}`}>Twitter Post</SelectItem>
+              <SelectItem value={`${canvasSizes.linkedin.width}x${canvasSizes.linkedin.height}`}>LinkedIn Post</SelectItem>
+              <SelectItem value={`${canvasSizes.pinterest.width}x${canvasSizes.pinterest.height}`}>Pinterest Pin</SelectItem>
+              <SelectItem value={`${canvasSizes.story.width}x${canvasSizes.story.height}`}>Story</SelectItem>
+              <SelectItem value={`${canvasSizes.custom.width}x${canvasSizes.custom.height}`}>Custom</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Canvas */}
-        <div className="flex-1 bg-gray-50 flex items-center justify-center p-8">
-          <div
-            style={{
-              transform: `scale(${zoom})`,
-              transformOrigin: 'center',
-            }}
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" onClick={undo} className="border-nexus-border">
+            <Undo className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={redo} className="border-nexus-border">
+            <Redo className="w-4 h-4" />
+          </Button>
+          <Separator orientation="vertical" className="h-6" />
+          <Button variant="outline" size="sm" onClick={zoomOut} className="border-nexus-border">
+            <ZoomOut className="w-4 h-4" />
+          </Button>
+          <span className="text-sm text-nexus-text-secondary min-w-[60px] text-center">
+            {Math.round(zoom * 100)}%
+          </span>
+          <Button variant="outline" size="sm" onClick={zoomIn} className="border-nexus-border">
+            <ZoomIn className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={fitToScreen} className="border-nexus-border">
+            <Maximize className="w-4 h-4" />
+          </Button>
+          <Separator orientation="vertical" className="h-6" />
+          <Button variant="outline" size="sm" onClick={() => setShowGrid(!showGrid)} className="border-nexus-border">
+            <Grid3X3 className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" className="border-nexus-border">
+            <Save className="w-4 h-4 mr-2" />
+            Save
+          </Button>
+          <Select onValueChange={(value: 'png' | 'jpg' | 'svg' | 'pdf') => exportCanvas(value)}>
+            <SelectTrigger className="w-32 border-nexus-border">
+              <SelectValue placeholder="Export" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="png">Export PNG</SelectItem>
+              <SelectItem value="jpg">Export JPG</SelectItem>
+              <SelectItem value="svg">Export SVG</SelectItem>
+              <SelectItem value="pdf">Export PDF</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Toolbar */}
+        <div className="w-16 bg-white border-r border-nexus-border flex flex-col items-center py-4 space-y-2">
+          <Button
+            variant={tool === 'select' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setTool('select')}
+            className="w-12 h-12 p-0"
           >
-            <canvas
-              ref={canvasRef}
-              width={canvasWidth}
-              height={canvasHeight}
-              onClick={handleCanvasClick}
-              className="border border-gray-300 bg-white cursor-crosshair"
-              style={{ maxWidth: '100%', height: 'auto' }}
+            <Move className="w-5 h-5" />
+          </Button>
+          <Button
+            variant={tool === 'text' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => { setTool('text'); addText() }}
+            className="w-12 h-12 p-0"
+          >
+            <Type className="w-5 h-5" />
+          </Button>
+          <Button
+            variant={tool === 'rectangle' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => { setTool('rectangle'); addRectangle() }}
+            className="w-12 h-12 p-0"
+          >
+            <Square className="w-5 h-5" />
+          </Button>
+          <Button
+            variant={tool === 'circle' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => { setTool('circle'); addCircle() }}
+            className="w-12 h-12 p-0"
+          >
+            <Circle className="w-5 h-5" />
+          </Button>
+          <Button
+            variant={tool === 'triangle' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => { setTool('triangle'); addTriangle() }}
+            className="w-12 h-12 p-0"
+          >
+            <Triangle className="w-5 h-5" />
+          </Button>
+          <Button
+            variant={tool === 'line' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => { setTool('line'); addLine() }}
+            className="w-12 h-12 p-0"
+          >
+            <Minus className="w-5 h-5" />
+          </Button>
+          <label className="w-12 h-12 flex items-center justify-center cursor-pointer hover:bg-nexus-bg-secondary rounded">
+            <Image className="w-5 h-5" />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
             />
+          </label>
+        </div>
+
+        {/* Canvas Area */}
+        <div className="flex-1 flex flex-col bg-nexus-bg-secondary">
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div
+              className="relative border-2 border-dashed border-nexus-border bg-white shadow-lg"
+              style={{
+                width: currentSize.width * zoom,
+                height: currentSize.height * zoom,
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="block"
+                style={{
+                  width: '100%',
+                  height: '100%'
+                }}
+              />
+              {showGrid && (
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-20"
+                  style={{
+                    backgroundImage: `
+                      linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '20px 20px'
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Properties Panel */}
-      <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-medium text-gray-900">Properties</h3>
-        </div>
+        {/* Right Properties Panel */}
+        <div className="w-80 bg-white border-l border-nexus-border flex flex-col">
+          <div className="p-4 border-b border-nexus-border">
+            <h3 className="font-medium text-nexus-text-primary">Properties</h3>
+          </div>
 
-        <div className="flex-1 p-4 space-y-6">
-          {selectedElementData ? (
-            <>
+          {selectedObject ? (
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Object Actions */}
+              <div className="space-y-2">
+                <Label className="text-nexus-text-primary font-medium">Actions</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={duplicateSelectedObject} className="border-nexus-border">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Duplicate
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={deleteSelectedObject} className="border-nexus-border text-nexus-red hover:text-nexus-red">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+
+              {/* Layer Controls */}
+              <div className="space-y-2">
+                <Label className="text-nexus-text-primary font-medium">Layer</Label>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={bringToFront} className="border-nexus-border flex-1">
+                    Front
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={sendToBack} className="border-nexus-border flex-1">
+                    Back
+                  </Button>
+                </div>
+              </div>
+
+              {/* Alignment */}
+              <div className="space-y-2">
+                <Label className="text-nexus-text-primary font-medium">Align</Label>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={alignLeft} className="border-nexus-border">
+                    <AlignLeft className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={alignCenter} className="border-nexus-border">
+                    <AlignCenter className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={alignRight} className="border-nexus-border">
+                    <AlignRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
               {/* Fill Color */}
               <div className="space-y-2">
-                <Label htmlFor="fillColor">Fill Color</Label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    id="fillColor"
-                    type="color"
-                    value={selectedElementData.fill}
-                    onChange={(e) => updateElement(selectedElementData.id, { fill: e.target.value })}
-                    className="w-8 h-8 rounded border border-gray-300"
-                  />
-                  <Input
-                    value={selectedElementData.fill}
-                    onChange={(e) => updateElement(selectedElementData.id, { fill: e.target.value })}
-                    className="flex-1"
-                  />
-                </div>
+                <Label className="text-nexus-text-primary font-medium">Fill Color</Label>
+                <Dialog open={showColorPicker} onOpenChange={setShowColorPicker}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full border-nexus-border justify-start">
+                      <div
+                        className="w-6 h-6 rounded border border-nexus-border mr-3"
+                        style={{ backgroundColor: color }}
+                      />
+                      {color.toUpperCase()}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[300px]">
+                    <DialogHeader>
+                      <DialogTitle>Choose Color</DialogTitle>
+                    </DialogHeader>
+                    <ColorPicker
+                      color={color}
+                      onChange={(newColor) => {
+                        setColor(newColor)
+                        updateSelectedObject('fill', newColor)
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
               </div>
 
-              {/* Stroke Color */}
+              {/* Opacity */}
               <div className="space-y-2">
-                <Label htmlFor="strokeColor">Stroke Color</Label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    id="strokeColor"
-                    type="color"
-                    value={selectedElementData.stroke}
-                    onChange={(e) => updateElement(selectedElementData.id, { stroke: e.target.value })}
-                    className="w-8 h-8 rounded border border-gray-300"
-                  />
-                  <Input
-                    value={selectedElementData.stroke}
-                    onChange={(e) => updateElement(selectedElementData.id, { stroke: e.target.value })}
-                    className="flex-1"
-                  />
+                <Label className="text-nexus-text-primary font-medium">Opacity</Label>
+                <Slider
+                  value={opacity}
+                  onValueChange={(value) => {
+                    setOpacity(value)
+                    updateSelectedObject('opacity', value[0])
+                  }}
+                  max={1}
+                  min={0}
+                  step={0.1}
+                  className="w-full"
+                />
+                <div className="text-sm text-nexus-text-secondary text-center">
+                  {Math.round(opacity[0] * 100)}%
                 </div>
               </div>
 
-              {/* Dimensions */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Font Size (for text objects) */}
+              {selectedObject && selectedObject.type === 'i-text' && (
                 <div className="space-y-2">
-                  <Label htmlFor="width">Width</Label>
-                  <Input
-                    id="width"
-                    type="number"
-                    value={selectedElementData.width}
-                    onChange={(e) => updateElement(selectedElementData.id, { width: parseInt(e.target.value) })}
+                  <Label className="text-nexus-text-primary font-medium">Font Size</Label>
+                  <Slider
+                    value={fontSize}
+                    onValueChange={(value) => {
+                      setFontSize(value)
+                      updateSelectedObject('fontSize', value[0])
+                    }}
+                    max={72}
+                    min={8}
+                    step={1}
+                    className="w-full"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="height">Height</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    value={selectedElementData.height}
-                    onChange={(e) => updateElement(selectedElementData.id, { height: parseInt(e.target.value) })}
-                  />
-                </div>
-              </div>
-
-              {/* Position */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="x">X Position</Label>
-                  <Input
-                    id="x"
-                    type="number"
-                    value={selectedElementData.x}
-                    onChange={(e) => updateElement(selectedElementData.id, { x: parseInt(e.target.value) })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="y">Y Position</Label>
-                  <Input
-                    id="y"
-                    type="number"
-                    value={selectedElementData.y}
-                    onChange={(e) => updateElement(selectedElementData.id, { y: parseInt(e.target.value) })}
-                  />
-                </div>
-              </div>
-
-              {/* Text Properties */}
-              {selectedElementData.type === 'text' && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="text">Text Content</Label>
-                    <Input
-                      id="text"
-                      value={selectedElementData.text || ''}
-                      onChange={(e) => updateElement(selectedElementData.id, { text: e.target.value })}
-                    />
+                  <div className="text-sm text-nexus-text-secondary text-center">
+                    {fontSize[0]}px
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fontSize">Font Size</Label>
-                    <Input
-                      id="fontSize"
-                      type="number"
-                      value={selectedElementData.fontSize || 16}
-                      onChange={(e) => updateElement(selectedElementData.id, { fontSize: parseInt(e.target.value) })}
-                    />
-                  </div>
-                </>
+                </div>
               )}
 
-              {/* Actions */}
-              <div className="pt-4 space-y-2">
-                <Button
-                  variant="outline"
-                  onClick={() => duplicateElement(selectedElementData.id)}
-                  className="w-full"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Duplicate
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => deleteElement(selectedElementData.id)}
-                  className="w-full text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
+              {/* Text Formatting (for text objects) */}
+              {selectedObject && selectedObject.type === 'i-text' && (
+                <div className="space-y-2">
+                  <Label className="text-nexus-text-primary font-medium">Text Style</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateSelectedObject('fontWeight', selectedObject.fontWeight === 'bold' ? 'normal' : 'bold')}
+                      className={`border-nexus-border ${selectedObject.fontWeight === 'bold' ? 'bg-nexus-blue text-white' : ''}`}
+                    >
+                      <Bold className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateSelectedObject('fontStyle', selectedObject.fontStyle === 'italic' ? 'normal' : 'italic')}
+                      className={`border-nexus-border ${selectedObject.fontStyle === 'italic' ? 'bg-nexus-blue text-white' : ''}`}
+                    >
+                      <Italic className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateSelectedObject('underline', !selectedObject.underline)}
+                      className={`border-nexus-border ${selectedObject.underline ? 'bg-nexus-blue text-white' : ''}`}
+                    >
+                      <Underline className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Object Info */}
+              <div className="space-y-2 pt-4 border-t border-nexus-border">
+                <Label className="text-nexus-text-primary font-medium">Object Info</Label>
+                <div className="text-sm text-nexus-text-secondary space-y-1">
+                  <div>Type: {selectedObject.type}</div>
+                  <div>Position: {Math.round(selectedObject.left || 0)}, {Math.round(selectedObject.top || 0)}</div>
+                  <div>Size: {Math.round(selectedObject.getScaledWidth())}, {Math.round(selectedObject.getScaledHeight())}</div>
+                  {selectedObject.angle && <div>Rotation: {Math.round(selectedObject.angle)}°</div>}
+                </div>
               </div>
-            </>
+            </div>
           ) : (
-            <div className="text-center text-gray-500 py-8">
-              <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Select an element to edit its properties</p>
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center text-nexus-text-secondary">
+                <Eye className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Select an object to edit its properties</p>
+              </div>
             </div>
           )}
         </div>
