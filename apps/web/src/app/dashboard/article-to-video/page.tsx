@@ -308,7 +308,7 @@ export default function ArticleToVideoPage() {
 
                   <div className="flex justify-end">
                     <Button
-                      onClick={() => document.querySelector('[data-value="convert"]')?.click()}
+                      onClick={() => (document.querySelector('[data-value="convert"]') as HTMLElement)?.click()}
                       className="bg-nexus-green hover:bg-nexus-green/90 text-white"
                     >
                       <Video className="w-4 h-4 mr-2" />
