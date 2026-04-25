@@ -35,7 +35,7 @@
   }
 
   * {
-    @apply border-border;
+    border-color: var(--nexus-border);
   }
 
   body {

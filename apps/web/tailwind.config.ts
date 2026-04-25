@@ -14,6 +14,8 @@ const config: Config = {
           'bg-secondary': '#F4F3F0',
           'bg-tertiary': '#EEECEA',
           surface: '#FFFFFF',
+          border: 'rgba(0,0,0,0.08)',
+          'border-strong': 'rgba(0,0,0,0.15)',
           accent: '#1A1A2E',
           'accent-2': '#16213E',
           blue: '#0652DD',
