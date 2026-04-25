@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -111,14 +113,18 @@ export default function PipelinesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pipelines</h1>
-          <p className="text-gray-600">Track and manage your sales opportunities.</p>
+          <h1 className="text-2xl font-bold text-nexus-text-primary">Pipelines</h1>
+          <p className="text-nexus-text-secondary">Track and manage your sales opportunities.</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={() => setView(view === 'kanban' ? 'list' : 'kanban')}>
+          <Button
+            variant="outline"
+            onClick={() => setView(view === 'kanban' ? 'list' : 'kanban')}
+            className="border-nexus-border hover:bg-nexus-bg-secondary"
+          >
             {view === 'kanban' ? 'List View' : 'Kanban View'}
           </Button>
-          <Button>
+          <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
             <Plus className="w-4 h-4 mr-2" />
             New Pipeline
           </Button>
@@ -130,27 +136,27 @@ export default function PipelinesPage() {
         {pipelines.map((pipeline) => (
           <Card
             key={pipeline.id}
-            className={`cursor-pointer transition-all ${
+            className={`cursor-pointer transition-all border-nexus-border ${
               selectedPipeline.id === pipeline.id
-                ? 'ring-2 ring-blue-500 bg-blue-50'
+                ? 'ring-2 ring-nexus-blue bg-nexus-blue-light'
                 : 'hover:shadow-md'
             }`}
             onClick={() => setSelectedPipeline(pipeline)}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-900">{pipeline.name}</h3>
-                <Badge variant="secondary">{pipeline.totalDeals} deals</Badge>
+                <h3 className="font-semibold text-nexus-text-primary">{pipeline.name}</h3>
+                <Badge className="bg-nexus-bg-secondary text-nexus-text-primary border-nexus-border">{pipeline.totalDeals} deals</Badge>
               </div>
-              <p className="text-sm text-gray-600 mb-3">{pipeline.description}</p>
+              <p className="text-sm text-nexus-text-secondary mb-3">{pipeline.description}</p>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <div className="font-medium text-gray-900">{formatCurrency(pipeline.totalValue)}</div>
-                  <div className="text-gray-500">Total Value</div>
+                  <div className="font-medium text-nexus-text-primary">{formatCurrency(pipeline.totalValue)}</div>
+                  <div className="text-nexus-text-tertiary">Total Value</div>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">{pipeline.conversionRate}%</div>
-                  <div className="text-gray-500">Conversion</div>
+                  <div className="font-medium text-nexus-text-primary">{pipeline.conversionRate}%</div>
+                  <div className="text-nexus-text-tertiary">Conversion</div>
                 </div>
               </div>
             </CardContent>
@@ -162,13 +168,13 @@ export default function PipelinesPage() {
       {view === 'kanban' ? (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {selectedPipeline.stages.map((stage) => (
-            <Card key={stage.id} className="min-h-[400px]">
+            <Card key={stage.id} className="min-h-[400px] border-nexus-border">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">{stage.name}</CardTitle>
-                  <Badge variant="secondary">{stage.count}</Badge>
+                  <CardTitle className="text-sm font-medium text-nexus-text-primary">{stage.name}</CardTitle>
+                  <Badge className="bg-nexus-bg-secondary text-nexus-text-primary border-nexus-border">{stage.count}</Badge>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-nexus-text-tertiary">
                   {formatCurrency(stage.value)}
                 </div>
               </CardHeader>
@@ -176,14 +182,14 @@ export default function PipelinesPage() {
                 {getOpportunitiesForStage(stage.name).map((opportunity) => (
                   <div
                     key={opportunity.id}
-                    className="p-3 bg-gray-50 rounded-lg border cursor-pointer hover:shadow-sm transition-shadow"
+                    className="p-3 bg-nexus-bg-secondary rounded-lg border border-nexus-border cursor-pointer hover:shadow-sm transition-shadow"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-medium text-sm text-gray-900 line-clamp-2">
+                      <h4 className="font-medium text-sm text-nexus-text-primary line-clamp-2">
                         {opportunity.name}
                       </h4>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="w-4 h-4" />
+                      <Button variant="ghost" size="sm" className="hover:bg-nexus-bg">
+                        <MoreHorizontal className="w-4 h-4 text-nexus-text-tertiary" />
                       </Button>
                     </div>
 
@@ -194,22 +200,22 @@ export default function PipelinesPage() {
                           {opportunity.contact.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xs text-gray-600">{opportunity.contact.name}</span>
+                      <span className="text-xs text-nexus-text-secondary">{opportunity.contact.name}</span>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center justify-between text-xs text-nexus-text-tertiary">
                       <span>{formatCurrency(opportunity.value)}</span>
                       <span>{opportunity.probability}%</span>
                     </div>
 
-                    <div className="mt-2 flex items-center text-xs text-gray-500">
+                    <div className="mt-2 flex items-center text-xs text-nexus-text-tertiary">
                       <Calendar className="w-3 h-3 mr-1" />
                       {new Date(opportunity.closeDate).toLocaleDateString()}
                     </div>
                   </div>
                 ))}
 
-                <Button variant="ghost" className="w-full text-gray-500 hover:text-gray-700">
+                <Button variant="ghost" className="w-full text-nexus-text-tertiary hover:text-nexus-text-primary hover:bg-nexus-bg-secondary">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Opportunity
                 </Button>
@@ -219,17 +225,20 @@ export default function PipelinesPage() {
         </div>
       ) : (
         /* List View */
-        <Card>
+        <Card className="border-nexus-border">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Opportunities</CardTitle>
+              <CardTitle className="text-nexus-text-primary">Opportunities</CardTitle>
               <div className="flex items-center space-x-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input placeholder="Search opportunities..." className="pl-10 w-64" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-nexus-text-tertiary h-4 w-4" />
+                  <Input
+                    placeholder="Search opportunities..."
+                    className="pl-10 w-64 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
+                  />
                 </div>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
+                <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
+                  <Filter className="w-4 h-4 mr-2 text-nexus-blue" />
                   Filter
                 </Button>
               </div>
@@ -239,31 +248,31 @@ export default function PipelinesPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <tr className="border-b border-nexus-border bg-nexus-bg-secondary">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Opportunity
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Stage
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Value
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Probability
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Close Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-tertiary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-nexus-surface divide-y divide-nexus-border">
                   {opportunities
                     .filter(opp => opp.pipeline === selectedPipeline.name)
                     .map((opportunity) => (

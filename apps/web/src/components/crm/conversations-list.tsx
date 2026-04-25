@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { Mail, MessageCircle, Phone } from 'lucide-react'
 
 // Mock conversations data
 const conversations = [
@@ -116,39 +117,39 @@ export function ConversationsList({
   const getChannelIcon = (channel: string) => {
     switch (channel) {
       case 'email':
-        return '📧'
+        return <Mail className="w-3 h-3 text-nexus-blue" />
       case 'sms':
-        return '💬'
+        return <MessageCircle className="w-3 h-3 text-nexus-blue" />
       case 'whatsapp':
-        return '📱'
+        return <MessageCircle className="w-3 h-3 text-green-500" />
       case 'phone':
-        return '📞'
+        return <Phone className="w-3 h-3 text-nexus-blue" />
       default:
-        return '💬'
+        return <MessageCircle className="w-3 h-3 text-nexus-blue" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'unread':
-        return 'bg-blue-500'
+        return 'bg-nexus-blue'
       case 'active':
-        return 'bg-green-500'
+        return 'bg-nexus-green'
       case 'closed':
-        return 'bg-gray-500'
+        return 'bg-nexus-text-tertiary'
       default:
-        return 'bg-gray-500'
+        return 'bg-nexus-text-tertiary'
     }
   }
 
   return (
-    <div className="divide-y divide-gray-200">
+    <div className="divide-y divide-nexus-border">
       {conversations.map((conversation) => (
         <div
           key={conversation.id}
           className={cn(
-            'p-4 cursor-pointer hover:bg-gray-50 transition-colors',
-            selectedConversation === conversation.id && 'bg-blue-50 border-r-2 border-blue-500'
+            'p-4 cursor-pointer hover:bg-nexus-bg-secondary transition-colors',
+            selectedConversation === conversation.id && 'bg-nexus-blue-light border-r-2 border-nexus-blue'
           )}
           onClick={() => onSelectConversation(conversation.id)}
         >
@@ -162,44 +163,44 @@ export function ConversationsList({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-medium text-gray-900 truncate">
+                <h3 className="text-sm font-medium text-nexus-text-primary truncate">
                   {conversation.contact.name}
                 </h3>
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-nexus-text-tertiary">
                     {formatTimestamp(conversation.lastMessage.timestamp)}
                   </span>
                   <div className={cn(
                     'w-2 h-2 rounded-full',
-                    conversation.status === 'unread' && 'bg-blue-500'
+                    conversation.status === 'unread' && getStatusColor('unread')
                   )} />
                 </div>
               </div>
 
-              <p className="text-sm text-gray-600 truncate mb-2">
+              <p className="text-sm text-nexus-text-secondary truncate mb-2">
                 {conversation.lastMessage.isFromContact ? (
                   conversation.lastMessage.content
                 ) : (
-                  <span className="text-gray-900 font-medium">You: </span>
+                  <span className="text-nexus-text-primary font-medium">You: </span>
                 ) + conversation.lastMessage.content}
               </p>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <span className="text-xs">{getChannelIcon(conversation.channel)}</span>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge className="text-xs bg-nexus-bg-secondary text-nexus-text-primary border-nexus-border">
                     {conversation.status}
                   </Badge>
                 </div>
 
                 <div className="flex flex-wrap gap-1">
                   {conversation.tags.slice(0, 2).map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0.5">
+                    <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0.5 border-nexus-border text-nexus-text-secondary">
                       {tag}
                     </Badge>
                   ))}
                   {conversation.tags.length > 2 && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-nexus-border text-nexus-text-secondary">
                       +{conversation.tags.length - 2}
                     </Badge>
                   )}

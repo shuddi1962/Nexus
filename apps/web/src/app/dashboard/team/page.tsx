@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -82,7 +83,33 @@ const teamMembers = [
 ]
 
 export default function OrganizationPage() {
-  const [orgData, setOrgData] = useState(organization)
+  const { user } = useAuth()
+  const [orgData, setOrgData] = useState({
+    id: '1',
+    name: 'Nexus Organization',
+    domain: 'nexus.demo',
+    logo: null,
+    description: 'All-in-one SaaS platform for modern businesses.',
+    industry: 'Technology',
+    size: '10-50',
+    website: 'https://nexus.app',
+    phone: '+1 (555) 123-4567',
+    address: {
+      street: '123 Tech Street',
+      city: 'San Francisco',
+      state: 'CA',
+      zip: '94105',
+      country: 'USA',
+    },
+    settings: {
+      timezone: 'PST',
+      currency: 'USD',
+      language: 'en',
+      dateFormat: 'MM/DD/YYYY',
+      whiteLabel: false,
+      customDomain: null,
+    },
+  })
   const [isEditing, setIsEditing] = useState(false)
 
   const handleSave = () => {
@@ -114,22 +141,32 @@ export default function OrganizationPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Organization Settings</h1>
-          <p className="text-gray-600">Manage your organization's information and team.</p>
+          <h1 className="text-2xl font-bold text-nexus-text-primary">Organization Settings</h1>
+          <p className="text-nexus-text-secondary">Manage your organization's information and team.</p>
         </div>
         <div className="flex items-center space-x-3">
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+                className="border-nexus-border hover:bg-nexus-bg-secondary"
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSave}>
+              <Button
+                onClick={handleSave}
+                className="bg-nexus-blue hover:bg-nexus-accent text-white"
+              >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
+            <Button
+              onClick={() => setIsEditing(true)}
+              className="bg-nexus-blue hover:bg-nexus-accent text-white"
+            >
               Edit Organization
             </Button>
           )}

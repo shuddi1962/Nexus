@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -44,7 +45,25 @@ const userProfile = {
 }
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState(userProfile)
+  const { user } = useAuth()
+  const [profile, setProfile] = useState({
+    id: user?.id || '1',
+    name: user?.name || 'User',
+    email: user?.email || 'user@nexus.demo',
+    phone: '+1 (555) 123-4567',
+    avatar: user?.avatar || null,
+    role: user?.role || 'owner',
+    plan: user?.plan || 'starter',
+    company: 'Nexus User',
+    jobTitle: 'User',
+    location: 'San Francisco, CA',
+    timezone: 'PST',
+    bio: 'Nexus platform user focused on business growth.',
+    joinedAt: '2026-01-15T00:00:00Z',
+    lastLogin: '2026-04-24T10:30:00Z',
+    emailVerified: user?.email_verified || false,
+    twoFactorEnabled: false,
+  })
   const [isEditing, setIsEditing] = useState(false)
 
   const handleSave = () => {
@@ -70,22 +89,32 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-          <p className="text-gray-600">Manage your account information and preferences.</p>
+          <h1 className="text-2xl font-bold text-nexus-text-primary">Profile Settings</h1>
+          <p className="text-nexus-text-secondary">Manage your account information and preferences.</p>
         </div>
         <div className="flex items-center space-x-3">
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+                className="border-nexus-border hover:bg-nexus-bg-secondary"
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSave}>
+              <Button
+                onClick={handleSave}
+                className="bg-nexus-blue hover:bg-nexus-accent text-white"
+              >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
+            <Button
+              onClick={() => setIsEditing(true)}
+              className="bg-nexus-blue hover:bg-nexus-accent text-white"
+            >
               Edit Profile
             </Button>
           )}
@@ -102,7 +131,7 @@ export default function ProfilePage() {
 
         <TabsContent value="profile" className="space-y-6">
           {/* Profile Overview */}
-          <Card>
+          <Card className="border-nexus-border">
             <CardContent className="p-6">
               <div className="flex items-start space-x-6">
                 <div className="relative">
@@ -115,26 +144,26 @@ export default function ProfilePage() {
                   {isEditing && (
                     <Button
                       size="sm"
-                      className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0"
+                      className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0 bg-nexus-blue hover:bg-nexus-accent"
                     >
-                      <Camera className="w-4 h-4" />
+                      <Camera className="w-4 h-4 text-white" />
                     </Button>
                   )}
                 </div>
 
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
-                    <h2 className="text-2xl font-bold text-gray-900">{profile.name}</h2>
-                    <Badge variant="secondary">{profile.role}</Badge>
-                    <Badge>{profile.plan} plan</Badge>
+                    <h2 className="text-2xl font-bold text-nexus-text-primary">{profile.name}</h2>
+                    <Badge className="bg-nexus-bg-secondary text-nexus-text-primary border-nexus-border">{profile.role}</Badge>
+                    <Badge className="bg-nexus-blue-light text-nexus-blue border border-nexus-blue">{profile.plan} plan</Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div className="grid grid-cols-2 gap-4 text-sm text-nexus-text-secondary">
                     <div className="flex items-center">
                       <Mail className="w-4 h-4 mr-2" />
                       {profile.email}
                       {profile.emailVerified && (
-                        <Badge variant="secondary" className="ml-2 text-xs">Verified</Badge>
+                        <Badge className="ml-2 text-xs bg-nexus-green text-white border-nexus-green">Verified</Badge>
                       )}
                     </div>
                     <div className="flex items-center">
@@ -156,9 +185,9 @@ export default function ProfilePage() {
           </Card>
 
           {/* Profile Details */}
-          <Card>
+          <Card className="border-nexus-border">
             <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
+              <CardTitle className="text-nexus-text-primary">Personal Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

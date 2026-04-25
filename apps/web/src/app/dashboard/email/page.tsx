@@ -76,15 +76,15 @@ export default function EmailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Email Marketing</h1>
-          <p className="text-gray-600">Create and send professional emails to your contacts.</p>
+          <h1 className="text-2xl font-bold text-nexus-text-primary">Email Marketing</h1>
+          <p className="text-nexus-text-secondary">Create and send professional emails to your contacts.</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
+          <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
+            <Settings className="w-4 h-4 mr-2 text-nexus-blue" />
             Email Settings
           </Button>
-          <Button>
+          <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
             <Plus className="w-4 h-4 mr-2" />
             New Campaign
           </Button>

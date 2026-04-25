@@ -115,7 +115,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-white">
+      <div className="p-4 border-b border-nexus-border bg-nexus-surface">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-10 w-10">
@@ -125,30 +125,30 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-nexus-text-primary">
                 {conversation.contact.name}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-nexus-text-secondary">
                 {conversation.contact.company}
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <Badge variant={conversation.status === 'active' ? 'default' : 'secondary'}>
+            <Badge className={conversation.status === 'active' ? 'bg-nexus-green text-white' : 'bg-nexus-bg-secondary text-nexus-text-primary border-nexus-border'}>
               {conversation.status}
             </Badge>
-            <Button variant="outline" size="sm">
-              <Phone className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <Phone className="w-4 h-4 text-nexus-blue" />
             </Button>
-            <Button variant="outline" size="sm">
-              <Mail className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <Mail className="w-4 h-4 text-nexus-blue" />
             </Button>
-            <Button variant="outline" size="sm">
-              <MessageCircle className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <MessageCircle className="w-4 h-4 text-nexus-blue" />
             </Button>
-            <Button variant="outline" size="sm">
-              <MoreHorizontal className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <MoreHorizontal className="w-4 h-4 text-nexus-text-tertiary" />
             </Button>
           </div>
         </div>
@@ -159,11 +159,11 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
         {Object.entries(groupedMessages).map(([date, messages]) => (
           <div key={date}>
             <div className="flex items-center mb-4">
-              <div className="flex-1 border-t border-gray-300"></div>
-              <div className="px-3 bg-white text-xs text-gray-500 font-medium">
+              <div className="flex-1 border-t border-nexus-border"></div>
+              <div className="px-3 bg-nexus-surface text-xs text-nexus-text-tertiary font-medium">
                 {date}
               </div>
-              <div className="flex-1 border-t border-gray-300"></div>
+              <div className="flex-1 border-t border-nexus-border"></div>
             </div>
 
             <div className="space-y-4">
@@ -184,12 +184,12 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
 
                     <div className={`rounded-lg px-3 py-2 ${
                       message.isFromContact
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'bg-blue-500 text-white'
+                        ? 'bg-nexus-bg-secondary text-nexus-text-primary'
+                        : 'bg-nexus-blue text-white'
                     }`}>
                       <p className="text-sm">{message.content}</p>
                       <p className={`text-xs mt-1 ${
-                        message.isFromContact ? 'text-gray-500' : 'text-blue-100'
+                        message.isFromContact ? 'text-nexus-text-tertiary' : 'text-blue-100'
                       }`}>
                         {formatTimestamp(message.timestamp)}
                       </p>
@@ -209,7 +209,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-gray-200 bg-white">
+      <div className="p-4 border-t border-nexus-border bg-nexus-surface">
         <div className="flex items-end space-x-2">
           <div className="flex-1">
             <Input
@@ -217,24 +217,28 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="min-h-[40px] resize-none"
+              className="min-h-[40px] resize-none border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
             />
           </div>
 
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Paperclip className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <Paperclip className="w-4 h-4 text-nexus-text-tertiary" />
             </Button>
-            <Button variant="outline" size="sm">
-              <Smile className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="border-nexus-border hover:bg-nexus-bg-secondary">
+              <Smile className="w-4 h-4 text-nexus-text-tertiary" />
             </Button>
-            <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
+            <Button
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim()}
+              className="bg-nexus-blue hover:bg-nexus-accent text-white disabled:opacity-50"
+            >
               <Send className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+        <div className="flex items-center justify-between mt-2 text-xs text-nexus-text-tertiary">
           <span>Press Enter to send</span>
           <span>via {conversation.channel}</span>
         </div>
