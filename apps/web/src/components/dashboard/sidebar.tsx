@@ -132,7 +132,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const user = null
 
   return (
-    <>
+    <div>
       {/* Mobile backdrop */}
       {isOpen && (
         <div
@@ -215,6 +215,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

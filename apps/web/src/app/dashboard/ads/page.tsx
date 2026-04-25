@@ -144,18 +144,6 @@ export default function AdsPage() {
         return 'bg-gray-100 text-gray-800'
     }
   }
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'Meta':
-        return '📘'
-      case 'Google':
-        return '🔍'
-      case 'TikTok':
-        return '🎵'
-      default:
-        return '📢'
-    }
   }
 
   return (
