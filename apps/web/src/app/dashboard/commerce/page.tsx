@@ -16,6 +16,7 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Download,
   BarChart3,
   Target,
   ShoppingCart,
