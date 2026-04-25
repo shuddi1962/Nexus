@@ -58,6 +58,47 @@ interface MarketTrends {
   }
 }
 
+interface MarketAnalysis {
+  market_overview: {
+    total_products: number
+    average_price: number
+    top_sellers: any[]
+  }
+  competitive_analysis: {
+    price_positioning: string
+    market_gaps: string[]
+  }
+  recommendations: {
+    suggested_price_range: {
+      min: number
+      max: number
+    }
+    optimal_categories: string[]
+    marketing_angles: string[]
+  }
+}
+
+interface AdIntelligence {
+  platform_insights: {
+    best_performing_platform: string
+    audience_engagement_rates: Record<string, number>
+  }
+  audience_insights: {
+    demographics: {
+      age_groups: string[]
+      gender_distribution: {
+        male: number
+        female: number
+      }
+    }
+    interests: string[]
+  }
+  recommendations: {
+    optimal_budget_allocation: Record<string, number>
+    creative_suggestions: string[]
+  }
+}
+
 export default function CommercePage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('research')
@@ -67,7 +108,7 @@ export default function CommercePage() {
   const [researchQuery, setResearchQuery] = useState('')
   const [researchPlatform, setResearchPlatform] = useState<'amazon' | 'shopify' | 'etsy' | 'ebay' | 'aliexpress'>('amazon')
   const [researchResults, setResearchResults] = useState<ProductResult[]>([])
-  const [marketAnalysis, setMarketAnalysis] = useState<any>(null)
+  const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null)
   const [isResearching, setIsResearching] = useState(false)
 
   // Market Trends
@@ -79,7 +120,7 @@ export default function CommercePage() {
   // Ad Intelligence
   const [intelligenceKeyword, setIntelligenceKeyword] = useState('')
   const [intelligencePlatform, setIntelligencePlatform] = useState<'google' | 'facebook' | 'tiktok' | 'pinterest'>('google')
-  const [adIntelligence, setAdIntelligence] = useState<any>(null)
+  const [adIntelligence, setAdIntelligence] = useState<AdIntelligence | null>(null)
   const [isGettingIntelligence, setIsGettingIntelligence] = useState(false)
 
   useEffect(() => {

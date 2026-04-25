@@ -36,6 +36,14 @@ import {
   ZoomOut
 } from 'lucide-react'
 
+interface SelectedElement {
+  index: number
+  type: 'title' | 'content' | 'image' | 'shape'
+  content: string
+  position: { x: number; y: number }
+  style: any
+}
+
 interface PresentationSlide {
   id: number
   title: string
@@ -43,11 +51,7 @@ interface PresentationSlide {
   layout: 'hero' | 'title_content' | 'content_only' | 'image_content' | 'contact'
   background: string
   textColor: string
-  elements: Array<{
-    type: 'title' | 'content' | 'image' | 'shape'
-    content: string
-    position: { x: number; y: number }
-    style: any
+  elements: SelectedElement[]
   }>
 }
 
@@ -80,7 +84,7 @@ export default function PresentationBuilderPage() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   // Edit mode
-  const [selectedElement, setSelectedElement] = useState<any>(null)
+  const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
   const [showTextEditor, setShowTextEditor] = useState(false)
   const [textContent, setTextContent] = useState('')
   const [textSize, setTextSize] = useState([24])

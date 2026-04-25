@@ -39,11 +39,18 @@ interface AdAccount {
   synced_at?: string
 }
 
+interface AdAnalytics {
+  spend?: number
+  impressions: number
+  ctr?: number
+  conversions?: number
+}
+
 export default function AdsPage() {
   const { user } = useAuth()
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([])
   const [loading, setLoading] = useState(true)
-  const [analytics, setAnalytics] = useState<any>(null)
+  const [analytics, setAnalytics] = useState<AdAnalytics | null>(null)
   const [connecting, setConnecting] = useState<string | null>(null)
 
   useEffect(() => {
