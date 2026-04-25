@@ -437,6 +437,86 @@ class ApiClient {
     })
   }
 
+  // Commerce endpoints
+  async performProductResearch(query: string, platform?: string, options?: {
+    category?: string
+    price_range?: { min: number; max: number }
+    sort_by?: string
+  }) {
+    const params = {
+      query,
+      platform: platform || 'amazon',
+      ...options
+    }
+    return this.request('/commerce/research', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    })
+  }
+
+  async getMarketTrends(options?: {
+    category?: string
+    timeframe?: '7d' | '30d' | '90d' | '1y'
+    region?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (options?.category) queryParams.set('category', options.category)
+    if (options?.timeframe) queryParams.set('timeframe', options.timeframe)
+    if (options?.region) queryParams.set('region', options.region)
+
+    const query = queryParams.toString()
+    return this.request(`/commerce/market-trends${query ? `?${query}` : ''}`)
+  }
+
+  async getAdIntelligence(options?: {
+    keyword?: string
+    category?: string
+    platform?: 'google' | 'facebook' | 'tiktok' | 'pinterest'
+    timeframe?: '7d' | '30d' | '90d' | '1y'
+  }) {
+    const queryParams = new URLSearchParams()
+    if (options?.keyword) queryParams.set('keyword', options.keyword)
+    if (options?.category) queryParams.set('category', options.category)
+    if (options?.platform) queryParams.set('platform', options.platform)
+    if (options?.timeframe) queryParams.set('timeframe', options.timeframe)
+
+    const query = queryParams.toString()
+    return this.request(`/commerce/ad-intelligence${query ? `?${query}` : ''}`)
+  }
+
+  async performCompetitiveAnalysis(productUrl: string, competitors?: string[], analysisType?: string) {
+    return this.request('/commerce/competitive-analysis', {
+      method: 'POST',
+      body: JSON.stringify({ product_url: productUrl, competitors, analysis_type: analysisType })
+    })
+  }
+
+  async createUGCAd(options: {
+    product_url: string
+    target_platform: 'tiktok' | 'instagram' | 'youtube' | 'facebook'
+    ad_format: 'video' | 'carousel' | 'story' | 'reel'
+    target_audience: string[]
+    campaign_objective: 'awareness' | 'traffic' | 'conversions' | 'engagement'
+    budget?: number
+  }) {
+    return this.request('/commerce/ugc-ads/create', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    })
+  }
+
+  async getUGCAds(params?: {
+    status?: 'draft' | 'active' | 'completed' | 'paused'
+    platform?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.status) queryParams.set('status', params.status)
+    if (params?.platform) queryParams.set('platform', params.platform)
+
+    const query = queryParams.toString()
+    return this.request(`/commerce/ugc-ads${query ? `?${query}` : ''}`)
+  }
+
   // Site management endpoints
   async connectSite(siteData: {
     name: string

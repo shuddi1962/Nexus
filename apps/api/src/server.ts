@@ -45,12 +45,14 @@ import { modelRoutes } from './routes/models'
 import { crmRoutes } from './routes/crm'
 import { adsRoutes } from './routes/ads'
 import { contentRoutes } from './routes/content'
+import { commerceRoutes } from './routes/commerce'
 await server.register(authRoutes, { prefix: '/api' })
 await server.register(vaultRoutes, { prefix: '/api' })
 await server.register(modelRoutes, { prefix: '/api' })
 await server.register(crmRoutes, { prefix: '/api' })
 await server.register(adsRoutes, { prefix: '/api' })
 await server.register(contentRoutes, { prefix: '/api' })
+await server.register(commerceRoutes, { prefix: '/api' })
 
 // Start background jobs
 import './jobs/sync-models'
