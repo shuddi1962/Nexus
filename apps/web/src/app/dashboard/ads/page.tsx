@@ -168,7 +168,7 @@ export default function AdsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {loading ? (
           // Loading state
-          Array.from({ length: 3 }).map((_, i) => (
+          Array.from({ length: 3 }).map((_: any, i: number) => (
             <Card key={i} className="border-nexus-border">
               <CardHeader>
                 <div className="flex items-center space-x-2">
@@ -196,7 +196,7 @@ export default function AdsPage() {
               <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">No Ad Accounts Connected</h3>
               <p className="text-nexus-text-secondary mb-6">Connect your advertising accounts to start managing campaigns.</p>
               <div className="flex flex-wrap justify-center gap-3">
-                {['Meta', 'Google', 'TikTok', 'Twitter', 'LinkedIn', 'Snapchat'].map((platform) => (
+                {['Meta', 'Google', 'TikTok', 'Twitter', 'LinkedIn', 'Snapchat'].map((platform: string) => (
                   <Button
                     key={platform}
                     variant="outline"
@@ -216,7 +216,7 @@ export default function AdsPage() {
             </CardContent>
           </Card>
         ) : (
-          adAccounts.map((account) => (
+          adAccounts.map((account: AdAccount) => (
             <Card key={account.id} className="border-nexus-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center text-nexus-text-primary">

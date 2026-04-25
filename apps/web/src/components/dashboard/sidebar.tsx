@@ -162,13 +162,13 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4">
         <div className="space-y-8">
-          {navigation.map((section) => (
+          {navigation.map((section: any) => (
             <div key={section.name}>
               <h3 className="px-3 text-xs font-semibold text-nexus-text-tertiary uppercase tracking-wider mb-2">
                 {section.name}
               </h3>
               <div className="space-y-1">
-                {section.items.map((item) => {
+                {section.items.map((item: any) => {
                   const isActive = pathname === item.href
                   return (
                     <Link

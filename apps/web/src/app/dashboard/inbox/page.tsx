@@ -151,7 +151,7 @@ export default function InboxPage() {
         {/* Conversations */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-2">
-            {filteredConversations.map((conversation) => (
+            {filteredConversations.map((conversation: Conversation) => (
               <div
                 key={conversation.id}
                 className={`p-3 rounded-lg cursor-pointer mb-1 hover:bg-gray-100 ${
@@ -162,7 +162,7 @@ export default function InboxPage() {
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                     <span className="font-medium text-gray-600">
-                      {conversation.contact.split(' ').map(n => n[0]).join('')}
+                      {conversation.contact.split(' ').map((n: string) => n[0]).join('')}
                     </span>
                   </div>
 

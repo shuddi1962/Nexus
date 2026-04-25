@@ -78,7 +78,7 @@ export function ContactsTable() {
     setSelectedContacts(
       selectedContacts.length === contacts.length
         ? []
-        : contacts.map(contact => contact.id)
+        : contacts.map((contact: Contact) => contact.id)
     )
   }
 
@@ -145,7 +145,7 @@ export function ContactsTable() {
               </td>
             </tr>
           ) : (
-            contacts.map((contact) => (
+            contacts.map((contact: Contact) => (
               <tr key={contact.id} className="hover:bg-nexus-bg-secondary">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <input
@@ -160,7 +160,7 @@ export function ContactsTable() {
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={contact.avatar || ''} alt={contact.name} />
                     <AvatarFallback>
-                      {contact.name.split(' ').map(n => n[0]).join('')}
+                      {contact.name.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="ml-4">
@@ -186,7 +186,7 @@ export function ContactsTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex flex-wrap gap-1">
-                  {contact.tags.map((tag) => (
+                  {contact.tags.map((tag: string) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>

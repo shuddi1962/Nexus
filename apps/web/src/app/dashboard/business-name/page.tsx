@@ -171,7 +171,7 @@ export default function BusinessNamePage() {
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  {industries.map((ind) => (
+                  {industries.map((ind: string) => (
                     <SelectItem key={ind} value={ind.toLowerCase()}>
                       {ind}
                     </SelectItem>
@@ -187,7 +187,7 @@ export default function BusinessNamePage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {styles.map((s) => (
+                  {styles.map((s: any) => (
                     <SelectItem key={s.value} value={s.value}>
                       {s.label}
                     </SelectItem>
@@ -252,7 +252,7 @@ export default function BusinessNamePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {suggestions.map((suggestion, index) => (
+                {suggestions.map((suggestion: NameSuggestion, index: number) => (
                   <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
@@ -299,7 +299,7 @@ export default function BusinessNamePage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      {suggestion.reasons.map((reason, i) => (
+                      {suggestion.reasons.map((reason: string, i: number) => (
                         <Badge key={i} variant="secondary" className="text-xs">
                           {reason}
                         </Badge>
@@ -322,7 +322,7 @@ export default function BusinessNamePage() {
                   {suggestions
                     .filter(s => s.available && s.score >= 85)
                     .slice(0, 3)
-                    .map((name, index) => (
+                    .map((name: NameSuggestion, index: number) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="font-medium text-sm">{name.name}</span>
                       <div className="flex items-center space-x-1">
@@ -344,7 +344,7 @@ export default function BusinessNamePage() {
                   {suggestions
                     .filter(s => s.available)
                     .slice(0, 3)
-                    .map((name, index) => (
+                    .map((name: NameSuggestion, index: number) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="font-medium text-sm">{name.domain}</span>
                       <CheckCircle className="w-4 h-4 text-green-500" />
@@ -426,7 +426,7 @@ export default function BusinessNamePage() {
               'business intelligence',
               'workflow automation',
               'customer success'
-            ].map((search, index) => (
+            ].map((search: string, index: number) => (
               <Button
                 key={index}
                 variant="outline"

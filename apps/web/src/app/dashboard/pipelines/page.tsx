@@ -234,7 +234,7 @@ export default function PipelinesPage() {
       {/* Pipeline View */}
       {viewMode === 'kanban' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {currentPipeline.stages.map((stage) => (
+          {currentPipeline.stages.map((stage: PipelineStage) => (
             <div key={stage.id} className="bg-gray-50 rounded-lg p-4 min-h-96">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium text-gray-900">{stage.name}</h3>
@@ -244,7 +244,7 @@ export default function PipelinesPage() {
               </div>
 
               <div className="space-y-3">
-                {getOpportunitiesByStage(stage.id).map((opportunity) => (
+                {getOpportunitiesByStage(stage.id).map((opportunity: Opportunity) => (
                   <Card key={opportunity.id} className="cursor-pointer hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
@@ -314,7 +314,7 @@ export default function PipelinesPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentPipeline.opportunities.map((opportunity) => (
+                  {currentPipeline.opportunities.map((opportunity: Opportunity) => (
                     <tr key={opportunity.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>

@@ -125,7 +125,7 @@ export default function AdSetsPage() {
     setSelectedAdSets(
       selectedAdSets.length === adSets.length
         ? []
-        : adSets.map(adSet => adSet.id)
+        : adSets.map((adSet: any) => adSet.id)
     )
   }
 
@@ -243,7 +243,7 @@ export default function AdSetsPage() {
 
       {/* Ad Sets Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {adSets.map((adSet) => (
+        {adSets.map((adSet: any) => (
           <Card key={adSet.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">

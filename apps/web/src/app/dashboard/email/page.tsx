@@ -305,7 +305,7 @@ export default function EmailMarketingPage() {
 
           {/* Campaigns List */}
           <div className="space-y-4">
-            {campaigns.map((campaign) => (
+            {campaigns.map((campaign: Campaign) => (
               <Card key={campaign.id}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -399,7 +399,7 @@ export default function EmailMarketingPage() {
 
           {/* Templates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {templates.map((template) => (
+            {templates.map((template: EmailTemplate) => (
               <Card key={template.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardContent className="p-4">
                   <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
@@ -465,7 +465,7 @@ export default function EmailMarketingPage() {
                     completed: 0,
                     openRate: 0
                   }
-                ].map((workflow, index) => (
+                ].map((workflow: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
@@ -560,7 +560,7 @@ export default function EmailMarketingPage() {
                   { name: 'Engaged Users', count: 8923, growth: 5.6 },
                   { name: 'At-Risk Churn', count: 1234, growth: -12.3 },
                   { name: 'Inactive Users', count: 4567, growth: -8.7 }
-                ].map((segment, index) => (
+                ].map((segment: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <div className="font-medium text-gray-900">{segment.name}</div>
