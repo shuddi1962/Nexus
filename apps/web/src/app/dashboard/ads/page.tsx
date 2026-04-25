@@ -91,6 +91,31 @@ export default function AdsPage() {
     }
   }
 
+  const getPlatformIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'meta':
+        return '📘'
+      case 'google':
+        return '🔍'
+      case 'tiktok':
+        return '🎵'
+      case 'twitter':
+        return '🐦'
+      case 'linkedin':
+        return '💼'
+      case 'snapchat':
+        return '👻'
+      case 'pinterest':
+        return '📌'
+      case 'youtube':
+        return '📺'
+      case 'amazon':
+        return '📦'
+      default:
+        return '📢'
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
