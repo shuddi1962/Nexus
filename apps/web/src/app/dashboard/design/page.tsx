@@ -45,7 +45,7 @@ import {
   Underline,
   Zap
 } from 'lucide-react'
-import { fabric } from 'fabric'
+import * as fabric from 'fabric'
 
 interface DesignProject {
   id: string

@@ -116,6 +116,21 @@ export default function AdsPage() {
     }
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'connected':
+        return 'bg-nexus-green text-white'
+      case 'disconnected':
+        return 'bg-nexus-red text-white'
+      case 'error':
+        return 'bg-nexus-red text-white'
+      case 'pending':
+        return 'bg-nexus-amber text-nexus-text-primary'
+      default:
+        return 'bg-nexus-bg-secondary text-nexus-text-primary'
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -141,12 +156,10 @@ export default function AdsPage() {
             Settings
           </Button>
           <Link href="/dashboard/ads/campaigns">
-          <Link href="/dashboard/ads/campaigns">
             <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
               <Plus className="w-4 h-4 mr-2" />
               Manage Campaigns
             </Button>
-          </Link>
           </Link>
         </div>
       </div>
