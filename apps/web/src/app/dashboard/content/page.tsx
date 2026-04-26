@@ -216,7 +216,13 @@ export default function ContentWriterPage() {
 
     try {
       setIsCreatingArticle(true)
-      await apiClient.createArticle(newArticle)
+      await apiClient.createArticle({
+        title: newArticle.title,
+        content: newArticle.content,
+        excerpt: newArticle.excerpt,
+        tags: newArticle.tags,
+        status: newArticle.status
+      })
       setNewArticle({
         title: '',
         content: '',
