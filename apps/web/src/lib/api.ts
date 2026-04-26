@@ -438,6 +438,94 @@ class ApiClient {
     })
   }
 
+  async getArticles(params?: {
+    page?: number
+    limit?: number
+    status?: 'draft' | 'published' | 'scheduled'
+    search?: string
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.set('page', params.page.toString())
+    if (params?.limit) queryParams.set('limit', params.limit.toString())
+    if (params?.status) queryParams.set('status', params.status)
+    if (params?.search) queryParams.set('search', params.search)
+
+    const query = queryParams.toString()
+    return this.request(`/content/articles${query ? `?${query}` : ''}`)
+  }
+
+  async rewriteContent(options: {
+    content: string
+    instructions?: string
+    tone?: string
+    length?: string
+  }) {
+    return this.request('/content/rewrite', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    })
+  }
+
+  async generateImage(options: {
+    prompt: string
+    style?: string
+  }) {
+    return this.request('/content/generate-image', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    })
+  }
+
+  async createArticle(article: {
+    title: string
+    content: string
+    excerpt?: string
+    tags?: string[]
+    status?: 'draft' | 'published' | 'scheduled'
+  }) {
+    return this.request('/content/articles', {
+      method: 'POST',
+      body: JSON.stringify(article)
+    })
+  }
+
+  // Presentation endpoints
+  async createPresentation(options: {
+    topic: string
+    slides: number
+    style?: string
+    template?: string
+  }) {
+    return this.request('/presentations/create', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    })
+  }
+
+  // Creative endpoints
+  async generateLogo(options: {
+    name: string
+    style?: string
+    colors?: string[]
+  }) {
+    return this.request('/creative/logo/generate', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    })
+  }
+
+  async generateMusic(options: {
+    prompt: string
+    duration?: number
+    style?: string
+    genre?: string
+  }) {
+    return this.request('/creative/music/generate', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    })
+  }
+
   async convertArticleToVideo(options: {
     article_url: string
     style: string
