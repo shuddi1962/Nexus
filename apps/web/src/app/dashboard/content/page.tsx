@@ -63,7 +63,7 @@ interface Article {
   published_date?: string
   word_count: number
   reading_time: number
-  status: 'draft' | 'published' | 'archived'
+  status: 'draft' | 'published' | 'scheduled' | 'archived'
   tags: string[]
   seo_title?: string
   seo_description?: string

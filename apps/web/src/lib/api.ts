@@ -481,7 +481,7 @@ class ApiClient {
     content: string
     excerpt?: string
     tags?: string[]
-    status?: 'draft' | 'published' | 'scheduled'
+    status?: 'draft' | 'published' | 'scheduled' | 'archived'
   }) {
     return this.request('/content/articles', {
       method: 'POST',
