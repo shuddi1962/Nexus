@@ -410,7 +410,7 @@ export default function PresentationBuilderPage() {
                     className="w-full h-full relative overflow-hidden"
                     style={{ backgroundColor: currentSlide.background }}
                   >
-                    {currentSlide.elements.map((element, index) => (
+                    {currentSlide.elements.map((element: SelectedElement, index: number) => (
                       <div
                         key={index}
                         className={`absolute ${!isPreviewMode ? 'border-2 border-dashed border-nexus-blue cursor-pointer hover:border-nexus-blue/50' : ''}`}
@@ -480,7 +480,7 @@ export default function PresentationBuilderPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
-                      {presentation.slides.map((slide, index) => (
+                      {presentation.slides.map((slide: PresentationSlide, index: number) => (
                         <div
                           key={slide.id}
                           className={`p-2 border-2 rounded cursor-pointer transition-colors ${

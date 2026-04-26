@@ -772,7 +772,7 @@ export default function ContentWriterPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {articles.map((article) => (
+                  {articles.map((article: Article) => (
                     <div key={article.id} className="p-4 border border-nexus-border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-medium text-nexus-text-primary">{article.title}</h3>
@@ -803,7 +803,7 @@ export default function ContentWriterPage() {
 
                       {article.tags && article.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-3">
-                          {article.tags.map((tag, index) => (
+                          {article.tags.map((tag: string, index: number) => (
                             <Badge key={index} variant="outline" className="text-xs border-nexus-border">
                               {tag}
                             </Badge>
