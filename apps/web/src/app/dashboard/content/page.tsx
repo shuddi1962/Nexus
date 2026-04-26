@@ -221,7 +221,7 @@ export default function ContentWriterPage() {
         content: newArticle.content,
         excerpt: newArticle.excerpt,
         tags: newArticle.tags,
-        status: newArticle.status
+        status: newArticle.status as 'draft' | 'published' | 'scheduled' | 'archived'
       })
       setNewArticle({
         title: '',
