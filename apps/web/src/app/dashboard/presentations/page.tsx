@@ -52,7 +52,6 @@ interface PresentationSlide {
   background: string
   textColor: string
   elements: SelectedElement[]
-  }>
 }
 
 interface PresentationData {
