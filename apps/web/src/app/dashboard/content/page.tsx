@@ -34,7 +34,8 @@ import {
   RefreshCw,
   Download,
   Copy,
-  CheckCircle
+  CheckCircle,
+  Edit
 } from 'lucide-react'
 
 interface ContentIdea {
