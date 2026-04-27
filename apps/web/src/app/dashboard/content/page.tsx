@@ -145,33 +145,32 @@ export default function ContentWriterPage() {
     }
   }
 
-    const handleExtractUrl = async () => {
-      if (!extractUrl.trim()) return
+  const handleExtractUrl = async () => {
+    if (!extractUrl.trim()) return
 
-      try {
-        setIsExtracting(true)
-        const data = await apiClient.extractArticle(extractUrl.trim())
-       setExtractedContent(data)
-       // Pre-populate article form
-       setNewArticle({
-         title: data.title,
-         content: data.content,
-         excerpt: data.excerpt,
-         url: data.url,
-         author: data.author,
-         published_date: data.published_date,
-         word_count: data.word_count,
-         reading_time: data.reading_time,
-         tags: [],
-         status: 'draft'
-       })
-     } catch (error) {
-       console.error('Error extracting URL:', error)
-       alert('Failed to extract content from URL. Please check the URL and try again.')
-     } finally {
-       setIsExtracting(false)
-     }
-   }
+    try {
+      setIsExtracting(true)
+      const data = await apiClient.extractArticle(extractUrl.trim())
+      setExtractedContent(data)
+      // Pre-populate article form
+      setNewArticle({
+        title: data.title,
+        content: data.content,
+        excerpt: data.excerpt,
+        url: data.url,
+        author: data.author,
+        published_date: data.published_date,
+        word_count: data.word_count,
+        reading_time: data.reading_time,
+        tags: [],
+        status: 'draft'
+      })
+    } catch (error) {
+      console.error('Error extracting URL:', error)
+      alert('Failed to extract content from URL. Please check the URL and try again.')
+    } finally {
+      setIsExtracting(false)
+    }
   }
 
   const handleRewriteContent = async () => {
