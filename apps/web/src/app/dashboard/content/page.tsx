@@ -327,7 +327,6 @@ export default function ContentWriterPage() {
       setIsCreatingArticle(false)
     }
   }
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString()
