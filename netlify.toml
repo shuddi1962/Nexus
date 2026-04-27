@@ -5,6 +5,14 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Build caching for faster rebuilds
+[build.cache]
+  directories = [
+    "node_modules",
+    "apps/web/node_modules",
+    "apps/web/.next/cache"
+  ]
+
 [[redirects]]
   from = "/api/*"
   to = "https://api.nexus.app/:splat"
