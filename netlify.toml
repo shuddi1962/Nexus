@@ -1,17 +1,10 @@
 [build]
-  command = "cd apps/web && npm run build"
+  command = "cd apps/web && npm install && npm run build"
   publish = "apps/web/.next"
 
 [build.environment]
   NODE_VERSION = "22"
-
-# Build caching for faster rebuilds
-[build.cache]
-  directories = [
-    "node_modules",
-    "apps/web/node_modules",
-    "apps/web/.next/cache"
-  ]
+  NPM_VERSION = "10"
 
 [[redirects]]
   from = "/api/*"
