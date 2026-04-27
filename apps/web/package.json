@@ -33,7 +33,10 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "react-colorful": "^5.6.1",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
@@ -42,9 +45,6 @@
     "@types/three": "^0.162.0",
     "@types/fabric": "^5.3.6",
     "typescript": "^5.5.3",
-    "tailwindcss": "^3.4.0",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.15"
   }
