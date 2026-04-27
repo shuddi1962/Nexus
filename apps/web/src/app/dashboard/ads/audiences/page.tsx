@@ -388,7 +388,7 @@ export default function AudiencesPage() {
               <DollarSign className="w-8 h-8 text-nexus-amber mr-3" />
               <div>
                 <div className="text-2xl font-bold text-nexus-text-primary">
-                  ${(filteredAudiences.reduce((sum, a) => sum + a.performance.cpm, 0) / filteredAudiences.length).toFixed(2)}
+                  ${(filteredAudiences.reduce((sum, a) => sum + (a.performance?.cpm ?? 0), 0) / filteredAudiences.length).toFixed(2)}
                 </div>
                 <div className="text-sm text-nexus-text-secondary">Avg CPM</div>
               </div>
@@ -402,7 +402,7 @@ export default function AudiencesPage() {
               <Eye className="w-8 h-8 text-nexus-violet mr-3" />
               <div>
                 <div className="text-2xl font-bold text-nexus-text-primary">
-                  {(filteredAudiences.reduce((sum, a) => sum + a.performance.ctr, 0) / filteredAudiences.length).toFixed(1)}%
+                  {(filteredAudiences.reduce((sum, a) => sum + (a.performance?.ctr ?? 0), 0) / filteredAudiences.length).toFixed(1)}%
                 </div>
                 <div className="text-sm text-nexus-text-secondary">Avg CTR</div>
               </div>
