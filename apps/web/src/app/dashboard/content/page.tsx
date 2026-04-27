@@ -272,7 +272,6 @@ export default function ContentWriterPage() {
       setIsGeneratingImage(false)
     }
   }
-  }
 
   const handleCreateArticle = async () => {
     if (!newArticle.title?.trim()) {
