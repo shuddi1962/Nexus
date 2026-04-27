@@ -10,9 +10,10 @@ WORKDIR /app
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
 COPY apps/api/package*.json ./apps/api/
+COPY packages/*/package*.json ./packages/
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
