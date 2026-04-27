@@ -55,10 +55,10 @@ interface Website {
 interface PageElement {
   id: string
   type: 'text' | 'image' | 'button' | 'form' | 'video' | 'hero' | 'testimonial'
-  content: any
+  content: Record<string, unknown>
   position: { x: number; y: number }
   size: { width: number; height: number }
-  style: any
+  style: Record<string, unknown>
 }
 
 export default function WebsitesPage() {

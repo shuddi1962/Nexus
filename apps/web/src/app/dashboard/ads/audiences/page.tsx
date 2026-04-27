@@ -33,31 +33,24 @@ import {
   MoreHorizontal
 } from 'lucide-react'
 
+interface AdAccount {
+  id: string
+  platform: string
+  account_id: string
+  account_name: string
+  status: string
+  currency: string
+  connected_at: string
+  synced_at?: string
+}
+
 interface Audience {
   id: string
   name: string
   description?: string
   platform: string
-  type: 'saved' | 'lookalike' | 'custom' | 'interest'
+  type: 'lookalike' | 'interest' | 'custom' | 'retargeting'
   size?: number
-  targeting: {
-    demographics: {
-      age_min?: number
-      age_max?: number
-      gender?: string[]
-    }
-    locations: string[]
-    interests: string[]
-    behaviors: string[]
-    devices: string[]
-    languages: string[]
-  }
-  performance: {
-    reach: number
-    frequency: number
-    cpm: number
-    ctr: number
-  }
   status: 'active' | 'inactive'
   created_at: string
   updated_at: string
@@ -66,7 +59,7 @@ interface Audience {
 export default function AudiencesPage() {
   const { user } = useAuth()
   const [audiences, setAudiences] = useState<Audience[]>([])
-  const [adAccounts, setAdAccounts] = useState<any[]>([])
+  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedAccount, setSelectedAccount] = useState<string>('')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -199,7 +192,7 @@ export default function AudiencesPage() {
     await fetchAudiences()
   }
 
-  const handleCreateAudience = async (audienceData: any) => {
+  const handleCreateAudience = async (audienceData: Omit<Audience, 'id' | 'created_at' | 'updated_at' | 'size'>) => {
     try {
       // Would integrate with actual API
 
@@ -537,8 +530,8 @@ export default function AudiencesPage() {
 }
 
 function AudienceForm({ onSubmit, adAccounts }: {
-  onSubmit: (data: any) => void
-  adAccounts: any[]
+  onSubmit: (data: Omit<Audience, 'id' | 'created_at' | 'updated_at' | 'size'>) => void
+  adAccounts: AdAccount[]
 }) {
   const [formData, setFormData] = useState({
     name: '',

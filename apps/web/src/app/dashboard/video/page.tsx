@@ -58,7 +58,7 @@ interface VideoTrack {
   endTime: number
   src?: string
   content?: string
-  style?: any
+  style?: Record<string, unknown>
   effects?: VideoEffect[]
 }
 
@@ -66,7 +66,7 @@ interface VideoEffect {
   id: string
   type: 'filter' | 'transition' | 'animation'
   name: string
-  parameters: any
+  parameters: Record<string, unknown>
   startTime: number
   endTime: number
 }

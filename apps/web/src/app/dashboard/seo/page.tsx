@@ -50,9 +50,9 @@ interface SEOAudit {
       action: string
       priority: 'high' | 'medium' | 'low'
     }>
-    technical_seo: any
-    content_seo: any
-    performance: any
+    technical_seo: Record<string, unknown>
+    content_seo: Record<string, unknown>
+    performance: Record<string, unknown>
   }
   created_at: string
 }

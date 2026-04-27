@@ -36,7 +36,7 @@ interface FlowNode {
   id: string
   type: 'message' | 'input' | 'condition' | 'action' | 'end'
   position: { x: number; y: number }
-  data: any
+  data: Record<string, unknown>
 }
 
 interface FlowConnection {

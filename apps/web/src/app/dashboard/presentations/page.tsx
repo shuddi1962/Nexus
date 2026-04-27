@@ -41,7 +41,7 @@ interface SelectedElement {
   type: 'title' | 'content' | 'image' | 'shape'
   content: string
   position: { x: number; y: number }
-  style: any
+  style: Record<string, unknown>
 }
 
 interface PresentationSlide {

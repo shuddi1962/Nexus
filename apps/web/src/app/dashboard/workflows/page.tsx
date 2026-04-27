@@ -34,7 +34,7 @@ interface Workflow {
   status: 'active' | 'paused' | 'draft'
   trigger: {
     type: 'manual' | 'schedule' | 'event' | 'webhook'
-    config: any
+    config: Record<string, unknown>
   }
   steps: WorkflowStep[]
   executions: number
@@ -46,7 +46,7 @@ interface WorkflowStep {
   id: string
   type: 'action' | 'condition' | 'delay' | 'notification'
   name: string
-  config: any
+  config: Record<string, unknown>
 }
 
 export default function WorkflowsPage() {
