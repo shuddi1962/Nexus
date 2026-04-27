@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    ignoreBuildErrors: true,  // TEMPORARILY ENABLED - Fix errors and revert
+    ignoreBuildErrors: false,  // NEVER set to true
   },
   eslint: {
-    ignoreDuringBuilds: true, // TEMPORARILY ENABLED - Fix errors and revert
+    ignoreDuringBuilds: false, // NEVER set to true
   },
   images: {
     remotePatterns: [
