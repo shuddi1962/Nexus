@@ -51,6 +51,20 @@ interface Audience {
   platform: string
   type: 'lookalike' | 'interest' | 'custom' | 'retargeting' | 'saved'
   size?: number
+  targeting?: {
+    demographics?: { age_min?: number; age_max?: number; gender?: string[] }
+    locations?: string[]
+    interests?: string[]
+    behaviors?: string[]
+    devices?: string[]
+    languages?: string[]
+  }
+  performance?: {
+    reach?: number
+    frequency?: number
+    cpm?: number
+    ctr?: number
+  }
   status: 'active' | 'inactive'
   created_at: string
   updated_at: string
