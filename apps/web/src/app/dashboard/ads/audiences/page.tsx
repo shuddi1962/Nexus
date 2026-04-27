@@ -49,7 +49,7 @@ interface Audience {
   name: string
   description?: string
   platform: string
-  type: 'lookalike' | 'interest' | 'custom' | 'retargeting'
+  type: 'lookalike' | 'interest' | 'custom' | 'retargeting' | 'saved'
   size?: number
   status: 'active' | 'inactive'
   created_at: string
