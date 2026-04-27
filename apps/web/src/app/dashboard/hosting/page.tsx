@@ -205,7 +205,7 @@ export default function HostingPage() {
     // Simulate API call
     setTimeout(() => {
       setIsSearchingDomain(false)
-      console.log('Domain search result for:', newDomain)
+  
     }, 2000)
   }
 

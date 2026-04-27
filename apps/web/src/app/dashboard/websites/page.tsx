@@ -182,7 +182,7 @@ export default function WebsitesPage() {
     if (!websiteName.trim() || !websiteDomain.trim()) return
 
     // In real app, this would create a new website
-    console.log('Creating website:', websiteName, websiteDomain)
+
     setIsBuilding(true)
     setWebsiteName('')
     setWebsiteDomain('')

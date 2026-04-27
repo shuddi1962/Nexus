@@ -111,7 +111,7 @@ export function AccessibilityChecker() {
 
   const runAccessibilityAudit = () => {
     // Simulate accessibility audit
-    console.log('Running accessibility audit...')
+
     // In a real implementation, this would use axe-core or similar
   }
 

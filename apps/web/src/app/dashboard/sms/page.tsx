@@ -26,7 +26,7 @@ export default function SMSPage() {
 
   const handleSend = () => {
     // In real app, this would send via SMS API
-    console.log('Sending SMS:', smsData)
+
     alert('SMS sent successfully!')
   }
 

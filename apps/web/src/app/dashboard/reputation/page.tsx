@@ -207,7 +207,7 @@ export default function ReputationPage() {
     if (!responseText.trim()) return
 
     // In real app, this would send the response
-    console.log('Sending response for review:', reviewId, responseText)
+
     setResponseText('')
     setSelectedReview(null)
   }

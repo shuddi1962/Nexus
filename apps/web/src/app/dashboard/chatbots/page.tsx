@@ -99,7 +99,7 @@ export default function ChatbotPage() {
     if (!newChatbotName.trim()) return
 
     // In real app, this would create a new chatbot
-    console.log('Creating chatbot:', newChatbotName, newChatbotDescription)
+
     setIsCreating(false)
     setNewChatbotName('')
     setNewChatbotDescription('')

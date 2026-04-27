@@ -114,7 +114,7 @@ export default function OrganizationPage() {
 
   const handleSave = () => {
     // In real app, this would save to API
-    console.log('Saving organization:', orgData)
+
     setIsEditing(false)
   }
 

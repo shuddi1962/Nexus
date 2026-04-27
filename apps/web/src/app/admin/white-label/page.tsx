@@ -79,7 +79,7 @@ export default function WhiteLabelPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000))
     setIsSaving(false)
-    console.log('White-label configuration saved:', config)
+
   }
 
   const updateConfig = (key: keyof BrandingConfig, value: any) => {

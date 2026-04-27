@@ -68,7 +68,7 @@ export default function ProfilePage() {
 
   const handleSave = () => {
     // In real app, this would save to API
-    console.log('Saving profile:', profile)
+
     setIsEditing(false)
   }
 

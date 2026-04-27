@@ -196,7 +196,7 @@ export default function CoursesPage() {
     if (!courseTitle.trim()) return
 
     // In real app, this would create a new course
-    console.log('Creating course:', courseTitle, courseDescription)
+
     setIsCreating(false)
     setCourseTitle('')
     setCourseDescription('')

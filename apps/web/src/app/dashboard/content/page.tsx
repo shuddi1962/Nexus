@@ -133,6 +133,39 @@ export default function ContentWriterPage() {
     }
   }, [activeTab])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case '1':
+            e.preventDefault()
+            setActiveTab('extract')
+            break
+          case '2':
+            e.preventDefault()
+            setActiveTab('rewrite')
+            break
+          case '3':
+            e.preventDefault()
+            setActiveTab('image')
+            break
+          case '4':
+            e.preventDefault()
+            setActiveTab('create')
+            break
+          case '5':
+            e.preventDefault()
+            setActiveTab('articles')
+            break
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const fetchArticles = async () => {
     try {
       setLoading(true)
@@ -145,44 +178,65 @@ export default function ContentWriterPage() {
     }
   }
 
-  const handleExtractUrl = async () => {
-    if (!extractUrl.trim()) return
+    const handleExtractUrl = async () => {
+      if (!extractUrl.trim()) {
+        alert('Please enter a valid URL to extract content from.')
+        return
+      }
 
-    try {
-      setIsExtracting(true)
-      const data = await apiClient.extractArticle(extractUrl.trim())
-      setExtractedContent(data)
-      // Pre-populate article form
-      setNewArticle({
-        title: data.title,
-        content: data.content,
-        excerpt: data.excerpt,
-        url: data.url,
-        author: data.author,
-        published_date: data.published_date,
-        word_count: data.word_count,
-        reading_time: data.reading_time,
-        tags: [],
-        status: 'draft'
-      })
-    } catch (error) {
-      console.error('Error extracting URL:', error)
-      alert('Failed to extract content from URL. Please check the URL and try again.')
-    } finally {
-      setIsExtracting(false)
+      // Basic URL validation
+      try {
+        new URL(extractUrl.trim())
+      } catch {
+        alert('Please enter a valid URL starting with http:// or https://')
+        return
+      }
+
+      try {
+        setIsExtracting(true)
+        const data = await apiClient.extractArticle(extractUrl.trim())
+        setExtractedContent(data)
+        // Pre-populate article form
+        setNewArticle({
+          title: data.title,
+          content: data.content,
+          excerpt: data.excerpt,
+          url: data.url,
+          author: data.author,
+          published_date: data.published_date,
+          word_count: data.word_count,
+          reading_time: data.reading_time,
+          tags: [],
+          status: 'draft'
+        })
+        // Switch to create tab for convenience
+        setActiveTab('create')
+      } catch (error) {
+        console.error('Error extracting URL:', error)
+        alert('Failed to extract content from URL. Please check the URL and ensure the site allows content extraction.')
+      } finally {
+        setIsExtracting(false)
+      }
     }
-  }
 
   const handleRewriteContent = async () => {
-    if (!rewriteContent.trim()) return
+    if (!rewriteContent.trim()) {
+      alert('Please enter content to rewrite.')
+      return
+    }
+
+    if (rewriteContent.trim().length < 10) {
+      alert('Content must be at least 10 characters long.')
+      return
+    }
 
     try {
       setIsRewriting(true)
       const data = await apiClient.rewriteContent({
         content: rewriteContent,
-        instructions: rewriteInstructions,
-        tone: rewriteTone,
-        length: rewriteLength
+        instructions: rewriteInstructions || undefined,
+        tone: rewriteTone || undefined,
+        length: rewriteLength || undefined
       })
       setRewrittenContent(data.rewritten_content)
     } catch (error) {
@@ -194,13 +248,21 @@ export default function ContentWriterPage() {
   }
 
   const handleGenerateImage = async () => {
-    if (!imagePrompt.trim()) return
+    if (!imagePrompt.trim()) {
+      alert('Please enter a description for the image.')
+      return
+    }
+
+    if (imagePrompt.trim().length < 5) {
+      alert('Image description must be at least 5 characters long.')
+      return
+    }
 
     try {
       setIsGeneratingImage(true)
       const data = await apiClient.generateImage({
         prompt: imagePrompt,
-        style: imageStyle
+        style: imageStyle !== '' ? imageStyle : undefined
       })
       setGeneratedImage(data.image_url)
     } catch (error) {
@@ -210,19 +272,39 @@ export default function ContentWriterPage() {
       setIsGeneratingImage(false)
     }
   }
+  }
 
   const handleCreateArticle = async () => {
-    if (!newArticle.title || !newArticle.content) return
+    if (!newArticle.title?.trim()) {
+      alert('Please enter a title for the article.')
+      return
+    }
+
+    if (!newArticle.content?.trim()) {
+      alert('Please enter content for the article.')
+      return
+    }
+
+    if (newArticle.title.trim().length < 3) {
+      alert('Title must be at least 3 characters long.')
+      return
+    }
+
+    if (newArticle.content.trim().length < 10) {
+      alert('Content must be at least 10 characters long.')
+      return
+    }
 
     try {
       setIsCreatingArticle(true)
       await apiClient.createArticle({
-        title: newArticle.title,
-        content: newArticle.content,
-        excerpt: newArticle.excerpt,
-        tags: newArticle.tags,
-        status: newArticle.status as 'draft' | 'published' | 'scheduled' | 'archived'
+        title: newArticle.title.trim(),
+        content: newArticle.content.trim(),
+        excerpt: newArticle.excerpt?.trim() || undefined,
+        tags: newArticle.tags?.filter(tag => tag.trim()) || [],
+        status: newArticle.status
       })
+      // Reset form
       setNewArticle({
         title: '',
         content: '',
@@ -230,15 +312,21 @@ export default function ContentWriterPage() {
         tags: [],
         status: 'draft'
       })
+      // Clear other form states
       setExtractedContent(null)
+      setRewrittenContent('')
+      setGeneratedImage('')
+      // Refresh articles list
       fetchArticles()
       alert('Article created successfully!')
+      setActiveTab('articles')
     } catch (error) {
       console.error('Error creating article:', error)
       alert('Failed to create article. Please try again.')
     } finally {
       setIsCreatingArticle(false)
     }
+  }
   }
 
   const formatDate = (dateString: string) => {
@@ -267,6 +355,7 @@ export default function ContentWriterPage() {
         <div>
           <h1 className="text-2xl font-bold text-nexus-text-primary">Content Writer</h1>
           <p className="text-nexus-text-secondary">AI-powered content creation, extraction, and management tools.</p>
+          <p className="text-xs text-nexus-text-tertiary mt-1">Use keyboard shortcuts: Ctrl+1-5 to switch between tools</p>
         </div>
         <div className="flex items-center space-x-3">
           <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
@@ -281,13 +370,13 @@ export default function ContentWriterPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="extract">URL Extract</TabsTrigger>
-          <TabsTrigger value="rewrite">Rewrite</TabsTrigger>
-          <TabsTrigger value="image">Generate Image</TabsTrigger>
-          <TabsTrigger value="create">Create Article</TabsTrigger>
-          <TabsTrigger value="articles">Articles</TabsTrigger>
-        </TabsList>
+          <TabsList className="grid w-full grid-cols-5" role="tablist" aria-label="Content creation tools">
+            <TabsTrigger value="extract" aria-label="Extract content from URL (Ctrl+1)">URL Extract</TabsTrigger>
+            <TabsTrigger value="rewrite" aria-label="Rewrite existing content (Ctrl+2)">Rewrite</TabsTrigger>
+            <TabsTrigger value="image" aria-label="Generate AI images (Ctrl+3)">Generate Image</TabsTrigger>
+            <TabsTrigger value="create" aria-label="Create new article (Ctrl+4)">Create Article</TabsTrigger>
+            <TabsTrigger value="articles" aria-label="View articles (Ctrl+5)">Articles</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="extract" className="space-y-6">
           <Card className="border-nexus-border">

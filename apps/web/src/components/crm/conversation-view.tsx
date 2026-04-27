@@ -78,7 +78,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
     if (!newMessage.trim()) return
 
     // In real app, this would send the message via API
-    console.log('Sending message:', newMessage)
+
     setNewMessage('')
   }
 

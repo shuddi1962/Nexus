@@ -260,7 +260,7 @@ export default function BudgetOptimizationPage() {
       }))
 
       // In a real implementation, this would call the API
-      console.log('Applying budget optimizations:', updates)
+
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000))
@@ -296,7 +296,7 @@ export default function BudgetOptimizationPage() {
       }
 
       // In a real implementation, this would call the API
-      console.log(`Updating budget for campaign ${campaignId} to $${newBudget}`)
+
 
       // Update local state
       setCampaigns(campaigns.map(campaign =>

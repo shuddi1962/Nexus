@@ -236,7 +236,7 @@ export default function ChatPage() {
     if (!messageInput.trim()) return
 
     // In real app, this would send the message
-    console.log('Sending message:', messageInput)
+
     setMessageInput('')
   }
 

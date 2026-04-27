@@ -202,7 +202,7 @@ export default function AudiencesPage() {
   const handleCreateAudience = async (audienceData: any) => {
     try {
       // Would integrate with actual API
-      console.log('Creating audience:', audienceData)
+
       fetchAudiences()
       setShowCreateDialog(false)
     } catch (error) {
