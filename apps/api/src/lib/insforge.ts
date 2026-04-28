@@ -55,6 +55,21 @@ export const collections = {
   generatedImages: 'generated_images',
   videoProjects: 'video_projects',
   musicTracks: 'music_tracks',
+  
+  // Hosting
+  domains: 'domains',
+  hostingPlans: 'hosting_plans',
+  websites: 'websites',
+  dnsRecords: 'dns_records',
+  
+  // Code Builder
+  codeProjects: 'code_projects',
+  codeSnippets: 'code_snippets',
+  apiEndpoints: 'api_endpoints',
+  
+  // Chat Hub
+  chats: 'chats',
+  chatIntegrations: 'chat_integrations',
 }
 
 // Helper functions

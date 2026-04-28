@@ -1022,6 +1022,112 @@ class ApiClient {
   async getMusicModels() {
     return this.request('/music/models')
   }
+
+  // Hosting endpoints
+  async getDomains() {
+    return this.request('/hosting/domains')
+  }
+
+  async registerDomain(data: { name: string; registrar?: string }) {
+    return this.request('/hosting/domains', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getHostingPlans() {
+    return this.request('/hosting/plans')
+  }
+
+  async getWebsites() {
+    return this.request('/hosting/websites')
+  }
+
+  async createWebsite(data: { name: string; domain_id: string; template?: string }) {
+    return this.request('/hosting/websites', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getDNSRecords(domainId: string) {
+    return this.request(`/hosting/dns/${domainId}`)
+  }
+
+  async addDNSRecord(data: { domain_id: string; type: string; name: string; value: string; ttl?: number }) {
+    return this.request('/hosting/dns', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Code Builder endpoints
+  async getCodeProjects() {
+    return this.request('/code/projects')
+  }
+
+  async createCodeProject(data: { name: string; type?: string; description?: string }) {
+    return this.request('/code/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getCodeSnippets() {
+    return this.request('/code/snippets')
+  }
+
+  async createCodeSnippet(data: { name: string; language: string; description?: string; code: string; tags?: string[] }) {
+    return this.request('/code/snippets', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getAPIEndpoints() {
+    return this.request('/code/endpoints')
+  }
+
+  async createAPIEndpoint(data: { method: string; path: string; description?: string }) {
+    return this.request('/code/endpoints', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async executeEndpoint(id: string, data?: { body?: any; headers?: any }) {
+    return this.request(`/code/endpoints/${id}/execute`, {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    })
+  }
+
+  // Chat Hub endpoints
+  async getChats() {
+    return this.request('/chat/chats')
+  }
+
+  async getChatMessages(chatId: string) {
+    return this.request(`/chat/chats/${chatId}/messages`)
+  }
+
+  async sendMessage(data: { chat_id: string; content: string; type?: string }) {
+    return this.request('/chat/messages', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getChatIntegrations() {
+    return this.request('/chat/integrations')
+  }
+
+  async connectIntegration(data: { name: string; platform: string }) {
+    return this.request('/chat/integrations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
 }
 
 export const apiClient = new ApiClient()
