@@ -188,7 +188,6 @@ export default function ArticleToVideoPage() {
       const data = await apiClient.convertArticleToVideo({
         article_url: inputType === 'url' ? articleUrl : '',
         content: inputType !== 'url' ? articleText : '',
-        title: title || 'Generated Video',
         duration: duration[0],
         style,
         voice
