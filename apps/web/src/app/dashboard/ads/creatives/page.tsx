@@ -338,15 +338,15 @@ export default function CreativesPage() {
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
                     <div className="text-nexus-text-tertiary">Impressions</div>
-                    <div className="font-semibold text-nexus-text-primary">{creative.performance.impressions.toLocaleString()}</div>
+                    <div className="font-semibold text-nexus-text-primary">{(creative.performance?.impressions ?? 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div className="text-nexus-text-tertiary">Clicks</div>
-                    <div className="font-semibold text-nexus-text-primary">{creative.performance.clicks}</div>
+                    <div className="font-semibold text-nexus-text-primary">{creative.performance?.clicks ?? 0}</div>
                   </div>
                   <div>
                     <div className="text-nexus-text-tertiary">CTR</div>
-                    <div className="font-semibold text-nexus-text-primary">{creative.performance.ctr.toFixed(2)}%</div>
+                    <div className="font-semibold text-nexus-text-primary">{creative.performance?.ctr?.toFixed(2) ?? '0.00'}%</div>
                   </div>
                 </div>
 
@@ -458,15 +458,15 @@ export default function CreativesPage() {
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <div className="text-nexus-text-tertiary">Imp.</div>
-                            <div className="font-semibold text-nexus-text-primary">{creative.performance.impressions.toLocaleString()}</div>
+                            <div className="font-semibold text-nexus-text-primary">{(creative.performance?.impressions ?? 0).toLocaleString()}</div>
                           </div>
                           <div>
                             <div className="text-nexus-text-tertiary">Clicks</div>
-                            <div className="font-semibold text-nexus-text-primary">{creative.performance.clicks}</div>
+                            <div className="font-semibold text-nexus-text-primary">{creative.performance?.clicks ?? 0}</div>
                           </div>
                           <div>
                             <div className="text-nexus-text-tertiary">CTR</div>
-                            <div className="font-semibold text-nexus-text-primary">{creative.performance.ctr.toFixed(2)}%</div>
+                            <div className="font-semibold text-nexus-text-primary">{creative.performance?.ctr?.toFixed(2) ?? '0.00'}%</div>
                           </div>
                         </div>
                       </td>
@@ -564,7 +564,7 @@ export default function CreativesPage() {
                 <Eye className="w-8 h-8 text-nexus-amber mr-3" />
                 <div>
                   <div className="text-2xl font-bold text-nexus-text-primary">
-                    {(filteredCreatives.reduce((sum, c) => sum + c.performance.impressions, 0) / 1000000).toFixed(1)}M
+                    {(filteredCreatives.reduce((sum, c) => sum + (c.performance?.impressions ?? 0), 0) / 1000000).toFixed(1)}M
                   </div>
                   <div className="text-sm text-nexus-text-secondary">Total Impressions</div>
                 </div>

@@ -444,7 +444,7 @@ export default function AudiencesPage() {
                 <div>
                   <div className="text-sm text-nexus-text-tertiary">Avg CPM</div>
                   <div className="text-xl font-bold text-nexus-text-primary">
-                    ${audience.performance.cpm.toFixed(2)}
+                    ${audience.performance?.cpm?.toFixed(2) ?? '0.00'}
                   </div>
                 </div>
               </div>
@@ -453,25 +453,25 @@ export default function AudiencesPage() {
               <div className="space-y-2">
                 <div className="text-sm font-medium text-nexus-text-primary">Targeting:</div>
                 <div className="flex flex-wrap gap-1">
-                  {audience.targeting.demographics.age_min && (
+                  {audience.targeting?.demographics?.age_min && (
                     <Badge variant="outline" className="text-xs border-nexus-border">
                       {audience.targeting.demographics.age_min}-{audience.targeting.demographics.age_max}
                     </Badge>
                   )}
-                  {audience.targeting.locations.slice(0, 2).map(location => (
+                  {audience.targeting?.locations?.slice(0, 2).map(location => (
                     <Badge key={location} variant="outline" className="text-xs border-nexus-border">
                       <MapPin className="w-3 h-3 mr-1" />
                       {location}
                     </Badge>
                   ))}
-                  {audience.targeting.interests.slice(0, 1).map(interest => (
+                  {audience.targeting?.interests?.slice(0, 1).map(interest => (
                     <Badge key={interest} variant="outline" className="text-xs border-nexus-border">
                       {interest}
                     </Badge>
                   ))}
-                  {audience.targeting.locations.length > 2 && (
+                  {(audience.targeting?.locations?.length ?? 0) > 2 && (
                     <Badge variant="outline" className="text-xs border-nexus-border">
-                      +{audience.targeting.locations.length - 2} more
+                      +{(audience.targeting?.locations?.length ?? 0) - 2} more
                     </Badge>
                   )}
                 </div>
@@ -482,19 +482,19 @@ export default function AudiencesPage() {
                 <div className="text-center">
                   <div className="text-sm text-nexus-text-tertiary">Reach</div>
                   <div className="font-semibold text-nexus-text-primary">
-                    {formatNumber(audience.performance.reach)}
+                    {formatNumber(audience.performance?.reach ?? 0)}
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="text-sm text-nexus-text-tertiary">Freq</div>
                   <div className="font-semibold text-nexus-text-primary">
-                    {audience.performance.frequency.toFixed(1)}
+                    {audience.performance?.frequency?.toFixed(1) ?? '0.0'}
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="text-sm text-nexus-text-tertiary">CTR</div>
                   <div className="font-semibold text-nexus-text-primary">
-                    {audience.performance.ctr.toFixed(1)}%
+                    {audience.performance?.ctr?.toFixed(1) ?? '0.0'}%
                   </div>
                 </div>
               </div>
