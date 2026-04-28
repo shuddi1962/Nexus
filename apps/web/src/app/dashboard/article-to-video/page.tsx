@@ -185,17 +185,13 @@ export default function ArticleToVideoPage() {
         }
       }, 1500)
 
-      const data = await apiClient.generateVideoFromArticle({
-        source_type: inputType,
-        source_url: inputType === 'url' ? articleUrl : undefined,
-        source_text: inputType !== 'url' ? articleText : undefined,
+      const data = await apiClient.convertArticleToVideo({
+        article_url: inputType === 'url' ? articleUrl : undefined,
+        content: inputType !== 'url' ? articleText : undefined,
         title: title || 'Generated Video',
         duration: duration[0],
-        resolution,
         style,
-        voice,
-        include_music: includeMusic,
-        include_captions: includeCaptions
+        voice
       })
 
       clearInterval(progressInterval)
