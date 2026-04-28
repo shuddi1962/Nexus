@@ -32,7 +32,8 @@ import {
   Zap,
   Clock,
   Globe,
-  Settings
+  Settings,
+  Trash2
 } from 'lucide-react'
 
 interface VideoScene {
