@@ -350,18 +350,17 @@ export default function ContentWriterPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-nexus-text-primary">Content Writer</h1>
-          <p className="text-nexus-text-secondary">AI-powered content creation, extraction, and management tools.</p>
-          <p className="text-xs text-nexus-text-tertiary mt-1">Use keyboard shortcuts: Ctrl+1-5 to switch between tools</p>
+          <h1 className="text-2xl font-bold text-slate-900">Content Writer</h1>
+          <p className="text-slate-500 mt-1">AI-powered content creation and management.</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
-            <Search className="w-4 h-4 mr-2 text-nexus-blue" />
-            Content Library
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="border-slate-200 hover:bg-slate-50">
+            <Search className="w-4 h-4 mr-2 text-blue-600" />
+            Library
           </Button>
-          <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
+          <Button onClick={() => setActiveTab('create')} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25">
             <Plus className="w-4 h-4 mr-2" />
             New Article
           </Button>
@@ -369,13 +368,13 @@ export default function ContentWriterPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5" role="tablist" aria-label="Content creation tools">
-            <TabsTrigger value="extract" aria-label="Extract content from URL (Ctrl+1)">URL Extract</TabsTrigger>
-            <TabsTrigger value="rewrite" aria-label="Rewrite existing content (Ctrl+2)">Rewrite</TabsTrigger>
-            <TabsTrigger value="image" aria-label="Generate AI images (Ctrl+3)">Generate Image</TabsTrigger>
-            <TabsTrigger value="create" aria-label="Create new article (Ctrl+4)">Create Article</TabsTrigger>
-            <TabsTrigger value="articles" aria-label="View articles (Ctrl+5)">Articles</TabsTrigger>
-          </TabsList>
+        <TabsList className="grid w-full grid-cols-5 bg-slate-100 p-1">
+          <TabsTrigger value="extract" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">URL Extract</TabsTrigger>
+          <TabsTrigger value="rewrite" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Rewrite</TabsTrigger>
+          <TabsTrigger value="image" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Generate Image</TabsTrigger>
+          <TabsTrigger value="create" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Create Article</TabsTrigger>
+          <TabsTrigger value="articles" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Articles</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="extract" className="space-y-6">
           <Card className="border-nexus-border">

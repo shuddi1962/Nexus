@@ -199,26 +199,26 @@ export default function SEOEnginePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-nexus-text-primary">SEO Engine</h1>
-          <p className="text-nexus-text-secondary">Comprehensive SEO analysis and optimization tools.</p>
+          <h1 className="text-2xl font-bold text-slate-900">SEO Engine</h1>
+          <p className="text-slate-500 mt-1">Comprehensive SEO analysis and optimization tools.</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" className="border-nexus-border hover:bg-nexus-bg-secondary">
-            <Download className="w-4 h-4 mr-2 text-nexus-blue" />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="border-slate-200 hover:bg-slate-50">
+            <Download className="w-4 h-4 mr-2 text-blue-600" />
             Export Report
           </Button>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="audit">Site Audit</TabsTrigger>
-          <TabsTrigger value="keywords">Keywords</TabsTrigger>
-          <TabsTrigger value="indexing">Indexing</TabsTrigger>
-          <TabsTrigger value="backlinks">Backlinks</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 bg-slate-100 p-1">
+          <TabsTrigger value="audit" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Site Audit</TabsTrigger>
+          <TabsTrigger value="keywords" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Keywords</TabsTrigger>
+          <TabsTrigger value="indexing" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Indexing</TabsTrigger>
+          <TabsTrigger value="backlinks" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Backlinks</TabsTrigger>
+          <TabsTrigger value="history" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="audit" className="space-y-6">
