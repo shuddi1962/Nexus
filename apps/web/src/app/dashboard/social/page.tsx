@@ -184,17 +184,17 @@ export default function SocialPlannerPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Social Media Planner</h1>
-          <p className="text-gray-600">Plan, schedule, and manage your social media content across all platforms.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Social Media Planner</h1>
+          <p className="text-slate-500 mt-1">Plan, schedule, and manage your social media content.</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline">
-            <Calendar className="w-4 h-4 mr-2" />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="border-slate-200 hover:bg-slate-50">
+            <Calendar className="w-4 h-4 mr-2 text-blue-600" />
             Calendar View
           </Button>
-          <Button>
+          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25">
             <Plus className="w-4 h-4 mr-2" />
             New Post
           </Button>
@@ -202,10 +202,10 @@ export default function SocialPlannerPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="planner">Content Planner</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="hashtags">Hashtag Tools</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1">
+          <TabsTrigger value="planner" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Content Planner</TabsTrigger>
+          <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Analytics</TabsTrigger>
+          <TabsTrigger value="hashtags" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Hashtag Tools</TabsTrigger>
         </TabsList>
 
         <TabsContent value="planner" className="space-y-6">

@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { motion, useInView } from 'framer-motion'
-import { ChevronDown, Star, Check, ArrowRight, Play } from 'lucide-react'
+import { ChevronDown, Star, Check, ArrowRight, Play, Users, GitBranch, Search, PenTool, Target, MonitorSpeaker, Mail, Building, Zap, Video, MessageSquare } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 // Lazy load Three.js particles for performance
 const ThreeParticles = dynamic(() => import('@/components/marketing/three-particles'), {
@@ -212,12 +213,35 @@ export default function MarketingHomepage() {
     })
   }, [])
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('crm')
+  const [hoveredDropdown, setHoveredDropdown] = useState<string | null>(null)
+  const navRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null)
+        setHoveredDropdown(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleDropdownHover = (dropdown: string) => {
+    setHoveredDropdown(dropdown)
+    setActiveDropdown(dropdown)
+  }
+
+  const handleDropdownLeave = () => {
+    setHoveredDropdown(null)
+  }
 
   return (
     <div className="min-h-screen bg-nexus-bg text-nexus-text-primary">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-nexus-surface/90 backdrop-blur-md border-b border-nexus-border">
+      <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50 bg-nexus-surface/90 backdrop-blur-md border-b border-nexus-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -225,36 +249,134 @@ export default function MarketingHomepage() {
               NEXUS
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              <div className="relative group">
-                <button className="flex items-center text-nexus-text-secondary hover:text-nexus-text-primary transition-colors">
-                  Products <ChevronDown className="w-4 h-4 ml-1" />
-                </button>
-                {/* Mega menu would go here */}
+{/* Desktop Navigation */}
+              <div className="hidden lg:flex items-center space-x-1">
+                {/* Products Dropdown - Hover to open */}
+                <div 
+                  className="relative"
+                  onMouseEnter={() => handleDropdownHover('products')}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  <button
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-100"
+                  >
+                    Products 
+                    <ChevronDown className={cn("w-4 h-4 ml-1 transition-transform", (activeDropdown === 'products' || hoveredDropdown === 'products') ? 'rotate-180' : '')} />
+                  </button>
+                  {(activeDropdown === 'products' || hoveredDropdown === 'products') && (
+                    <div className="absolute top-full left-0 mt-1 w-[700px] bg-white border border-slate-200 rounded-xl shadow-xl p-5 grid grid-cols-4 gap-5 z-50"
+                        onMouseEnter={() => setHoveredDropdown('products')}
+                        onMouseLeave={handleDropdownLeave}
+                    >
+<div className="grid grid-cols-4 gap-5">
+                      <div>
+                        <h3 className="font-semibold text-slate-900 mb-3">CRM & Sales</h3>
+                        <ul className="space-y-2">
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Users className="w-4 h-4" /> Contacts & CRM</Link></li>
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><GitBranch className="w-4 h-4" /> Pipelines</Link></li>
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><MessageSquare className="w-4 h-4" /> Inbox</Link></li>
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Search className="w-4 h-4" /> Prospecting</Link></li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 mb-3">Marketing</h3>
+                        <ul className="space-y-2">
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><PenTool className="w-4 h-4" /> Content Writer</Link></li>
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Target className="w-4 h-4" /> SEO Engine</Link></li>
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><MonitorSpeaker className="w-4 h-4" /> Social Planner</Link></li>
+                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Mail className="w-4 h-4" /> Email Marketing</Link></li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 mb-3">Ads & Commerce</h3>
+                        <ul className="space-y-2">
+                          <li><Link href="/dashboard/ads" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Target className="w-4 h-4" /> Ads Manager</Link></li>
+                          <li><Link href="/dashboard/commerce" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Building className="w-4 h-4" /> Commerce</Link></li>
+                          <li><Link href="/dashboard/reports" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Zap className="w-4 h-4" /> Analytics</Link></li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 mb-3">Creative & Build</h3>
+                        <ul className="space-y-2">
+                          <li><Link href="/dashboard/design" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><PenTool className="w-4 h-4" /> Design Studio</Link></li>
+                          <li><Link href="/dashboard/video" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Video className="w-4 h-4" /> Video Editor</Link></li>
+                          <li><Link href="/dashboard/workflows" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Zap className="w-4 h-4" /> Automation</Link></li>
+                          <li><Link href="/dashboard/websites" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Building className="w-4 h-4" /> Websites</Link></li>
+                        </ul>
+                      </div>
+                    </div>
+                   </div>
+                 )}
+</div>
+
+                {/* Solutions Dropdown - Hover to open */}
+                <div 
+                  className="relative"
+                  onMouseEnter={() => handleDropdownHover('solutions')}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  <button
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-100"
+                  >
+                    Solutions 
+                    <ChevronDown className={cn("w-4 h-4 ml-1 transition-transform", (activeDropdown === 'solutions' || hoveredDropdown === 'solutions') ? 'rotate-180' : '')} />
+                  </button>
+                  {(activeDropdown === 'solutions' || hoveredDropdown === 'solutions') && (
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-50"
+                        onMouseEnter={() => setHoveredDropdown('solutions')}
+                        onMouseLeave={handleDropdownLeave}
+                    >
+                      <ul className="space-y-1">
+                        <li><Link href="/dashboard" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Agency</Link></li>
+                        <li><Link href="/dashboard" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">E-commerce</Link></li>
+                        <li><Link href="/dashboard" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Creators</Link></li>
+                        <li><Link href="/dashboard" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">SaaS</Link></li>
+                        <li><Link href="/dashboard" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Dropshippers</Link></li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                <Link href="/pricing" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-100">
+                  Pricing
+                </Link>
+
+                {/* Resources Dropdown - Hover to open */}
+                <div 
+                  className="relative"
+                  onMouseEnter={() => handleDropdownHover('resources')}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  <button
+                    className="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-100"
+                  >
+                    Resources 
+                    <ChevronDown className={cn("w-4 h-4 ml-1 transition-transform", (activeDropdown === 'resources' || hoveredDropdown === 'resources') ? 'rotate-180' : '')} />
+                  </button>
+                  {(activeDropdown === 'resources' || hoveredDropdown === 'resources') && (
+                    <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-50"
+                        onMouseEnter={() => setHoveredDropdown('resources')}
+                        onMouseLeave={handleDropdownLeave}
+                    >
+                      <ul className="space-y-1">
+                        <li><Link href="/blog" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Blog</Link></li>
+                        <li><Link href="/docs" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Documentation</Link></li>
+                        <li><Link href="/api-docs" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">API Reference</Link></li>
+                        <li><Link href="/community" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Community</Link></li>
+                        <li><Link href="/support" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Support</Link></li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="relative group">
-                <button className="flex items-center text-nexus-text-secondary hover:text-nexus-text-primary transition-colors">
-                  Solutions <ChevronDown className="w-4 h-4 ml-1" />
-                </button>
-              </div>
-              <Link href="/pricing" className="text-nexus-text-secondary hover:text-nexus-text-primary transition-colors">
-                Pricing
-              </Link>
-              <div className="relative group">
-                <button className="flex items-center text-nexus-text-secondary hover:text-nexus-text-primary transition-colors">
-                  Resources <ChevronDown className="w-4 h-4 ml-1" />
-                </button>
-              </div>
-            </div>
 
             {/* Auth Buttons */}
-            <div className="hidden lg:flex items-center space-x-4">
-              <Link href="/login" className="text-nexus-text-secondary hover:text-nexus-text-primary transition-colors">
+            <div className="hidden lg:flex items-center gap-3">
+              <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
                 Login
               </Link>
-              <Link href="/register" className="bg-nexus-blue text-white px-4 py-2 rounded-lg hover:bg-nexus-accent transition-colors">
-                Start Free Trial →
+              <Link href="/register" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25 text-sm font-medium">
+                Start Free Trial
               </Link>
             </div>
 

@@ -177,21 +177,21 @@ export default function EmailMarketingPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Email Marketing</h1>
-          <p className="text-gray-600">Create, send, and track email campaigns to engage your audience.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Email Marketing</h1>
+          <p className="text-slate-500 mt-1">Create, send, and track email campaigns.</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline">
-            <Users className="w-4 h-4 mr-2" />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="border-slate-200 hover:bg-slate-50">
+            <Users className="w-4 h-4 mr-2 text-blue-600" />
             Manage Lists
           </Button>
-          <Button variant="outline">
-            <BarChart3 className="w-4 h-4 mr-2" />
+          <Button variant="outline" className="border-slate-200 hover:bg-slate-50">
+            <BarChart3 className="w-4 h-4 mr-2 text-purple-600" />
             Analytics
           </Button>
-          <Button>
+          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25">
             <Plus className="w-4 h-4 mr-2" />
             New Campaign
           </Button>
@@ -199,68 +199,76 @@ export default function EmailMarketingPage() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Mail className="w-8 h-8 text-blue-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">{campaigns.length}</div>
-                <div className="text-sm text-gray-600">Total Campaigns</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border border-slate-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 bg-blue-50 rounded-xl">
+                <Mail className="w-5 h-5 text-blue-600" />
               </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-2xl font-bold text-slate-900">{campaigns.length}</div>
+              <div className="text-sm text-slate-500">Total Campaigns</div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Send className="w-8 h-8 text-green-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {campaigns.reduce((sum, c) => sum + c.sent, 0).toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600">Emails Sent</div>
+        <Card className="border border-slate-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 bg-green-50 rounded-xl">
+                <Send className="w-5 h-5 text-green-600" />
               </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-2xl font-bold text-slate-900">
+                {campaigns.reduce((sum, c) => sum + c.sent, 0).toLocaleString()}
+              </div>
+              <div className="text-sm text-slate-500">Emails Sent</div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Target className="w-8 h-8 text-purple-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {Math.round(campaigns.filter(c => c.sent > 0).reduce((sum, c) => sum + c.openRate, 0) / campaigns.filter(c => c.sent > 0).length)}%
-                </div>
-                <div className="text-sm text-gray-600">Avg. Open Rate</div>
+        <Card className="border border-slate-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 bg-purple-50 rounded-xl">
+                <Target className="w-5 h-5 text-purple-600" />
               </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-2xl font-bold text-slate-900">
+                {Math.round(campaigns.filter(c => c.sent > 0).reduce((sum, c) => sum + c.openRate, 0) / campaigns.filter(c => c.sent > 0).length)}%
+              </div>
+              <div className="text-sm text-slate-500">Avg. Open Rate</div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-orange-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {Math.round(campaigns.filter(c => c.sent > 0).reduce((sum, c) => sum + c.clickRate, 0) / campaigns.filter(c => c.sent > 0).length)}%
-                </div>
-                <div className="text-sm text-gray-600">Avg. Click Rate</div>
+        <Card className="border border-slate-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 bg-orange-50 rounded-xl">
+                <TrendingUp className="w-5 h-5 text-orange-600" />
               </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-2xl font-bold text-slate-900">
+                {Math.round(campaigns.filter(c => c.sent > 0).reduce((sum, c) => sum + c.clickRate, 0) / campaigns.filter(c => c.sent > 0).length)}%
+              </div>
+              <div className="text-sm text-slate-500">Avg. Click Rate</div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="automation">Automation</TabsTrigger>
-          <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 bg-slate-100 p-1">
+          <TabsTrigger value="campaigns" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Campaigns</TabsTrigger>
+          <TabsTrigger value="templates" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Templates</TabsTrigger>
+          <TabsTrigger value="automation" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Automation</TabsTrigger>
+          <TabsTrigger value="subscribers" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Subscribers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="campaigns" className="space-y-6">
