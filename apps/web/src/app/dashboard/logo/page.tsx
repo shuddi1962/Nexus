@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/lib/auth'
 import { apiClient } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,126 +15,236 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ColorPicker } from '@/components/ui/color-picker'
 import {
   Palette,
-  Wand2,
+  Type,
+  Image as ImageIcon,
   Download,
   Save,
-  Share,
+  Wand2,
   RefreshCw,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Layers,
+  Shapes,
+  Plus,
+  Trash2,
+  Copy,
+  Move,
+  Square,
+  Circle,
+  Triangle,
+  Hexagon,
   Star,
-  Eye,
-  CheckCircle,
   Heart,
-  ThumbsUp
+  Zap,
+  Settings
 } from 'lucide-react'
 
-interface LogoVariation {
-  id: number
+interface LogoDesign {
+  id: string
   name: string
-  svg_url: string
-  png_url: string
+  prompt: string
   style: string
-  colors: string[]
-  fonts: string
-  rating: number
-  tags: string[]
+  primary_color: string
+  secondary_color: string
+  icon_type: string
+  font_family: string
+  layout: 'icon_only' | 'text_only' | 'icon_left' | 'icon_top' | 'icon_right'
+  generated_urls: string[]
+  selected_url: string
+  created_at: string
 }
 
 export default function LogoCreatorPage() {
   const { user } = useAuth()
-  const [companyName, setCompanyName] = useState('')
-  const [industry, setIndustry] = useState('')
-  const [style, setStyle] = useState('modern')
-  const [selectedColors, setSelectedColors] = useState(['#0066CC', '#FFFFFF'])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [logoVariations, setLogoVariations] = useState<LogoVariation[]>([])
-  const [selectedLogo, setSelectedLogo] = useState<LogoVariation | null>(null)
-  const [showColorPicker, setShowColorPicker] = useState(false)
-  const [colorPickerIndex, setColorPickerIndex] = useState(0)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const industries = [
-    'technology', 'finance', 'healthcare', 'education', 'retail',
-    'food', 'travel', 'real estate', 'consulting', 'entertainment',
-    'sports', 'automotive', 'fashion', 'beauty', 'fitness'
-  ]
+  // Logo properties
+  const [logoName, setLogoName] = useState('')
+  const [prompt, setPrompt] = useState('')
+  const [style, setStyle] = useState('minimalist')
+  const [primaryColor, setPrimaryColor] = useState('#1A1A2E')
+  const [secondaryColor, setSecondaryColor] = useState('#6C47FF')
+  const [iconType, setIconType] = useState('abstract')
+  const [fontFamily, setFontFamily] = useState('Instrument Sans')
+  const [layout, setLayout] = useState<'icon_only' | 'text_only' | 'icon_left' | 'icon_top' | 'icon_right'>('icon_left')
+
+  // Generation state
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generationProgress, setGenerationProgress] = useState(0)
+  const [generatedLogos, setGeneratedLogos] = useState<LogoDesign[]>([])
+  const [currentLogo, setCurrentLogo] = useState<LogoDesign | null>(null)
+
+  // Logo library
+  const [logoLibrary, setLogoLibrary] = useState<LogoDesign[]>([])
+
+  // Zoom
+  const [zoom, setZoom] = useState(1)
 
   const styles = [
     { id: 'minimalist', name: 'Minimalist', description: 'Clean and simple' },
     { id: 'modern', name: 'Modern', description: 'Contemporary design' },
-    { id: 'classic', name: 'Classic', description: 'Traditional and timeless' },
+    { id: 'retro', name: 'Retro', description: 'Vintage inspired' },
     { id: 'bold', name: 'Bold', description: 'Strong and impactful' },
-    { id: 'playful', name: 'Playful', description: 'Fun and energetic' },
-    { id: 'elegant', name: 'Elegant', description: 'Sophisticated and refined' }
+    { id: 'elegant', name: 'Elegant', description: 'Sophisticated and refined' },
+    { id: 'playful', name: 'Playful', description: 'Fun and creative' },
+    { id: 'corporate', name: 'Corporate', description: 'Professional business' },
+    { id: 'tech', name: 'Tech', description: 'Technology focused' },
+    { id: 'organic', name: 'Organic', description: 'Natural and flowing' },
+    { id: 'geometric', name: 'Geometric', description: 'Structured shapes' }
   ]
 
-  const colorPalettes = [
-    { name: 'Blue Professional', colors: ['#0066CC', '#FFFFFF', '#333333'] },
-    { name: 'Green Nature', colors: ['#22C55E', '#FFFFFF', '#1F2937'] },
-    { name: 'Purple Creative', colors: ['#8B5CF6', '#FFFFFF', '#374151'] },
-    { name: 'Red Energy', colors: ['#EF4444', '#FFFFFF', '#1F2937'] },
-    { name: 'Orange Warm', colors: ['#F97316', '#FFFFFF', '#374151'] },
-    { name: 'Teal Cool', colors: ['#14B8A6', '#FFFFFF', '#1F2937'] }
+  const iconTypes = [
+    { id: 'abstract', name: 'Abstract', icon: Shapes },
+    { id: 'letter', name: 'Letter Mark', icon: Type },
+    { id: 'symbol', name: 'Symbol', icon: Star },
+    { id: 'emblem', name: 'Emblem', icon: Hexagon },
+    { id: 'mascot', name: 'Mascot', icon: Heart },
+    { id: 'combination', name: 'Combination', icon: Zap }
   ]
 
-  const handleGenerateLogos = async () => {
-    if (!companyName.trim()) return
+  const fonts = [
+    'Instrument Sans',
+    'Fraunces',
+    'Arial',
+    'Helvetica',
+    'Times New Roman',
+    'Georgia',
+    'Verdana',
+    'Courier New'
+  ]
+
+  const layouts = [
+    { id: 'icon_only', name: 'Icon Only', icon: Square },
+    { id: 'text_only', name: 'Text Only', icon: Type },
+    { id: 'icon_left', name: 'Icon Left', icon: Layers },
+    { id: 'icon_top', name: 'Icon Top', icon: Layers },
+    { id: 'icon_right', name: 'Icon Right', icon: Layers }
+  ]
+
+  useEffect(() => {
+    loadLogoLibrary()
+  }, [])
+
+  const loadLogoLibrary = async () => {
+    try {
+      // Mock logo library - would load from API
+      setLogoLibrary([
+        {
+          id: '1',
+          name: 'TechCorp Logo',
+          prompt: 'Modern tech company logo with circuit pattern',
+          style: 'tech',
+          primary_color: '#0652DD',
+          secondary_color: '#6C47FF',
+          icon_type: 'abstract',
+          font_family: 'Instrument Sans',
+          layout: 'icon_left',
+          generated_urls: ['https://via.placeholder.com/400x400/0652DD/FFFFFF?text=TC'],
+          selected_url: 'https://via.placeholder.com/400x400/0652DD/FFFFFF?text=TC',
+          created_at: '2026-04-20T10:00:00Z'
+        }
+      ])
+    } catch (error) {
+      console.error('Error loading logo library:', error)
+    }
+  }
+
+  const handleGenerateLogo = async () => {
+    if (!prompt.trim() && !logoName.trim()) return
 
     try {
       setIsGenerating(true)
+      setGenerationProgress(0)
+
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setGenerationProgress(prev => {
+          if (prev >= 95) {
+            clearInterval(progressInterval)
+            return 95
+          }
+          return prev + Math.random() * 15
+        })
+      }, 800)
+
       const data = await apiClient.generateLogo({
-        name: companyName,
+        name: logoName,
+        prompt,
         style,
-        colors: selectedColors
+        primary_color: primaryColor,
+        secondary_color: secondaryColor,
+        icon_type: iconType,
+        font_family: fontFamily,
+        layout
       })
 
-      setLogoVariations(data.variations || [])
+      clearInterval(progressInterval)
+      setGenerationProgress(100)
+
+      const newLogo: LogoDesign = {
+        id: data.logo_id || `logo-${Date.now()}`,
+        name: logoName || 'Untitled Logo',
+        prompt,
+        style,
+        primary_color: primaryColor,
+        secondary_color: secondaryColor,
+        icon_type: iconType,
+        font_family: fontFamily,
+        layout,
+        generated_urls: data.logo_variations || [
+          `https://via.placeholder.com/400x400/${primaryColor.replace('#', '')}/FFFFFF?text=${logoName.substring(0, 2).toUpperCase()}`,
+          `https://via.placeholder.com/400x400/${secondaryColor.replace('#', '')}/FFFFFF?text=${logoName.substring(0, 2).toUpperCase()}`,
+          `https://via.placeholder.com/400x400/000000/FFFFFF?text=${logoName.substring(0, 2).toUpperCase()}`
+        ],
+        selected_url: '',
+        created_at: new Date().toISOString()
+      }
+
+      newLogo.selected_url = newLogo.generated_urls[0]
+      setCurrentLogo(newLogo)
+      setGeneratedLogos(prev => [newLogo, ...prev])
+      setLogoLibrary(prev => [newLogo, ...prev])
     } catch (error) {
-      console.error('Error generating logos:', error)
-      alert('Failed to generate logos. Please check your API keys and try again.')
+      console.error('Error generating logo:', error)
+      alert('Failed to generate logo. Please check your API keys and try again.')
     } finally {
       setIsGenerating(false)
+      setGenerationProgress(0)
     }
   }
 
-  const handleColorChange = (color: string) => {
-    const newColors = [...selectedColors]
-    newColors[colorPickerIndex] = color
-    setSelectedColors(newColors)
+  const selectLogoVariation = (logo: LogoDesign, url: string) => {
+    const updated = { ...logo, selected_url: url }
+    setCurrentLogo(updated)
+
+    // Update in library
+    setLogoLibrary(prev =>
+      prev.map(l => l.id === logo.id ? updated : l)
+    )
   }
 
-  const addColor = () => {
-    if (selectedColors.length < 5) {
-      setSelectedColors([...selectedColors, '#666666'])
-    }
+  const saveLogo = (logo: LogoDesign) => {
+    // Would save to API
+    alert(`Logo "${logo.name}" saved successfully!`)
   }
 
-  const removeColor = (index: number) => {
-    if (selectedColors.length > 2) {
-      const newColors = selectedColors.filter((_, i) => i !== index)
-      setSelectedColors(newColors)
-    }
-  }
+  const downloadLogo = (logo: LogoDesign, format: 'png' | 'svg' | 'pdf') => {
+    if (!logo.selected_url) return
 
-  const selectColorPalette = (palette: typeof colorPalettes[0]) => {
-    setSelectedColors(palette.colors)
-  }
-
-  const downloadLogo = (logo: LogoVariation, format: 'svg' | 'png') => {
-    const url = format === 'svg' ? logo.svg_url : logo.png_url
     const link = document.createElement('a')
-    link.download = `${companyName}-logo-${logo.id}.${format}`
-    link.href = url
+    link.download = `${logo.name}-logo.${format}`
+    link.href = logo.selected_url
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${i < rating ? 'fill-nexus-amber text-nexus-amber' : 'text-nexus-text-tertiary'}`}
-      />
-    ))
+  const deleteLogo = (logoId: string) => {
+    setLogoLibrary(prev => prev.filter(l => l.id !== logoId))
+    if (currentLogo?.id === logoId) {
+      setCurrentLogo(null)
+    }
   }
 
   return (
@@ -143,471 +253,524 @@ export default function LogoCreatorPage() {
       <div className="flex items-center justify-between p-4 border-b border-nexus-border bg-white">
         <div>
           <h1 className="text-2xl font-bold text-nexus-text-primary">Logo Creator</h1>
-          <p className="text-nexus-text-secondary">AI-powered logo generation and brand identity design</p>
+          <p className="text-nexus-text-secondary">AI-powered logo design for your brand</p>
         </div>
 
-        {selectedLogo && (
+        {currentLogo && (
           <div className="flex items-center space-x-3">
-            <Select onValueChange={(value: 'svg' | 'png') => downloadLogo(selectedLogo, value)}>
-              <SelectTrigger className="w-32 border-nexus-border">
-                <SelectValue placeholder="Download" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="svg">Download SVG</SelectItem>
-                <SelectItem value="png">Download PNG</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="border-nexus-border">
+            <Button
+              variant="outline"
+              onClick={() => saveLogo(currentLogo)}
+              className="border-nexus-border"
+            >
               <Save className="w-4 h-4 mr-2" />
               Save Logo
             </Button>
+            <Select onValueChange={(value: 'png' | 'svg' | 'pdf') => downloadLogo(currentLogo, value)}>
+              <SelectTrigger className="w-36 border-nexus-border">
+                <SelectValue placeholder="Export" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="png">Export PNG</SelectItem>
+                <SelectItem value="svg">Export SVG</SelectItem>
+                <SelectItem value="pdf">Export PDF</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <Tabs defaultValue="generate" className="flex-1 flex flex-col">
+        <Tabs defaultValue="create" className="flex-1 flex flex-col">
           <TabsList className="m-4 mb-0">
-            <TabsTrigger value="generate">Generate</TabsTrigger>
-            <TabsTrigger value="design">Design</TabsTrigger>
-            <TabsTrigger value="gallery">Gallery</TabsTrigger>
+            <TabsTrigger value="create">Create</TabsTrigger>
+            <TabsTrigger value="library">Library</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="generate" className="flex-1 overflow-y-auto p-6 space-y-6">
-            <Card className="border-nexus-border">
-              <CardHeader>
-                <CardTitle className="flex items-center text-nexus-text-primary">
-                  <Wand2 className="w-5 h-5 mr-2 text-nexus-violet" />
-                  AI Logo Generation
-                </CardTitle>
-                <p className="text-sm text-nexus-text-secondary">
-                  Create professional logos tailored to your brand with AI assistance.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Company Details */}
-                <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="create" className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Creation Form */}
+              <Card className="border-nexus-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-nexus-text-primary">
+                    <Wand2 className="w-5 h-5 mr-2 text-nexus-violet" />
+                    AI Logo Generation
+                  </CardTitle>
+                  <p className="text-sm text-nexus-text-secondary">
+                    Describe your brand and let AI create the perfect logo.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Logo Name */}
                   <div className="space-y-2">
-                    <Label className="text-nexus-text-primary font-medium">Company Name *</Label>
+                    <Label className="text-nexus-text-primary font-medium">Brand Name</Label>
                     <Input
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Enter your company name"
+                      value={logoName}
+                      onChange={(e) => setLogoName(e.target.value)}
+                      placeholder="e.g., TechCorp"
                       className="border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
                     />
                   </div>
 
+                  {/* Prompt */}
                   <div className="space-y-2">
-                    <Label className="text-nexus-text-primary font-medium">Industry</Label>
-                    <Select value={industry} onValueChange={setIndustry}>
+                    <Label className="text-nexus-text-primary font-medium">Description</Label>
+                    <textarea
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="e.g., A modern tech company logo with circuit patterns and blue tones..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-nexus-border rounded-md focus:ring-nexus-blue focus:border-nexus-blue resize-none"
+                    />
+                  </div>
+
+                  {/* Style */}
+                  <div className="space-y-2">
+                    <Label className="text-nexus-text-primary font-medium">Style</Label>
+                    <Select value={style} onValueChange={setStyle}>
                       <SelectTrigger className="border-nexus-border">
-                        <SelectValue placeholder="Select industry" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {industries.map(ind => (
-                          <SelectItem key={ind} value={ind}>
-                            {ind.charAt(0).toUpperCase() + ind.slice(1)}
+                        {styles.map(s => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
 
-                {/* Style Selection */}
-                <div className="space-y-3">
-                  <Label className="text-nexus-text-primary font-medium">Logo Style</Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {styles.map(s => (
-                      <div
-                        key={s.id}
-                        className={`p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                          style === s.id
-                            ? 'border-nexus-blue bg-nexus-blue/10'
-                            : 'border-nexus-border hover:border-nexus-blue/50'
-                        }`}
-                        onClick={() => setStyle(s.id)}
-                      >
-                        <div className="font-medium text-nexus-text-primary">{s.name}</div>
-                        <div className="text-sm text-nexus-text-secondary">{s.description}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Color Selection */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-nexus-text-primary font-medium">Brand Colors</Label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={addColor}
-                      disabled={selectedColors.length >= 5}
-                      className="border-nexus-border"
-                    >
-                      <Palette className="w-4 h-4 mr-2" />
-                      Add Color
-                    </Button>
-                  </div>
-
-                  {/* Color Palette Presets */}
+                  {/* Icon Type */}
                   <div className="space-y-2">
-                    <Label className="text-sm text-nexus-text-secondary">Quick Palettes</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {colorPalettes.map((palette, index) => (
-                        <button
-                          key={index}
-                          onClick={() => selectColorPalette(palette)}
-                          className="flex items-center space-x-2 px-3 py-1 border border-nexus-border rounded-lg hover:bg-nexus-bg-secondary transition-colors"
+                    <Label className="text-nexus-text-primary font-medium">Icon Type</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {iconTypes.map(type => (
+                        <Button
+                          key={type.id}
+                          variant={iconType === type.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setIconType(type.id)}
+                          className="border-nexus-border flex-col h-auto py-3"
                         >
-                          <div className="flex space-x-1">
-                            {palette.colors.slice(0, 3).map((color, colorIndex) => (
-                              <div
-                                key={colorIndex}
-                                className="w-4 h-4 rounded border border-nexus-border"
-                                style={{ backgroundColor: color }}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm text-nexus-text-primary">{palette.name}</span>
-                        </button>
+                          <type.icon className="w-5 h-5 mb-1" />
+                          <span className="text-xs">{type.name}</span>
+                        </Button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Custom Colors */}
-                  <div className="flex flex-wrap gap-3">
-                    {selectedColors.map((color, index) => (
-                      <div key={index} className="flex items-center space-x-2">
+                  {/* Colors */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-nexus-text-primary font-medium">Primary Color</Label>
+                      <div className="flex items-center space-x-2">
                         <div
-                          className="w-8 h-8 rounded border-2 border-nexus-border cursor-pointer"
-                          style={{ backgroundColor: color }}
-                          onClick={() => {
-                            setColorPickerIndex(index)
-                            setShowColorPicker(true)
-                          }}
+                          className="w-10 h-10 rounded border border-nexus-border cursor-pointer"
+                          style={{ backgroundColor: primaryColor }}
+                          onClick={() => {/* Open color picker */}}
                         />
                         <Input
-                          value={color}
-                          onChange={(e) => {
-                            const newColors = [...selectedColors]
-                            newColors[index] = e.target.value
-                            setSelectedColors(newColors)
-                          }}
-                          className="w-24 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="flex-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
                         />
-                        {selectedColors.length > 2 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeColor(index)}
-                            className="text-nexus-red hover:text-nexus-red hover:bg-nexus-red/10"
-                          >
-                            ×
-                          </Button>
-                        )}
                       </div>
-                    ))}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-nexus-text-primary font-medium">Secondary Color</Label>
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className="w-10 h-10 rounded border border-nexus-border cursor-pointer"
+                          style={{ backgroundColor: secondaryColor }}
+                          onClick={() => {/* Open color picker */}}
+                        />
+                        <Input
+                          value={secondaryColor}
+                          onChange={(e) => setSecondaryColor(e.target.value)}
+                          className="flex-1 border-nexus-border focus:ring-nexus-blue focus:border-nexus-blue"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Color Picker Dialog */}
-                  <Dialog open={showColorPicker} onOpenChange={setShowColorPicker}>
-                    <DialogContent className="sm:max-w-[300px]">
-                      <DialogHeader>
-                        <DialogTitle>Choose Color</DialogTitle>
-                      </DialogHeader>
-                      <ColorPicker
-                        color={selectedColors[colorPickerIndex]}
-                        onChange={handleColorChange}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                  {/* Font Family */}
+                  <div className="space-y-2">
+                    <Label className="text-nexus-text-primary font-medium">Font Family</Label>
+                    <Select value={fontFamily} onValueChange={setFontFamily}>
+                      <SelectTrigger className="border-nexus-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fonts.map(f => (
+                          <SelectItem key={f} value={f}>
+                            {f}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Generate Button */}
-                <Button
-                  onClick={handleGenerateLogos}
-                  disabled={!companyName.trim() || isGenerating}
-                  className="w-full bg-nexus-violet hover:bg-nexus-violet/90 text-white h-12"
-                >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                      Generating Logos...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="w-5 h-5 mr-2" />
-                      Generate Logo Variations
-                    </>
+                  {/* Layout */}
+                  <div className="space-y-2">
+                    <Label className="text-nexus-text-primary font-medium">Layout</Label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {layouts.map(l => (
+                        <Button
+                          key={l.id}
+                          variant={layout === l.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setLayout(l.id as any)}
+                          className="border-nexus-border flex-col h-auto py-3"
+                        >
+                          <l.icon className="w-4 h-4 mb-1" />
+                          <span className="text-xs">{l.name.split(' ')[0]}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Generate Button */}
+                  <Button
+                    onClick={handleGenerateLogo}
+                    disabled={(!prompt.trim() && !logoName.trim()) || isGenerating}
+                    className="w-full bg-nexus-violet hover:bg-nexus-violet/90 text-white h-12"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                        Generating Logo... {generationProgress.toFixed(0)}%
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-5 h-5 mr-2" />
+                        Generate Logo
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Progress */}
+                  {isGenerating && (
+                    <div className="space-y-2">
+                      <div className="w-full bg-nexus-bg-secondary rounded-full h-2">
+                        <div
+                          className="bg-nexus-violet h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${generationProgress}%` }}
+                        />
+                      </div>
+                    </div>
                   )}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Generated Logos */}
-            {logoVariations.length > 0 && (
-              <Card className="border-nexus-border">
-                <CardHeader>
-                  <CardTitle className="text-nexus-text-primary">Logo Variations</CardTitle>
-                  <p className="text-sm text-nexus-text-secondary">
-                    Choose your favorite logo design from the generated variations.
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {logoVariations.map((logo) => (
-                      <div
-                        key={logo.id}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          selectedLogo?.id === logo.id
-                            ? 'border-nexus-blue bg-nexus-blue/5'
-                            : 'border-nexus-border hover:border-nexus-blue/50 hover:shadow-md'
-                        }`}
-                        onClick={() => setSelectedLogo(logo)}
-                      >
-                        {/* Logo Preview */}
-                        <div className="aspect-square bg-white border border-nexus-border rounded-lg mb-4 flex items-center justify-center">
-                          <img
-                            src={logo.png_url}
-                            alt={`${companyName} logo ${logo.id}`}
-                            className="max-w-full max-h-full object-contain"
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Logo'
-                            }}
-                          />
-                        </div>
-
-                        {/* Logo Info */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium text-nexus-text-primary">{logo.name}</h3>
-                            <div className="flex items-center space-x-1">
-                              {renderStars(logo.rating)}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-sm">
-                            <Badge variant="outline" className="border-nexus-border capitalize">
-                              {logo.style}
-                            </Badge>
-                            <span className="text-nexus-text-secondary">{logo.fonts}</span>
-                          </div>
-
-                          {/* Color Palette */}
-                          <div className="flex space-x-1">
-                            {logo.colors.slice(0, 4).map((color, colorIndex) => (
-                              <div
-                                key={colorIndex}
-                                className="w-6 h-6 rounded border border-nexus-border"
-                                style={{ backgroundColor: color }}
-                              />
-                            ))}
-                          </div>
-
-                          {/* Tags */}
-                          <div className="flex flex-wrap gap-1">
-                            {logo.tags.map((tag, tagIndex) => (
-                              <Badge key={tagIndex} variant="secondary" className="text-xs border-nexus-border">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex space-x-2 pt-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                downloadLogo(logo, 'png')
-                              }}
-                              className="flex-1 border-nexus-border"
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              PNG
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                downloadLogo(logo, 'svg')
-                              }}
-                              className="flex-1 border-nexus-border"
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              SVG
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </CardContent>
               </Card>
-            )}
+
+              {/* Right Column - Preview */}
+              <div className="space-y-6">
+                {currentLogo ? (
+                  <>
+                    {/* Main Preview */}
+                    <Card className="border-nexus-border">
+                      <CardHeader>
+                        <CardTitle className="text-nexus-text-primary">Logo Preview</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-nexus-bg-secondary rounded-lg p-8 flex items-center justify-center">
+                          <div
+                            className="bg-white rounded-lg shadow-lg p-6"
+                            style={{ transform: `scale(${zoom})` }}
+                          >
+                            <img
+                              src={currentLogo.selected_url}
+                              alt={currentLogo.name}
+                              className="max-w-full max-h-48 object-contain"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Zoom Controls */}
+                        <div className="flex items-center justify-center space-x-4 mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+                            className="border-nexus-border"
+                          >
+                            <ZoomOut className="w-4 h-4" />
+                          </Button>
+                          <span className="text-sm text-nexus-text-primary min-w-[60px] text-center">
+                            {Math.round(zoom * 100)}%
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setZoom(Math.min(2, zoom + 0.1))}
+                            className="border-nexus-border"
+                          >
+                            <ZoomIn className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setZoom(1)}
+                            className="border-nexus-border"
+                          >
+                            <Maximize className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Logo Variations */}
+                    <Card className="border-nexus-border">
+                      <CardHeader>
+                        <CardTitle className="text-nexus-text-primary">Variations</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-3 gap-3">
+                          {currentLogo.generated_urls.map((url, index) => (
+                            <div
+                              key={index}
+                              className={`border-2 rounded-lg p-3 cursor-pointer hover:border-nexus-blue transition-colors ${
+                                currentLogo.selected_url === url ? 'border-nexus-blue bg-nexus-blue/10' : 'border-nexus-border'
+                              }`}
+                              onClick={() => selectLogoVariation(currentLogo, url)}
+                            >
+                              <img
+                                src={url}
+                                alt={`Variation ${index + 1}`}
+                                className="w-full h-20 object-contain"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <Card className="border-nexus-border h-full">
+                    <CardContent className="h-full flex items-center justify-center p-12">
+                      <div className="text-center">
+                        <Palette className="w-16 h-16 text-nexus-text-tertiary mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">No Logo Yet</h3>
+                        <p className="text-nexus-text-secondary">
+                          Generate your first AI-powered logo to get started.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="design" className="flex-1 overflow-y-auto p-6">
+          <TabsContent value="library" className="flex-1 overflow-y-auto p-6">
             <Card className="border-nexus-border">
               <CardHeader>
-                <CardTitle className="flex items-center text-nexus-text-primary">
-                  <Palette className="w-5 h-5 mr-2 text-nexus-green" />
-                  Logo Customization
-                </CardTitle>
+                <CardTitle className="text-nexus-text-primary">Logo Library</CardTitle>
                 <p className="text-sm text-nexus-text-secondary">
-                  Fine-tune your selected logo with advanced customization options.
+                  Your generated logo collection
                 </p>
               </CardHeader>
               <CardContent>
-                {selectedLogo ? (
-                  <div className="space-y-6">
-                    {/* Logo Preview */}
-                    <div className="flex justify-center">
-                      <div className="w-64 h-64 bg-white border-2 border-nexus-border rounded-lg flex items-center justify-center">
-                        <img
-                          src={selectedLogo.png_url}
-                          alt="Selected logo"
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Customization Options */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <Label className="text-nexus-text-primary font-medium">Typography</Label>
-
-                        <div className="space-y-3">
-                          <div>
-                            <Label className="text-sm text-nexus-text-secondary">Font Family</Label>
-                            <Select defaultValue={selectedLogo.fonts}>
-                              <SelectTrigger className="mt-1 border-nexus-border">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Inter">Inter</SelectItem>
-                                <SelectItem value="Roboto">Roboto</SelectItem>
-                                <SelectItem value="Montserrat">Montserrat</SelectItem>
-                                <SelectItem value="Poppins">Poppins</SelectItem>
-                                <SelectItem value="Open Sans">Open Sans</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div>
-                            <Label className="text-sm text-nexus-text-secondary">Font Weight</Label>
-                            <Select defaultValue="bold">
-                              <SelectTrigger className="mt-1 border-nexus-border">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="light">Light</SelectItem>
-                                <SelectItem value="normal">Normal</SelectItem>
-                                <SelectItem value="bold">Bold</SelectItem>
-                                <SelectItem value="black">Black</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label className="text-nexus-text-primary font-medium">Layout & Spacing</Label>
-
-                        <div className="space-y-3">
-                          <div>
-                            <Label className="text-sm text-nexus-text-secondary">Letter Spacing</Label>
-                            <Slider
-                              defaultValue={[0]}
-                              max={10}
-                              min={-5}
-                              step={0.5}
-                              className="mt-1"
-                            />
-                          </div>
-
-                          <div>
-                            <Label className="text-sm text-nexus-text-secondary">Icon Size</Label>
-                            <Slider
-                              defaultValue={[100]}
-                              max={150}
-                              min={50}
-                              step={5}
-                              className="mt-1"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Advanced Options */}
-                    <div className="space-y-4 pt-4 border-t border-nexus-border">
-                      <Label className="text-nexus-text-primary font-medium">Advanced Options</Label>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Button variant="outline" className="border-nexus-border">
-                          <Eye className="w-4 h-4 mr-2" />
-                          Preview
-                        </Button>
-                        <Button variant="outline" className="border-nexus-border">
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          Regenerate
-                        </Button>
-                        <Button className="bg-nexus-blue hover:bg-nexus-accent text-white">
-                          <Save className="w-4 h-4 mr-2" />
-                          Apply Changes
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
+                {logoLibrary.length === 0 ? (
                   <div className="text-center py-12">
                     <Palette className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
-                      No Logo Selected
-                    </h3>
+                    <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">No Logos Yet</h3>
                     <p className="text-nexus-text-secondary mb-6">
-                      Generate logo variations first, then select one to customize.
+                      Generate your first AI logo to get started.
                     </p>
                     <Button
-                      onClick={() => (document.querySelector('[data-value="generate"]') as HTMLElement)?.click()}
+                      onClick={() => (document.querySelector('[data-value="create"]') as HTMLElement)?.click()}
                       className="bg-nexus-violet hover:bg-nexus-violet/90 text-white"
                     >
                       <Wand2 className="w-4 h-4 mr-2" />
-                      Generate Logos
+                      Create Logo
                     </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {logoLibrary.map((logo) => (
+                      <div key={logo.id} className="border border-nexus-border rounded-lg p-4 space-y-3">
+                        <div className="bg-nexus-bg-secondary rounded-lg p-4 flex items-center justify-center">
+                          <img
+                            src={logo.selected_url || logo.generated_urls[0]}
+                            alt={logo.name}
+                            className="max-w-full h-24 object-contain"
+                          />
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium text-nexus-text-primary truncate">{logo.name}</h4>
+                          <p className="text-sm text-nexus-text-secondary capitalize">{logo.style}</p>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Badge
+                            variant="outline"
+                            className="border-nexus-border"
+                            style={{ borderColor: logo.primary_color }}
+                          >
+                            <div
+                              className="w-3 h-3 rounded-full mr-1"
+                              style={{ backgroundColor: logo.primary_color }}
+                            />
+                            Primary
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="border-nexus-border"
+                            style={{ borderColor: logo.secondary_color }}
+                          >
+                            <div
+                              className="w-3 h-3 rounded-full mr-1"
+                              style={{ backgroundColor: logo.secondary_color }}
+                            />
+                            Secondary
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCurrentLogo(logo)
+                              ;(document.querySelector('[data-value="preview"]') as HTMLElement)?.click()
+                            }}
+                            className="border-nexus-border flex-1"
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadLogo(logo, 'png')}
+                            className="border-nexus-border"
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteLogo(logo.id)}
+                            className="border-nexus-red text-nexus-red hover:bg-nexus-red/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="gallery" className="flex-1 overflow-y-auto p-6">
-            <Card className="border-nexus-border">
-              <CardHeader>
-                <CardTitle className="text-nexus-text-primary">Logo Gallery</CardTitle>
-                <p className="text-sm text-nexus-text-secondary">
-                  Browse and manage your saved logos and brand assets.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Palette className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
-                    Logo Gallery Coming Soon
-                  </h3>
-                  <p className="text-nexus-text-secondary mb-6">
-                    Save and organize your logos, track versions, and manage brand assets.
-                  </p>
-                  <Button className="bg-nexus-green hover:bg-nexus-green/90 text-white">
-                    <Save className="w-4 h-4 mr-2" />
-                    Enable Logo Gallery
-                  </Button>
-                </div>
+          <TabsContent value="preview" className="flex-1 p-6">
+            <Card className="border-nexus-border h-full">
+              <CardContent className="h-full flex flex-col items-center justify-center p-8">
+                {currentLogo ? (
+                  <div className="w-full max-w-2xl space-y-8">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold text-nexus-text-primary mb-2">{currentLogo.name}</h3>
+                      <p className="text-nexus-text-secondary">{currentLogo.prompt}</p>
+                    </div>
+
+                    {/* Large Preview */}
+                    <div className="bg-nexus-bg-secondary rounded-xl p-12 flex items-center justify-center">
+                      <img
+                        src={currentLogo.selected_url}
+                        alt={currentLogo.name}
+                        className="max-w-full max-h-64 object-contain"
+                      />
+                    </div>
+
+                    {/* Logo Details */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <div className="text-sm text-nexus-text-tertiary">Style</div>
+                        <div className="font-medium text-nexus-text-primary capitalize">{currentLogo.style}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-nexus-text-tertiary">Icon Type</div>
+                        <div className="font-medium text-nexus-text-primary capitalize">{currentLogo.icon_type}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-nexus-text-tertiary">Font</div>
+                        <div className="font-medium text-nexus-text-primary">{currentLogo.font_family}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-nexus-text-tertiary">Layout</div>
+                        <div className="font-medium text-nexus-text-primary capitalize">{currentLogo.layout.replace('_', ' ')}</div>
+                      </div>
+                    </div>
+
+                    {/* Color Palette */}
+                    <div>
+                      <div className="text-sm text-nexus-text-tertiary mb-2">Color Palette</div>
+                      <div className="flex space-x-3">
+                        <div className="flex-1">
+                          <div
+                            className="h-16 rounded-lg border border-nexus-border"
+                            style={{ backgroundColor: currentLogo.primary_color }}
+                          />
+                          <div className="text-center text-sm mt-1 text-nexus-text-primary">Primary</div>
+                        </div>
+                        <div className="flex-1">
+                          <div
+                            className="h-16 rounded-lg border border-nexus-border"
+                            style={{ backgroundColor: currentLogo.secondary_color }}
+                          />
+                          <div className="text-center text-sm mt-1 text-nexus-text-primary">Secondary</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Download Options */}
+                    <div className="flex items-center justify-center space-x-3">
+                      <Button
+                        onClick={() => downloadLogo(currentLogo, 'png')}
+                        className="bg-nexus-blue hover:bg-nexus-accent text-white"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download PNG
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => downloadLogo(currentLogo, 'svg')}
+                        className="border-nexus-border"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download SVG
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => saveLogo(currentLogo)}
+                        className="border-nexus-border"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Logo
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Palette className="w-24 h-24 text-nexus-text-tertiary mb-6" />
+                    <h3 className="text-2xl font-semibold text-nexus-text-primary mb-2">No Logo Selected</h3>
+                    <p className="text-nexus-text-secondary mb-6">
+                      Generate or select a logo to preview
+                    </p>
+                    <Button
+                      onClick={() => (document.querySelector('[data-value="create"]') as HTMLElement)?.click()}
+                      className="bg-nexus-violet hover:bg-nexus-violet/90 text-white"
+                    >
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Create Logo
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
