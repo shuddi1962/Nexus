@@ -506,8 +506,13 @@ class ApiClient {
   // Creative endpoints
   async generateLogo(options: {
     name: string
+    prompt?: string
     style?: string
-    colors?: string[]
+    primary_color?: string
+    secondary_color?: string
+    icon_type?: string
+    font_family?: string
+    layout?: string
   }) {
     return this.request('/creative/logo/generate', {
       method: 'POST',

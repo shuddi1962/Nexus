@@ -37,7 +37,8 @@ import {
   Star,
   Heart,
   Zap,
-  Settings
+  Settings,
+  Eye
 } from 'lucide-react'
 
 interface LogoDesign {
