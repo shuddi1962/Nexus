@@ -86,44 +86,6 @@ const adSyncWorker = new Worker('ads-sync', async (job: Job) => {
   }
 }, { connection: redis })
 
-// Enhanced sync functions with better error handling
-      org_id: account.org_id,
-      ad_account_id: account.id,
-      platform: account.platform,
-      external_campaign_id: campaignData.external_id,
-      name: campaignData.name,
-      objective: campaignData.objective,
-      status: campaignData.status,
-      daily_budget: campaignData.daily_budget,
-      lifetime_budget: campaignData.lifetime_budget,
-      currency: account.currency,
-      start_date: campaignData.start_date,
-      created_at: new Date().toISOString(),
-      synced_at: new Date().toISOString(),
-    }
-
-    const existingCampaigns = await insforge.get(`/collections/${collections.adCampaigns}`, {
-      params: {
-        ad_account_id: `eq.${account.id}`,
-        external_campaign_id: `eq.${campaignData.external_id}`
-      }
-    })
-
-    let campaignId
-    if (existingCampaigns.data && existingCampaigns.data.length > 0) {
-      campaignId = existingCampaigns.data[0].id
-      await insforge.patch(`/collections/${collections.adCampaigns}/${campaignId}`, campaign)
-    } else {
-      const result = await insforge.post(`/collections/${collections.adCampaigns}`, campaign)
-      campaignId = result.data.id
-    }
-
-    syncedCampaigns.push({ id: campaignId, ...campaign })
-  }
-
-  return syncedCampaigns
-}
-
 // Helper function to sync analytics for a campaign
 async function syncCampaignAnalytics(account: any, campaignId: string) {
   // In a real implementation, this would fetch analytics from the ad platform API
