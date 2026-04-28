@@ -574,6 +574,7 @@ function AudienceForm({ onSubmit, adAccounts }: {
       description: formData.description,
       platform: formData.platform,
       type: formData.type,
+      status: 'active' as const,
       targeting: {
         demographics: {
           age_min: formData.ageMin[0],
