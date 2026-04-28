@@ -51,6 +51,10 @@ export const collections = {
   invoices: 'invoices',
 
   // Other collections...
+  designProjects: 'design_projects',
+  generatedImages: 'generated_images',
+  videoProjects: 'video_projects',
+  musicTracks: 'music_tracks',
 }
 
 // Helper functions

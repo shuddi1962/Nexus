@@ -466,17 +466,6 @@ class ApiClient {
     })
   }
 
-  async generateImage(options: {
-    prompt: string
-    style?: string
-    size?: string
-  }) {
-    return this.request('/content/generate-image', {
-      method: 'POST',
-      body: JSON.stringify(options)
-    })
-  }
-
   async createArticle(article: {
     title: string
     content: string
@@ -515,20 +504,6 @@ class ApiClient {
     layout?: string
   }) {
     return this.request('/creative/logo/generate', {
-      method: 'POST',
-      body: JSON.stringify(options)
-    })
-  }
-
-  async generateMusic(options: {
-    prompt: string
-    duration?: number
-    style?: string
-    genre?: string
-    mood?: string
-    instruments?: string[]
-  }) {
-    return this.request('/creative/music/generate', {
       method: 'POST',
       body: JSON.stringify(options)
     })
@@ -903,6 +878,149 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(data),
     })
+  }
+
+  // Design Studio endpoints
+  async getDesignProjects() {
+    return this.request('/design/projects')
+  }
+
+  async createDesignProject(data: { name: string; width?: number; height?: number }) {
+    return this.request('/design/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateDesignProject(id: string, data: any) {
+    return this.request(`/design/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async deleteDesignProject(id: string) {
+    return this.request(`/design/projects/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async generateDesign(data: { prompt: string; width?: number; height?: number; style?: string }) {
+    return this.request('/design/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Images endpoints
+  async getImages() {
+    return this.request('/images')
+  }
+
+  async generateImage(data: {
+    prompt: string;
+    model?: string;
+    width?: number;
+    height?: number;
+    style?: string;
+    size?: string;
+    reference_image?: string;
+    operation?: string;
+  }) {
+    return this.request('/images/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async removeBackground(image_url: string) {
+    return this.request('/images/remove-background', {
+      method: 'POST',
+      body: JSON.stringify({ image_url }),
+    })
+  }
+
+  async upscaleImage(image_url: string, scale?: number) {
+    return this.request('/images/upscale', {
+      method: 'POST',
+      body: JSON.stringify({ image_url, scale }),
+    })
+  }
+
+  async getImageModels() {
+    return this.request('/images/models')
+  }
+
+  // Video endpoints
+  async getVideoProjects() {
+    return this.request('/video/projects')
+  }
+
+  async createVideoProject(data: { name: string; width?: number; height?: number }) {
+    return this.request('/video/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async generateVideo(data: {
+    prompt: string;
+    model?: string;
+    duration?: number;
+    aspect_ratio?: string;
+    voice_id?: string;
+    script?: string;
+  }) {
+    return this.request('/video/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async generateUGCVideo(data: {
+    product_url: string;
+    avatar_id?: string;
+    script?: string;
+    voice_id?: string;
+  }) {
+    return this.request('/video/ugc-ad', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Music endpoints
+  async getMusicTracks() {
+    return this.request('/music')
+  }
+
+  async generateMusic(data: {
+    prompt: string;
+    model?: string;
+    duration?: number;
+    genre?: string;
+    mood?: string;
+    instruments?: string[];
+  }) {
+    return this.request('/music/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async textToSpeech(data: { text: string; voice_id?: string; language?: string }) {
+    return this.request('/music/tts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getMusicVoices() {
+    return this.request('/music/voices')
+  }
+
+  async getMusicModels() {
+    return this.request('/music/models')
   }
 }
 
