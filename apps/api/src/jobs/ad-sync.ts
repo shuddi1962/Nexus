@@ -86,42 +86,7 @@ const adSyncWorker = new Worker('ads-sync', async (job: Job) => {
   }
 }, { connection: redis })
 
-// Helper function to sync campaigns from platform
-async function syncCampaigns(account: any) {
-  // In a real implementation, this would:
-  // 1. Use the stored credentials to authenticate with the ad platform API
-  // 2. Fetch campaigns using the platform's API
-  // 3. Update/create campaigns in our database
-
-  // For now, simulate campaign data
-  const mockCampaigns = [
-    {
-      external_id: `ext_${account.platform}_1`,
-      name: `${account.platform} Brand Campaign`,
-      status: 'active',
-      objective: 'awareness',
-      daily_budget: 50.00,
-      lifetime_budget: 1500.00,
-      start_date: new Date().toISOString().split('T')[0],
-    },
-    {
-      external_id: `ext_${account.platform}_2`,
-      name: `${account.platform} Sales Campaign`,
-      status: 'active',
-      objective: 'conversions',
-      daily_budget: 75.00,
-      lifetime_budget: 2250.00,
-      start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    }
-  ]
-
-  // Upsert campaigns
-  const syncedCampaigns = []
-  for (const campaignData of mockCampaigns) {
-    const campaign = {
-      org_id: account.org_id,
-      ad_account_id: account.id,
-      platform: account.platform,
+// Enhanced sync functions with better error handling
       external_campaign_id: campaignData.external_id,
       name: campaignData.name,
       objective: campaignData.objective,

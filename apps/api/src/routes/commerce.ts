@@ -668,10 +668,8 @@ export async function commerceRoutes(app: FastifyInstance) {
       })
     } catch (error) {
       logger.error('Error exporting video:', error)
-      reply.code(500).send({ error: 'Failed to export video' })
+reply.code(500).send({ error: 'Failed to export video' })
     }
-  })
-}
   })
 
   // Get UGC Ads

@@ -4,7 +4,7 @@ import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import multipart from '@fastify/multipart'
 import { env } from './lib/env'
-import { logger } from './src/lib/logger'
+import { logger } from './lib/logger'
 
 const server = Fastify({
   logger: logger,
