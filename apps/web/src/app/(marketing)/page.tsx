@@ -262,13 +262,12 @@ export default function MarketingHomepage() {
                   >
                     Products 
                     <ChevronDown className={cn("w-4 h-4 ml-1 transition-transform", (activeDropdown === 'products' || hoveredDropdown === 'products') ? 'rotate-180' : '')} />
-                  </button>
+</button>
                   {(activeDropdown === 'products' || hoveredDropdown === 'products') && (
                     <div className="absolute top-full left-0 mt-1 w-[700px] bg-white border border-slate-200 rounded-xl shadow-xl p-5 grid grid-cols-4 gap-5 z-50"
                         onMouseEnter={() => setHoveredDropdown('products')}
                         onMouseLeave={handleDropdownLeave}
                     >
-<div className="grid grid-cols-4 gap-5">
                       <div>
                         <h3 className="font-semibold text-slate-900 mb-3">CRM & Sales</h3>
                         <ul className="space-y-2">
@@ -281,10 +280,10 @@ export default function MarketingHomepage() {
                       <div>
                         <h3 className="font-semibold text-slate-900 mb-3">Marketing</h3>
                         <ul className="space-y-2">
-                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><PenTool className="w-4 h-4" /> Content Writer</Link></li>
-                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Target className="w-4 h-4" /> SEO Engine</Link></li>
-                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><MonitorSpeaker className="w-4 h-4" /> Social Planner</Link></li>
-                          <li><Link href="/dashboard" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Mail className="w-4 h-4" /> Email Marketing</Link></li>
+                          <li><Link href="/dashboard/content" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><PenTool className="w-4 h-4" /> Content Writer</Link></li>
+                          <li><Link href="/dashboard/seo" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Target className="w-4 h-4" /> SEO Engine</Link></li>
+                          <li><Link href="/dashboard/social" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><MonitorSpeaker className="w-4 h-4" /> Social Planner</Link></li>
+                          <li><Link href="/dashboard/email" className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"><Mail className="w-4 h-4" /> Email Marketing</Link></li>
                         </ul>
                       </div>
                       <div>
@@ -305,9 +304,8 @@ export default function MarketingHomepage() {
                         </ul>
                       </div>
                     </div>
-                   </div>
-                 )}
-</div>
+                  )}
+                </div>
 
                 {/* Solutions Dropdown - Hover to open */}
                 <div 
