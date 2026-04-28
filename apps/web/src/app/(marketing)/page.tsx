@@ -359,7 +359,7 @@ export default function MarketingHomepage() {
                       <ul className="space-y-1">
                         <li><Link href="/blog" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Blog</Link></li>
                         <li><Link href="/docs" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Documentation</Link></li>
-                        <li><Link href="/api-docs" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">API Reference</Link></li>
+                        <li><Link href="/docs" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">API Reference</Link></li>
                         <li><Link href="/community" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Community</Link></li>
                         <li><Link href="/support" className="block text-sm text-slate-600 hover:text-blue-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors">Support</Link></li>
                       </ul>
@@ -395,9 +395,11 @@ export default function MarketingHomepage() {
           {isMenuOpen && (
             <div className="lg:hidden py-4 border-t border-nexus-border">
               <div className="space-y-4">
-                <a href="/features" className="block text-nexus-text-secondary hover:text-nexus-text-primary">Features</a>
-                <a href="/pricing" className="block text-nexus-text-secondary hover:text-nexus-text-primary">Pricing</a>
-                <a href="/about" className="block text-nexus-text-secondary hover:text-nexus-text-primary">About</a>
+                <Link href="/features" className="block text-nexus-text-secondary hover:text-nexus-text-primary">Features</Link>
+                <Link href="/pricing" className="block text-nexus-text-secondary hover:text-nexus-text-primary">Pricing</Link>
+                <Link href="/about" className="block text-nexus-text-secondary hover:text-nexus-text-primary">About</Link>
+                <Link href="/blog" className="block text-nexus-text-secondary hover:text-nexus-text-primary">Blog</Link>
+                <Link href="/contact" className="block text-nexus-text-secondary hover:text-nexus-text-primary">Contact</Link>
                 <div className="pt-4 border-t border-nexus-border space-y-2">
                   <Link href="/login" className="block text-nexus-text-secondary hover:text-nexus-text-primary">Login</Link>
                   <Link href="/register" className="block bg-nexus-blue text-white px-4 py-2 rounded-lg text-center">Start Free Trial</Link>
@@ -1229,30 +1231,30 @@ export default function MarketingHomepage() {
             <div>
               <h3 className="font-semibold mb-4">Product</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Features</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Integrations</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">API</a></li>
+                <li><Link href="/features" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Features</Link></li>
+                <li><Link href="/pricing" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Pricing</Link></li>
+                <li><Link href="/integrations" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Integrations</Link></li>
+                <li><Link href="/docs" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">API</Link></li>
               </ul>
             </div>
 
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">About</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Blog</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Careers</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Contact</a></li>
+                <li><Link href="/about" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">About</Link></li>
+                <li><Link href="/blog" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Blog</Link></li>
+                <li><Link href="/careers" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Careers</Link></li>
+                <li><Link href="/contact" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Contact</Link></li>
               </ul>
             </div>
 
             <div>
               <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Help Center</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Documentation</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Community</a></li>
-                <li><a href="#" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Status</a></li>
+                <li><Link href="/support" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Help Center</Link></li>
+                <li><Link href="/docs" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Documentation</Link></li>
+                <li><Link href="/community" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Community</Link></li>
+                <li><Link href="/support" className="text-nexus-surface/80 hover:text-nexus-surface transition-colors">Status</Link></li>
               </ul>
             </div>
           </div>
