@@ -20,7 +20,7 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
-    optimizeCss: true,
+    optimizeCss: false,
     scrollRestoration: true,
   },
   // Core Web Vitals optimizations

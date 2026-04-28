@@ -24,7 +24,7 @@ import {
   Save,
   Share,
   Headphones,
-  Waveform,
+  Activity,
   Clock,
   Zap
 } from 'lucide-react'
@@ -508,7 +508,7 @@ export default function MusicCreatorPage() {
                       Generate your first AI music track to get started.
                     </p>
                     <Button
-                      onClick={() => document.querySelector('[data-value="generate"]')?.click()}
+                      onClick={() => (document.querySelector('[data-value="generate"]') as HTMLElement)?.click()}
                       className="bg-nexus-violet hover:bg-nexus-violet/90 text-white"
                     >
                       <Wand2 className="w-4 h-4 mr-2" />
@@ -685,7 +685,7 @@ export default function MusicCreatorPage() {
                       Generate or select music to play
                     </p>
                     <Button
-                      onClick={() => document.querySelector('[data-value="generate"]')?.click()}
+                      onClick={() => (document.querySelector('[data-value="generate"]') as HTMLElement)?.click()}
                       className="bg-nexus-violet hover:bg-nexus-violet/90 text-white"
                     >
                       <Wand2 className="w-4 h-4 mr-2" />

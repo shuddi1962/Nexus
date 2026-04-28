@@ -573,7 +573,7 @@ function AudienceForm({ onSubmit, adAccounts }: {
       name: formData.name,
       description: formData.description,
       platform: formData.platform,
-      type: formData.type,
+      type: formData.type as 'lookalike' | 'interest' | 'custom' | 'retargeting' | 'saved',
       status: 'active' as const,
       targeting: {
         demographics: {

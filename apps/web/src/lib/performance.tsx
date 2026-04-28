@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, ComponentType } from 'react'
 
 // Performance monitoring hook
 export function usePerformanceMonitoring() {
@@ -64,8 +64,8 @@ export function usePerformanceMonitoring() {
 }
 
 // Lazy loading wrapper for components
-export function lazyLoadComponent(importFunc: () => Promise<any>, fallback?: React.ComponentType) {
-  return React.lazy(importFunc)
+export function lazyLoadComponent(importFunc: () => Promise<any>, fallback?: ComponentType) {
+  return lazy(importFunc)
 }
 
 // Image optimization component
@@ -103,9 +103,9 @@ export function useBundleAnalyzer() {
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       // Monitor bundle size in development
       const observer = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry) => {
+        list.getEntries().forEach((entry: PerformanceResourceTiming | any) => {
           if (entry.name.includes('bundle')) {
-            console.log('Bundle size:', entry.transferSize, 'bytes')
+            console.log('Bundle size:', entry.transferSize || 0, 'bytes')
           }
         })
       })

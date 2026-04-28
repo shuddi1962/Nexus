@@ -383,7 +383,7 @@ export default function ProductResearchPage() {
                         <Badge variant="outline" className="text-xs">
                           {product.brand}
                         </Badge>
-                        <Badge className={getPlatformColor(product.platform)} variant="secondary" className="text-xs">
+                        <Badge className={`${getPlatformColor(product.platform)} text-xs`} variant="secondary">
                           {product.platform}
                         </Badge>
                       </div>

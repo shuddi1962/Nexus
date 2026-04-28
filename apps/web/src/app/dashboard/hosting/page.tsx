@@ -547,7 +547,7 @@ export default function HostingPage() {
                     <div className="grid grid-cols-4 gap-4 flex-1">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{record.type}</div>
-                        <Badge className={getStatusColor(record.status)} className="text-xs">
+                        <Badge className={`${getStatusColor(record.status)} text-xs`}>
                           {record.status}
                         </Badge>
                       </div>

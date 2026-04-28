@@ -129,7 +129,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname()
-  const user = null
+  const { user } = useAuth()
 
   return (
     <div>

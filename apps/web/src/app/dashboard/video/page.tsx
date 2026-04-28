@@ -45,7 +45,8 @@ import {
   Crop,
   Wand2,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 

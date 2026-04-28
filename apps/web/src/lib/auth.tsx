@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { apiClient } from './api'
 
-interface User {
+export interface User {
   id: string
   email: string
   name: string
@@ -13,7 +13,7 @@ interface User {
   email_verified: boolean
 }
 
-interface AuthTokens {
+export interface AuthTokens {
   access_token: string
   refresh_token: string
   expires_in: number

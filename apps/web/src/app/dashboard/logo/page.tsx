@@ -81,8 +81,7 @@ export default function LogoCreatorPage() {
     try {
       setIsGenerating(true)
       const data = await apiClient.generateLogo({
-        company_name: companyName,
-        industry,
+        name: companyName,
         style,
         colors: selectedColors
       })
@@ -575,7 +574,7 @@ export default function LogoCreatorPage() {
                       Generate logo variations first, then select one to customize.
                     </p>
                     <Button
-                      onClick={() => document.querySelector('[data-value="generate"]')?.click()}
+                      onClick={() => (document.querySelector('[data-value="generate"]') as HTMLElement)?.click()}
                       className="bg-nexus-violet hover:bg-nexus-violet/90 text-white"
                     >
                       <Wand2 className="w-4 h-4 mr-2" />

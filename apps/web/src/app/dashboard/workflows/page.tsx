@@ -39,7 +39,7 @@ interface Workflow {
   steps: WorkflowStep[]
   executions: number
   successRate: number
-  lastRun: string
+  lastRun: string | null
 }
 
 interface WorkflowStep {

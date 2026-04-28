@@ -24,6 +24,7 @@ interface Contact {
   phone?: string
   company?: string
   position?: string
+  avatar?: string
   tags?: string[]
   notes?: string
   created_at: string
@@ -186,7 +187,7 @@ export function ContactsTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex flex-wrap gap-1">
-                  {contact.tags.map((tag: string) => (
+                  {(contact.tags || []).map((tag: string) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>

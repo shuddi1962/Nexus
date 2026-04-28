@@ -211,7 +211,7 @@ export default function DesignStudioPage() {
     const reader = new FileReader()
     reader.onload = (e) => {
       const imgUrl = e.target?.result as string
-      fabric.Image.fromURL(imgUrl, (img) => {
+      fabric.Image.fromURL(imgUrl, { crossOrigin: 'anonymous' } as any, (img: any) => {
         img.scaleToWidth(200)
         canvas.add(img)
         canvas.setActiveObject(img)
@@ -238,7 +238,7 @@ export default function DesignStudioPage() {
   const duplicateSelectedObject = () => {
     if (!selectedObject || !canvas) return
 
-    selectedObject.clone((cloned: fabric.Object) => {
+    ;(selectedObject as any).clone((cloned: fabric.Object) => {
       cloned.set({
         left: (selectedObject.left || 0) + 10,
         top: (selectedObject.top || 0) + 10,
@@ -251,12 +251,12 @@ export default function DesignStudioPage() {
 
   const bringToFront = () => {
     if (!selectedObject || !canvas) return
-    canvas.bringToFront(selectedObject)
+    canvas.bringObjectToFront(selectedObject)
   }
 
   const sendToBack = () => {
     if (!selectedObject || !canvas) return
-    canvas.sendToBack(selectedObject)
+    canvas.sendObjectToBack(selectedObject)
   }
 
   const alignLeft = () => {
@@ -307,11 +307,11 @@ export default function DesignStudioPage() {
 
     switch (format) {
       case 'png':
-        const pngData = canvas.toDataURL({ format: 'png' })
+        const pngData = canvas.toDataURL({ format: 'png', multiplier: 1 } as any)
         downloadImage(pngData, 'design.png')
         break
       case 'jpg':
-        const jpgData = canvas.toDataURL({ format: 'jpeg', quality: 0.8 })
+        const jpgData = canvas.toDataURL({ format: 'jpeg', quality: 0.8, multiplier: 1 } as any)
         downloadImage(jpgData, 'design.jpg')
         break
       case 'svg':
@@ -639,24 +639,24 @@ export default function DesignStudioPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => updateSelectedObject('fontWeight', selectedObject.fontWeight === 'bold' ? 'normal' : 'bold')}
-                      className={`border-nexus-border ${selectedObject.fontWeight === 'bold' ? 'bg-nexus-blue text-white' : ''}`}
+                      onClick={() => updateSelectedObject('fontWeight', (selectedObject as any).fontWeight === 'bold' ? 'normal' : 'bold')}
+                      className={`border-nexus-border ${(selectedObject as any).fontWeight === 'bold' ? 'bg-nexus-blue text-white' : ''}`}
                     >
                       <Bold className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => updateSelectedObject('fontStyle', selectedObject.fontStyle === 'italic' ? 'normal' : 'italic')}
-                      className={`border-nexus-border ${selectedObject.fontStyle === 'italic' ? 'bg-nexus-blue text-white' : ''}`}
+                      onClick={() => updateSelectedObject('fontStyle', (selectedObject as any).fontStyle === 'italic' ? 'normal' : 'italic')}
+                      className={`border-nexus-border ${(selectedObject as any).fontStyle === 'italic' ? 'bg-nexus-blue text-white' : ''}`}
                     >
                       <Italic className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => updateSelectedObject('underline', !selectedObject.underline)}
-                      className={`border-nexus-border ${selectedObject.underline ? 'bg-nexus-blue text-white' : ''}`}
+                      onClick={() => updateSelectedObject('underline', !(selectedObject as any).underline)}
+                      className={`border-nexus-border ${(selectedObject as any).underline ? 'bg-nexus-blue text-white' : ''}`}
                     >
                       <Underline className="w-4 h-4" />
                     </Button>

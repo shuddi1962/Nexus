@@ -1,4 +1,4 @@
-import { AuthTokens } from './auth'
+import type { AuthTokens, User } from './auth'
 
 class ApiClient {
   private baseURL: string
@@ -15,9 +15,9 @@ class ApiClient {
   private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${this.baseURL}${endpoint}`
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     if (this.tokens?.access_token) {
@@ -469,6 +469,7 @@ class ApiClient {
   async generateImage(options: {
     prompt: string
     style?: string
+    size?: string
   }) {
     return this.request('/content/generate-image', {
       method: 'POST',
@@ -519,6 +520,8 @@ class ApiClient {
     duration?: number
     style?: string
     genre?: string
+    mood?: string
+    instruments?: string[]
   }) {
     return this.request('/creative/music/generate', {
       method: 'POST',
@@ -538,15 +541,7 @@ class ApiClient {
     })
   }
 
-  // Backlinks endpoints
-  async getBacklinks(domain: string, limit?: number) {
-    const queryParams = new URLSearchParams()
-    queryParams.set('domain', domain)
-    if (limit) queryParams.set('limit', limit.toString())
-
-    return this.request(`/seo/backlinks?${queryParams.toString()}`)
-  }
-
+  // Backlinks endpoints (already defined above)
   async submitForIndexing(url: string, engines?: string[]) {
     return this.request('/seo/indexing/submit', {
       method: 'POST',

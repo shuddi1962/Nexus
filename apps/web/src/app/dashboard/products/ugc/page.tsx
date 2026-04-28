@@ -26,7 +26,9 @@ import {
   Search,
   Star,
   ThumbsUp,
-  BarChart3
+  BarChart3,
+  Plus,
+  DollarSign
 } from 'lucide-react'
 
 interface UGCContent {

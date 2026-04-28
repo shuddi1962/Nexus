@@ -41,7 +41,16 @@ interface SelectedElement {
   type: 'title' | 'content' | 'image' | 'shape'
   content: string
   position: { x: number; y: number }
-  style: Record<string, unknown>
+  style: {
+    fontSize?: number | string
+    color?: string
+    fontWeight?: string
+    textAlign?: string
+    width?: number
+    height?: number
+    backgroundColor?: string
+    borderRadius?: number
+  }
 }
 
 interface PresentationSlide {
@@ -144,6 +153,7 @@ export default function PresentationBuilderPage() {
     if (!presentation) return
 
     const newElement = {
+      index: presentation.slides[currentSlideIndex].elements.length,
       type: 'content' as const,
       content: 'New text element',
       position: { x: 100, y: 200 },
@@ -168,6 +178,7 @@ export default function PresentationBuilderPage() {
     if (!presentation) return
 
     const newElement = {
+      index: presentation.slides[currentSlideIndex].elements.length,
       type: 'image' as const,
       content: 'https://via.placeholder.com/400x300',
       position: { x: 100, y: 100 },
@@ -417,7 +428,14 @@ export default function PresentationBuilderPage() {
                         style={{
                           left: element.position.x,
                           top: element.position.y,
-                          ...element.style
+                          fontSize: element.style.fontSize,
+                          color: element.style.color,
+                          fontWeight: element.style.fontWeight,
+                          textAlign: element.style.textAlign as React.CSSProperties['textAlign'],
+                          width: element.style.width,
+                          height: element.style.height,
+                          backgroundColor: element.style.backgroundColor,
+                          borderRadius: element.style.borderRadius
                         }}
                         onClick={() => !isPreviewMode && setSelectedElement({ ...element, index })}
                       >
@@ -559,7 +577,7 @@ export default function PresentationBuilderPage() {
                           <div>
                             <Label className="text-sm text-nexus-text-secondary">Font Size</Label>
                             <Slider
-                              value={[selectedElement.style.fontSize || 24]}
+                              value={[Number(selectedElement.style.fontSize) || 24]}
                               onValueChange={(value) => updateElement(selectedElement.index, {
                                 style: { ...selectedElement.style, fontSize: value[0] }
                               })}
