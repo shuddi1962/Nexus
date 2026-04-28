@@ -86,7 +86,35 @@ const adSyncWorker = new Worker('ads-sync', async (job: Job) => {
   }
 }, { connection: redis })
 
-// Enhanced sync functions with better error handling
+// Helper function to sync campaigns from platform
+async function syncCampaigns(account: any) {
+  const mockCampaigns = [
+    {
+      external_id: `ext_${account.platform}_1`,
+      name: `${account.platform} Brand Campaign`,
+      status: 'active',
+      objective: 'awareness',
+      daily_budget: 50.00,
+      lifetime_budget: 1500.00,
+      start_date: new Date().toISOString().split('T')[0],
+    },
+    {
+      external_id: `ext_${account.platform}_2`,
+      name: `${account.platform} Sales Campaign`,
+      status: 'active',
+      objective: 'conversions',
+      daily_budget: 75.00,
+      lifetime_budget: 2250.00,
+      start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    }
+  ]
+
+  const syncedCampaigns = []
+  for (const campaignData of mockCampaigns) {
+    const campaign = {
+      org_id: account.org_id,
+      ad_account_id: account.id,
+      platform: account.platform,
       external_campaign_id: campaignData.external_id,
       name: campaignData.name,
       objective: campaignData.objective,
@@ -99,7 +127,6 @@ const adSyncWorker = new Worker('ads-sync', async (job: Job) => {
       synced_at: new Date().toISOString(),
     }
 
-    // Check if campaign exists
     const existingCampaigns = await insforge.get(`/collections/${collections.adCampaigns}`, {
       params: {
         ad_account_id: `eq.${account.id}`,
@@ -109,11 +136,9 @@ const adSyncWorker = new Worker('ads-sync', async (job: Job) => {
 
     let campaignId
     if (existingCampaigns.data && existingCampaigns.data.length > 0) {
-      // Update existing campaign
       campaignId = existingCampaigns.data[0].id
       await insforge.patch(`/collections/${collections.adCampaigns}/${campaignId}`, campaign)
     } else {
-      // Create new campaign
       const result = await insforge.post(`/collections/${collections.adCampaigns}`, campaign)
       campaignId = result.data.id
     }
