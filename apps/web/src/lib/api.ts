@@ -530,7 +530,8 @@ class ApiClient {
   }
 
   async convertArticleToVideo(options: {
-    article_url: string
+    article_url?: string
+    content?: string
     style: string
     voice: string
     duration: number
