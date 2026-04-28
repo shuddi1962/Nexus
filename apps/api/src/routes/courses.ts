@@ -1,10 +1,9 @@
 import type { FastifyInstance } from 'fastify'
-import { getInsForgeClient } from '../lib/insforge'
+import { insforge } from '../lib/insforge'
 import { authMiddleware } from '../middleware/auth'
 import { logger } from '../lib/logger'
 
 export async function registerCoursesRoutes(fastify: FastifyInstance) {
-  const insforge = getInsForgeClient()
 
   // Get courses
   fastify.get('/courses', { preHandler: [authMiddleware] }, async (request, reply) => {

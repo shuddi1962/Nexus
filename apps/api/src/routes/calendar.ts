@@ -1,10 +1,9 @@
 import type { FastifyInstance } from 'fastify'
-import { getInsForgeClient } from '../lib/insforge'
+import { insforge } from '../lib/insforge'
 import { authMiddleware } from '../middleware/auth'
 import { logger } from '../lib/logger'
 
 export async function registerCalendarRoutes(fastify: FastifyInstance) {
-  const insforge = getInsForgeClient()
 
   // Get events
   fastify.get('/calendar/events', { preHandler: [authMiddleware] }, async (request, reply) => {

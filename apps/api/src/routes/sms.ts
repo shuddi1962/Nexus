@@ -1,10 +1,9 @@
 import type { FastifyInstance } from 'fastify'
-import { getInsForgeClient } from '../lib/insforge'
+import { insforge } from '../lib/insforge'
 import { authMiddleware } from '../middleware/auth'
 import { logger } from '../lib/logger'
 
 export async function registerSMSRoutes(fastify: FastifyInstance) {
-  const insforge = getInsForgeClient()
 
   // Get SMS campaigns
   fastify.get('/sms/campaigns', { preHandler: [authMiddleware] }, async (request, reply) => {
