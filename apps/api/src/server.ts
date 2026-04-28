@@ -47,6 +47,9 @@ async function startServer() {
   const { adsRoutes } = await import('./routes/ads')
   const { contentRoutes } = await import('./routes/content')
   const { commerceRoutes } = await import('./routes/commerce')
+  const { chatbotsRoutes } = await import('./routes/chatbots')
+  const { workflowsRoutes } = await import('./routes/workflows')
+  const { voiceRoutes } = await import('./routes/voice')
   
   await server.register(authRoutes, { prefix: '/api' })
   await server.register(vaultRoutes, { prefix: '/api' })
@@ -55,6 +58,11 @@ async function startServer() {
   await server.register(adsRoutes, { prefix: '/api' })
   await server.register(contentRoutes, { prefix: '/api' })
   await server.register(commerceRoutes, { prefix: '/api' })
+  const { reputationRoutes } = await import('./routes/reputation')
+  await server.register(chatbotsRoutes, { prefix: '/api' })
+  await server.register(workflowsRoutes, { prefix: '/api' })
+  await server.register(voiceRoutes, { prefix: '/api' })
+  await server.register(reputationRoutes, { prefix: '/api' })
 
   // Start background jobs
   const { scheduleRulesProcessing } = await import('./jobs/rules-processor')

@@ -694,6 +694,145 @@ class ApiClient {
       method: 'DELETE',
     })
   }
+
+  // Chatbot endpoints
+  async getChatbots() {
+    return this.request('/chatbots')
+  }
+
+  async createChatbot(data: {
+    name: string
+    flow_data?: any
+    channels?: string[]
+    mode?: 'off' | 'suggestive' | 'autopilot'
+    training_data?: any
+  }) {
+    return this.request('/chatbots', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateChatbot(id: string, updates: any) {
+    return this.request(`/chatbots/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+  }
+
+  async deleteChatbot(id: string) {
+    return this.request(`/chatbots/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async generateEmbedCode(id: string, config?: {
+    colors?: { primary: string; secondary: string }
+    position?: 'bottom-right' | 'bottom-left' | 'center'
+    avatar?: string
+    welcome_message?: string
+  }) {
+    return this.request(`/chatbots/${id}/embed`, {
+      method: 'POST',
+      body: JSON.stringify(config || {}),
+    })
+  }
+
+  // Workflow endpoints
+  async getWorkflows() {
+    return this.request('/workflows')
+  }
+
+  async createWorkflow(data: {
+    name: string
+    trigger?: any
+    actions?: any[]
+  }) {
+    return this.request('/workflows', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateWorkflow(id: string, updates: any) {
+    return this.request(`/workflows/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+  }
+
+  async deleteWorkflow(id: string) {
+    return this.request(`/workflows/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async executeWorkflow(id: string, contactId?: string) {
+    return this.request(`/workflows/${id}/execute`, {
+      method: 'POST',
+      body: JSON.stringify({ contact_id: contactId }),
+    })
+  }
+
+  async getWorkflowExecutions(id: string) {
+    return this.request(`/workflows/${id}/executions`)
+  }
+
+  // Voice endpoints
+  async getVoiceCalls() {
+    return this.request('/voice/calls')
+  }
+
+  async initiateCall(data: {
+    to: string
+    contact_id?: string
+    script?: string
+  }) {
+    return this.request('/voice/call', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getVoiceLogs() {
+    return this.request('/voice/logs')
+  }
+
+  // Reputation endpoints
+  async getReviews() {
+    return this.request('/reputation/reviews')
+  }
+
+  async respondToReview(reviewId: string, response: string) {
+    return this.request(`/reputation/reviews/${reviewId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify({ response }),
+    })
+  }
+
+  async requestReview(data: {
+    customer_email: string
+    customer_name?: string
+    order_id?: string
+  }) {
+    return this.request('/reputation/request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getReputationStats() {
+    return this.request('/reputation/stats')
+  }
+
+  // Dashboard stats
+  async getDashboardStats() {
+    return this.request('/dashboard/stats')
+  }
+
+  async getRecentActivities() {
+    return this.request('/dashboard/activities')
+  }
 }
 
 export const apiClient = new ApiClient()
