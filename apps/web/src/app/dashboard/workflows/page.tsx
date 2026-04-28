@@ -1,137 +1,73 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { apiClient } from '@/lib/api'
 import {
-  Plus,
-  Play,
-  Pause,
-  Settings,
-  Zap,
-  ArrowRight,
-  CheckCircle,
-  AlertTriangle,
-  Clock,
-  Users,
-  Mail,
-  MessageSquare,
-  FileText,
-  Database,
-  Webhook,
-  Code,
-  Trash2
+  Plus, Play, Pause, Settings, Zap, ArrowRight, CheckCircle,
+  AlertTriangle, Clock, Users, Mail, MessageSquare, FileText,
+  Database, Webhook, Code, Trash2, Eye
 } from 'lucide-react'
 
-interface Workflow {
-  id: string
-  name: string
-  description: string
-  status: 'active' | 'paused' | 'draft'
-  trigger: {
-    type: 'manual' | 'schedule' | 'event' | 'webhook'
-    config: Record<string, unknown>
-  }
-  steps: WorkflowStep[]
-  executions: number
-  successRate: number
-  lastRun: string | null
-}
-
-interface WorkflowStep {
-  id: string
-  type: 'action' | 'condition' | 'delay' | 'notification'
-  name: string
-  config: Record<string, unknown>
-}
-
 export default function WorkflowsPage() {
-  const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null)
+  const [workflows, setWorkflows] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newWorkflowName, setNewWorkflowName] = useState('')
+  const [activeTab, setActiveTab] = useState('all')
 
-  // Mock workflows data
-  const workflows: Workflow[] = [
-    {
-      id: '1',
-      name: 'New Lead Nurture',
-      description: 'Automatically nurture new leads with personalized email sequences',
-      status: 'active',
-      trigger: {
-        type: 'event',
-        config: { event: 'lead_created' }
-      },
-      steps: [
-        { id: '1', type: 'delay', name: 'Wait 1 day', config: { days: 1 } },
-        { id: '2', type: 'action', name: 'Send welcome email', config: { template: 'welcome' } },
-        { id: '3', type: 'condition', name: 'If not opened', config: { condition: 'email_not_opened', days: 3 } },
-        { id: '4', type: 'action', name: 'Send follow-up', config: { template: 'follow_up' } }
-      ],
-      executions: 156,
-      successRate: 89.2,
-      lastRun: '2026-04-24T10:30:00Z'
-    },
-    {
-      id: '2',
-      name: 'Customer Onboarding',
-      description: 'Streamline customer onboarding with automated tasks and communications',
-      status: 'active',
-      trigger: {
-        type: 'event',
-        config: { event: 'customer_signed_up' }
-      },
-      steps: [
-        { id: '1', type: 'action', name: 'Create welcome kit', config: { template: 'welcome_kit' } },
-        { id: '2', type: 'delay', name: 'Wait 2 hours', config: { hours: 2 } },
-        { id: '3', type: 'action', name: 'Send setup instructions', config: { template: 'setup_guide' } },
-        { id: '4', type: 'action', name: 'Schedule onboarding call', config: { calendar: 'primary' } }
-      ],
-      executions: 89,
-      successRate: 94.7,
-      lastRun: '2026-04-23T15:45:00Z'
-    },
-    {
-      id: '3',
-      name: 'Invoice Payment Follow-up',
-      description: 'Automated follow-up for overdue invoice payments',
-      status: 'paused',
-      trigger: {
-        type: 'schedule',
-        config: { frequency: 'daily', time: '09:00' }
-      },
-      steps: [
-        { id: '1', type: 'condition', name: 'Check overdue invoices', config: { daysOverdue: 7 } },
-        { id: '2', type: 'action', name: 'Send payment reminder', config: { template: 'payment_reminder' } },
-        { id: '3', type: 'delay', name: 'Wait 3 days', config: { days: 3 } },
-        { id: '4', type: 'condition', name: 'If still unpaid', config: { checkPayment: true } },
-        { id: '5', type: 'action', name: 'Escalate to manager', config: { notify: 'manager' } }
-      ],
-      executions: 23,
-      successRate: 78.3,
-      lastRun: '2026-04-20T09:00:00Z'
-    },
-    {
-      id: '4',
-      name: 'Content Publishing',
-      description: 'Automate content publishing and social media distribution',
-      status: 'draft',
-      trigger: {
-        type: 'manual',
-        config: {}
-      },
-      steps: [
-        { id: '1', type: 'action', name: 'Publish to blog', config: { platform: 'wordpress' } },
-        { id: '2', type: 'action', name: 'Share on LinkedIn', config: { platform: 'linkedin' } },
-        { id: '3', type: 'action', name: 'Share on Twitter', config: { platform: 'twitter' } },
-        { id: '4', type: 'notification', name: 'Notify team', config: { channel: 'slack' } }
-      ],
-      executions: 0,
-      successRate: 0,
-      lastRun: null
+  useEffect(() => {
+    const fetchWorkflows = async () => {
+      try {
+        setLoading(true)
+        const data = await apiClient.getWorkflows()
+        setWorkflows(data || [])
+      } catch (error) {
+        console.error('Error fetching workflows:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    fetchWorkflows()
+  }, [])
+
+  const handleCreateWorkflow = async () => {
+    if (!newWorkflowName.trim()) return
+
+    try {
+      setIsCreating(true)
+      const newWorkflow = await apiClient.createWorkflow({
+        name: newWorkflowName,
+      })
+      setWorkflows([newWorkflow, ...workflows])
+      setNewWorkflowName('')
+    } catch (error) {
+      console.error('Error creating workflow:', error)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const handleDeleteWorkflow = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this workflow?')) return
+    try {
+      await apiClient.deleteWorkflow(id)
+      setWorkflows(workflows.filter(w => w.id !== id))
+    } catch (error) {
+      console.error('Error deleting workflow:', error)
+    }
+  }
+
+  const handleExecuteWorkflow = async (id: string) => {
+    try {
+      await apiClient.executeWorkflow(id)
+      alert('Workflow execution started!')
+    } catch (error) {
+      console.error('Error executing workflow:', error)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -148,352 +84,167 @@ export default function WorkflowsPage() {
 
   const getTriggerIcon = (type: string) => {
     switch (type) {
-      case 'manual':
-        return <Users className="w-4 h-4" />
       case 'schedule':
         return <Clock className="w-4 h-4" />
       case 'event':
         return <Zap className="w-4 h-4" />
       case 'webhook':
         return <Webhook className="w-4 h-4" />
+      case 'manual':
+        return <Play className="w-4 h-4" />
       default:
         return <Zap className="w-4 h-4" />
     }
   }
 
-  const getStepIcon = (type: string) => {
-    switch (type) {
-      case 'action':
-        return <Zap className="w-4 h-4" />
-      case 'condition':
-        return <AlertTriangle className="w-4 h-4" />
-      case 'delay':
-        return <Clock className="w-4 h-4" />
-      case 'notification':
-        return <Mail className="w-4 h-4" />
-      default:
-        return <Settings className="w-4 h-4" />
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-nexus-text-tertiary">Loading workflows...</div>
+      </div>
+    )
   }
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never'
-    const date = new Date(dateString)
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
+  const filteredWorkflows = activeTab === 'all'
+    ? workflows
+    : workflows.filter(w => w.status === activeTab)
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Workflow Automation</h1>
-          <p className="text-gray-600">Create automated workflows to streamline your business processes.</p>
+          <h1 className="text-2xl font-bold text-nexus-text-primary">Workflows</h1>
+          <p className="text-nexus-text-secondary">Automate your business processes with visual workflows.</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
-            Templates
-          </Button>
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Workflow
-          </Button>
-        </div>
+        <Button
+          onClick={() => setIsCreating(true)}
+          className="bg-nexus-violet hover:bg-nexus-accent text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Workflow
+        </Button>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Zap className="w-8 h-8 text-blue-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">{workflows.filter(w => w.status === 'active').length}</div>
-                <div className="text-sm text-gray-600">Active Workflows</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Play className="w-8 h-8 text-green-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {workflows.reduce((sum, w) => sum + w.executions, 0)}
-                </div>
-                <div className="text-sm text-gray-600">Total Executions</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <CheckCircle className="w-8 h-8 text-purple-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {Math.round(workflows.reduce((sum, w) => sum + w.successRate * w.executions, 0) /
-                    Math.max(workflows.reduce((sum, w) => sum + w.executions, 0), 1))}%
-                </div>
-                <div className="text-sm text-gray-600">Success Rate</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Clock className="w-8 h-8 text-orange-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">24/7</div>
-                <div className="text-sm text-gray-600">Automation</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Tabs */}
+      <div className="flex gap-2">
+        {['all', 'active', 'paused', 'draft'].map((tab) => (
+          <Button
+            key={tab}
+            variant={activeTab === tab ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? 'bg-nexus-violet text-white' : 'border-nexus-border'}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </Button>
+        ))}
       </div>
 
-      <Tabs defaultValue="workflows" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="workflows">Workflows</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+      {/* Create Workflow Modal */}
+      {isCreating && (
+        <Card className="border-nexus-blue bg-nexus-blue-light">
+          <CardHeader>
+            <CardTitle>Create New Workflow</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="workflowName" className="text-sm font-medium text-nexus-text-primary">Workflow Name</label>
+              <input
+                id="workflowName"
+                type="text"
+                value={newWorkflowName}
+                onChange={(e) => setNewWorkflowName(e.target.value)}
+                placeholder="Enter workflow name"
+                className="w-full px-3 py-2 border border-nexus-border rounded-md focus:outline-none focus:ring-2 focus:ring-nexus-blue"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsCreating(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateWorkflow} disabled={!newWorkflowName.trim()}>
+                <Zap className="w-4 h-4 mr-2" />
+                Create Workflow
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        <TabsContent value="workflows" className="space-y-6">
-          {/* Workflows List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {workflows.map((workflow) => (
-              <Card key={workflow.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {getTriggerIcon(workflow.trigger.type)}
-                      <div>
-                        <CardTitle className="text-lg">{workflow.name}</CardTitle>
+      {/* Workflows List */}
+      <div className="space-y-4">
+        {filteredWorkflows.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Zap className="w-12 h-12 text-nexus-text-tertiary mx-auto mb-4" />
+              <p className="text-nexus-text-secondary">No workflows yet. Create your first workflow to get started.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredWorkflows.map((workflow) => (
+            <Card key={workflow.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-4">
+                    <div className="p-2 bg-nexus-violet-light rounded-lg">
+                      {getTriggerIcon(workflow.trigger?.type)}
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-nexus-text-primary">{workflow.name}</h3>
+                      <p className="text-sm text-nexus-text-secondary">{workflow.description || 'No description'}</p>
+                      <div className="flex items-center gap-2 mt-2">
                         <Badge className={getStatusColor(workflow.status)}>
                           {workflow.status}
                         </Badge>
+                        <span className="text-xs text-nexus-text-tertiary">
+                          {workflow.executions || 0} executions
+                        </span>
+                        {workflow.successRate && (
+                          <span className="text-xs text-nexus-green">
+                            {workflow.successRate}% success
+                          </span>
+                        )}
                       </div>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleExecuteWorkflow(workflow.id)}>
+                      <Play className="w-4 h-4 text-nexus-green" />
+                    </Button>
                     <Button variant="ghost" size="sm">
-                      <Settings className="w-4 h-4" />
+                      <Eye className="w-4 h-4 text-nexus-text-secondary" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDeleteWorkflow(workflow.id)}>
+                      <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-gray-600 text-sm">{workflow.description}</p>
-
-                  {/* Trigger Info */}
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <span>Trigger:</span>
-                    <Badge variant="outline" className="capitalize">
-                      {workflow.trigger.type}
-                    </Badge>
-                  </div>
-
-                  {/* Steps Preview */}
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-gray-900">Workflow Steps:</div>
-                    <div className="flex flex-wrap gap-2">
-                      {workflow.steps.slice(0, 4).map((step, index) => (
-                        <div key={step.id} className="flex items-center space-x-1 text-xs">
-                          {getStepIcon(step.type)}
-                          <span>{step.name}</span>
-                          {index < workflow.steps.length - 1 && <ArrowRight className="w-3 h-3" />}
-                        </div>
-                      ))}
-                      {workflow.steps.length > 4 && (
-                        <span className="text-xs text-gray-500">+{workflow.steps.length - 4} more</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <div className="text-gray-600">Executions</div>
-                      <div className="font-semibold">{workflow.executions}</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-600">Success Rate</div>
-                      <div className="font-semibold">{workflow.successRate}%</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-600">Last Run</div>
-                      <div className="font-semibold text-xs">{formatDate(workflow.lastRun)}</div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Play className="w-4 h-4 mr-2" />
-                        Run
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Test
-                      </Button>
-                    </div>
-                    <Button
-                      variant={workflow.status === 'active' ? 'outline' : 'default'}
-                      size="sm"
-                      onClick={() => setSelectedWorkflow(workflow.id)}
-                    >
-                      {workflow.status === 'active' ? 'Pause' : 'Activate'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="templates" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                name: 'Lead Nurture Sequence',
-                description: 'Automated email sequences for lead nurturing',
-                category: 'Marketing',
-                steps: 5,
-                icon: <Mail className="w-6 h-6" />
-              },
-              {
-                name: 'Customer Onboarding',
-                description: 'Streamlined customer onboarding workflow',
-                category: 'Sales',
-                steps: 7,
-                icon: <Users className="w-6 h-6" />
-              },
-              {
-                name: 'Content Publishing',
-                description: 'Automated content publishing and distribution',
-                category: 'Content',
-                steps: 4,
-                icon: <FileText className="w-6 h-6" />
-              },
-              {
-                name: 'Invoice Processing',
-                description: 'Automated invoice creation and follow-up',
-                category: 'Finance',
-                steps: 6,
-                icon: <Database className="w-6 h-6" />
-              },
-              {
-                name: 'Support Ticket Routing',
-                description: 'Intelligent ticket routing and escalation',
-                category: 'Support',
-                steps: 8,
-                icon: <MessageSquare className="w-6 h-6" />
-              },
-              {
-                name: 'Social Media Monitoring',
-                description: 'Automated social media response system',
-                category: 'Social',
-                steps: 5,
-                icon: <MessageSquare className="w-6 h-6" />
-              }
-            ].map((template, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-                      {template.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{template.name}</h3>
-                      <Badge variant="secondary" className="text-xs">{template.category}</Badge>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-600 text-sm mb-4">{template.description}</p>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{template.steps} steps</span>
-                    <Button size="sm">Use Template</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Play className="w-8 h-8 text-blue-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">2,456</div>
-                    <div className="text-sm text-gray-600">Workflow Executions</div>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <CheckCircle className="w-8 h-8 text-green-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">87.3%</div>
-                    <div className="text-sm text-gray-600">Success Rate</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Clock className="w-8 h-8 text-purple-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">24.5h</div>
-                    <div className="text-sm text-gray-600">Time Saved</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Workflow Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {workflows.filter(w => w.executions > 0).map((workflow) => (
-                  <div key={workflow.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium text-gray-900">{workflow.name}</h3>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {workflow.executions} executions • {workflow.successRate}% success rate
+                {/* Workflow Steps Preview */}
+                {workflow.steps && workflow.steps.length > 0 && (
+                  <div className="flex items-center gap-2 pt-4 border-t border-nexus-border">
+                    <span className="text-xs text-nexus-text-tertiary">Steps:</span>
+                    {workflow.steps.slice(0, 3).map((step: any, index: number) => (
+                      <div key={step.id} className="flex items-center gap-1">
+                        <Badge variant="outline" className="text-xs">
+                          {step.type}: {step.name}
+                        </Badge>
+                        {index < Math.min(workflow.steps.length, 3) - 1 && (
+                          <ArrowRight className="w-3 h-3 text-nexus-text-tertiary" />
+                        )}
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="w-32 bg-gray-200 rounded-full h-2 mb-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full"
-                          style={{ width: `${workflow.successRate}%` }}
-                        ></div>
-                      </div>
-                      <div className="text-xs text-gray-500">Success Rate</div>
-                    </div>
+                    ))}
+                    {workflow.steps.length > 3 && (
+                      <span className="text-xs text-nexus-text-tertiary">+{workflow.steps.length - 3} more</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   )
 }

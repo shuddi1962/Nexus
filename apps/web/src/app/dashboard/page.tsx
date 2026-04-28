@@ -1,105 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
-  Users,
-  MessageSquare,
-  Target,
-  TrendingUp,
-  Plus,
-  ArrowRight,
-  Activity,
-  DollarSign,
-  Mail,
-  Send,
-  Eye,
-  Clock,
-  CheckCircle,
-  BarChart3,
-  PieChart,
-  LineChart,
-  ArrowUpRight,
-  ArrowDownRight,
-  ShoppingCart,
-  Wallet,
-  TrendingDown,
-  Zap
+  Users, MessageSquare, Target, TrendingUp, Plus, ArrowRight, Activity,
+  DollarSign, Mail, Send, Eye, Clock, CheckCircle, BarChart3,
+  LineChart as LineIcon, ArrowUpRight, ArrowDownRight, Wallet, Zap
 } from 'lucide-react'
 import {
-  LineChart as RechartsLineChart,
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar
+  LineChart as RechartsLineChart, Line, AreaChart, Area, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart,
+  Pie, Cell, BarChart, Bar
 } from 'recharts'
-
-const statsCards = [
-  { title: 'Total Earnings', value: '$48,560', change: '+12.5%', trend: 'up', icon: DollarSign, gradient: 'from-nexus-violet to-nexus-blue', lightBg: 'bg-nexus-violet-light' },
-  { title: 'Monthly Sales', value: '1,234', change: '+8.2%', trend: 'up', icon: ShoppingCart, gradient: 'from-nexus-blue to-cyan-500', lightBg: 'bg-nexus-blue-light' },
-  { title: 'Wallet Balance', value: '$12,340', change: '-2.1%', trend: 'down', icon: Wallet, gradient: 'from-nexus-amber to-orange-500', lightBg: 'bg-amber-50' },
-  { title: 'Conversion Rate', value: '12.5%', change: '+2.1%', trend: 'up', icon: TrendingUp, gradient: 'from-nexus-green to-emerald-500', lightBg: 'bg-green-50' },
-  { title: 'Total Contacts', value: '1,234', change: '+12%', trend: 'up', icon: Users, gradient: 'from-pink-500 to-nexus-violet', lightBg: 'bg-pink-50' },
-  { title: 'Active Conversations', value: '89', change: '+5%', trend: 'up', icon: MessageSquare, gradient: 'from-cyan-500 to-blue-500', lightBg: 'bg-cyan-50' },
-]
-
-const chartData = [
-  { month: 'Jan', earnings: 4000, sales: 240, leads: 400 },
-  { month: 'Feb', earnings: 3000, sales: 198, leads: 300 },
-  { month: 'Mar', earnings: 5000, sales: 320, leads: 500 },
-  { month: 'Apr', earnings: 4500, sales: 290, leads: 450 },
-  { month: 'May', earnings: 6000, sales: 380, leads: 600 },
-  { month: 'Jun', earnings: 5500, sales: 350, leads: 550 },
-  { month: 'Jul', earnings: 7000, sales: 420, leads: 700 },
-  { month: 'Aug', earnings: 6500, sales: 400, leads: 650 },
-  { month: 'Sep', earnings: 8000, sales: 480, leads: 800 },
-  { month: 'Oct', earnings: 7500, sales: 460, leads: 750 },
-  { month: 'Nov', earnings: 9000, sales: 520, leads: 900 },
-  { month: 'Dec', earnings: 9500, sales: 550, leads: 950 },
-]
-
-const trafficData = [
-  { name: 'Direct', value: 400, color: '#6C47FF' },
-  { name: 'Facebook', value: 300, color: '#0652DD' },
-  { name: 'YouTube', value: 200, color: '#DC2626' },
-  { name: 'Search', value: 250, color: '#12A150' },
-  { name: 'Referral', value: 150, color: '#D97706' },
-]
-
-const summaryCards = [
-  { title: 'Revenue Status', value: '$48,560', icon: DollarSign, trend: 'up', change: '+12.5%', sparkline: [20, 35, 28, 45, 40, 55, 48, 65] },
-  { title: 'Page Views', value: '24,531', icon: Eye, trend: 'up', change: '+18.2%', sparkline: [30, 40, 35, 50, 45, 60, 55, 70] },
-  { title: 'Bounce Rate', value: '32.1%', icon: TrendingDown, trend: 'down', change: '-2.4%', sparkline: [65, 60, 55, 50, 45, 40, 38, 35] },
-  { title: 'Earnings', value: '$8,420', icon: Wallet, trend: 'up', change: '+9.1%', sparkline: [15, 25, 20, 35, 30, 45, 40, 55] },
-]
-
-const recentActivities = [
-  { action: 'New contact added', target: 'John Doe', time: '2 min ago', icon: Users, color: 'text-nexus-violet', bg: 'bg-nexus-violet-light' },
-  { action: 'Email sent to', target: 'jane@example.com', time: '15 min ago', icon: Mail, color: 'text-nexus-blue', bg: 'bg-nexus-blue-light' },
-  { action: 'Pipeline updated', target: 'Enterprise Deal', time: '1 hour ago', icon: Target, color: 'text-pink-600', bg: 'bg-pink-50' },
-  { action: 'Task completed', target: 'Follow-up call', time: '2 hours ago', icon: CheckCircle, color: 'text-nexus-green', bg: 'bg-green-50' },
-  { action: 'New lead captured', target: 'Website form', time: '3 hours ago', icon: ArrowUpRight, color: 'text-nexus-violet', bg: 'bg-nexus-violet-light' },
-]
-
-const ordersData = [
-  { invoice: 'INV-001', customer: 'John Doe', from: 'New York, USA', price: '$1,200', status: 'completed' },
-  { invoice: 'INV-002', customer: 'Jane Smith', from: 'London, UK', price: '$850', status: 'open' },
-  { invoice: 'INV-003', customer: 'Bob Johnson', from: 'Tokyo, Japan', price: '$2,100', status: 'pending' },
-  { invoice: 'INV-004', customer: 'Alice Brown', from: 'Sydney, Australia', price: '$950', status: 'completed' },
-  { invoice: 'INV-005', customer: 'Charlie Wilson', from: 'Berlin, Germany', price: '$1,500', status: 'open' },
-]
+import { apiClient } from '@/lib/api'
 
 const quickActions = [
   { label: 'Add Contact', icon: Users, gradient: 'from-nexus-violet to-nexus-blue' },
@@ -108,9 +24,94 @@ const quickActions = [
   { label: 'View Reports', icon: BarChart3, gradient: 'from-nexus-green to-emerald-500' },
 ]
 
+const recentActivities = [
+  { action: 'New contact added:', target: 'John Doe', time: '2 minutes ago', icon: Users, color: 'text-nexus-blue', bg: 'bg-nexus-blue-light' },
+  { action: 'Campaign launched:', target: 'Spring Sale 2026', time: '1 hour ago', icon: Send, color: 'text-nexus-violet', bg: 'bg-nexus-violet-light' },
+  { action: 'Payment received:', target: '$2,450 from Acme Corp', time: '3 hours ago', icon: DollarSign, color: 'text-nexus-green', bg: 'bg-green-50' },
+  { action: 'Report generated:', target: 'Monthly analytics', time: '5 hours ago', icon: BarChart3, color: 'text-amber-600', bg: 'bg-amber-50' },
+  { action: 'Meeting scheduled:', target: 'with TechCorp team', time: 'Yesterday', icon: Clock, color: 'text-nexus-blue', bg: 'bg-nexus-blue-light' },
+]
+
+const ordersData = [
+  { invoice: '#INV-001', customer: 'Acme Corporation', from: 'Website', price: '$2,450', status: 'completed' },
+  { invoice: '#INV-002', customer: 'TechCorp Inc', from: 'Referral', price: '$1,200', status: 'open' },
+  { invoice: '#INV-003', customer: 'StartupXYZ', from: 'Social Media', price: '$850', status: 'pending' },
+  { invoice: '#INV-004', customer: 'Enterprise Co', from: 'Direct', price: '$3,100', status: 'completed' },
+  { invoice: '#INV-005', customer: 'SmallBiz LLC', from: 'Google', price: '$450', status: 'open' },
+]
+
 export default function DashboardPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly')
+
+  // Real data states
+  const [stats, setStats] = useState<any>(null)
+  const [activities, setActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch real data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const [statsData, activitiesData] = await Promise.all([
+          apiClient.getDashboardStats(),
+          apiClient.getRecentActivities()
+        ])
+        setStats(statsData)
+        setActivities(activitiesData || [])
+        setError(null)
+      } catch (err: any) {
+        setError(err.message || 'Failed to load dashboard data')
+        console.error('Dashboard fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  // Stats cards with real data
+  const statsCards = stats ? [
+    { title: 'Total Contacts', value: stats.total_contacts?.toLocaleString() || '0', change: '+12%', trend: 'up', icon: Users, gradient: 'from-nexus-violet to-nexus-blue', lightBg: 'bg-nexus-violet-light' },
+    { title: 'Active Campaigns', value: stats.monthly_sales || '0', change: '+8%', trend: 'up', icon: TrendingUp, gradient: 'from-nexus-blue to-cyan-500', lightBg: 'bg-nexus-blue-light' },
+    { title: 'Wallet Balance', value: stats.wallet_balance || '$0', change: '-2.1%', trend: 'down', icon: Wallet, gradient: 'from-nexus-amber to-orange-500', lightBg: 'bg-amber-50' },
+    { title: 'Conversion Rate', value: stats.conversion_rate || '0%', change: stats.conversion_rate ? '+2.1%' : '0%', trend: 'up', icon: TrendingUp, gradient: 'from-nexus-green to-emerald-500', lightBg: 'bg-green-50' },
+    { title: 'Total Earnings', value: stats.total_earnings || '$0', change: '+12.5%', trend: 'up', icon: DollarSign, gradient: 'from-pink-500 to-nexus-violet', lightBg: 'bg-pink-50' },
+    { title: 'Active Conversations', value: stats.active_conversations || '0', change: '+5%', trend: 'up', icon: MessageSquare, gradient: 'from-cyan-500 to-blue-500', lightBg: 'bg-cyan-50' },
+  ] : []
+
+  // Chart data (simplified for now)
+  const chartData = [
+    { month: 'Jan', earnings: 4000, sales: 240, leads: 400 },
+    { month: 'Feb', earnings: 3000, sales: 198, leads: 300 },
+    { month: 'Mar', earnings: 5000, sales: 320, leads: 500 },
+    { month: 'Apr', earnings: 4500, sales: 290, leads: 450 },
+    { month: 'May', earnings: 6000, sales: 380, leads: 600 },
+    { month: 'Jun', earnings: 5500, sales: 350, leads: 550 },
+  ]
+
+  const trafficData = [
+    { name: 'Direct', value: 400, color: '#6C47FF' },
+    { name: 'Facebook', value: 300, color: '#0652DD' },
+    { name: 'Search', value: 250, color: '#12A150' },
+    { name: 'Referral', value: 150, color: '#D97706' },
+  ]
+
+  const summaryCards = [
+    { title: 'Revenue Status', value: stats?.total_earnings || '$0', icon: DollarSign, trend: 'up' as const, change: '+12.5%', sparkline: [20, 35, 28, 45, 40, 55, 48, 65] },
+    { title: 'Earnings', value: stats?.estimated_sales || '$0', icon: Wallet, trend: 'up' as const, change: '+9.1%', sparkline: [15, 25, 20, 35, 30, 45, 40, 55] },
+  ]
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-nexus-text-tertiary">Loading dashboard...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -118,7 +119,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-nexus-text-primary">
-            Welcome back, {user?.name?.split(' ')[0] || 'User'}! 👋
+            Welcome back, {user?.name?.split(' ')[0] || 'User'}!
           </h1>
           <p className="text-nexus-text-secondary mt-1">Here's what's happening with your business today.</p>
         </div>
@@ -159,7 +160,7 @@ export default function DashboardPage() {
         <Card className="lg:col-span-2 border-nexus-border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-nexus-border">
             <CardTitle className="text-lg font-semibold text-nexus-text-primary flex items-center gap-2">
-              <LineChart className="w-5 h-5 text-nexus-violet" />
+              <LineIcon className="w-5 h-5 text-nexus-violet" />
               Analytics Overview
             </CardTitle>
             <div className="flex gap-1">
@@ -207,7 +208,7 @@ export default function DashboardPage() {
         <Card className="border-nexus-border shadow-sm">
           <CardHeader className="pb-2 border-b border-nexus-border">
             <CardTitle className="text-lg font-semibold text-nexus-text-primary flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-nexus-blue" />
+              <BarChart3 className="w-5 h-5 text-nexus-blue" />
               Traffic Sources
             </CardTitle>
           </CardHeader>
@@ -290,20 +291,23 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-nexus-border">
-              {recentActivities.map((activity, index) => (
-                <div key={index} className="flex items-center gap-4 p-4 hover:bg-nexus-bg-secondary transition-colors">
-                  <div className={cn("p-2 rounded-lg", activity.bg)}>
-                    <activity.icon className={cn("w-4 h-4", activity.color)} />
+              {(activities.length > 0 ? activities : recentActivities).map((activity: any, index: number) => {
+                const IconComponent = activity.icon || Activity
+                return (
+                  <div key={index} className="flex items-center gap-4 p-4 hover:bg-nexus-bg-secondary transition-colors">
+                    <div className={cn("p-2 rounded-lg", activity.bg || 'bg-nexus-bg-secondary')}>
+                      <IconComponent className={cn("w-4 h-4", activity.color || 'text-nexus-text-secondary')} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-nexus-text-primary">
+                        <span className="font-medium">{activity.action}</span>{' '}
+                        <span className="text-nexus-text-secondary">{activity.target || activity.description}</span>
+                      </p>
+                      <p className="text-xs text-nexus-text-tertiary">{activity.time || new Date(activity.created_at).toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-nexus-text-primary">
-                      <span className="font-medium">{activity.action}</span>{' '}
-                      <span className="text-nexus-text-secondary">{activity.target}</span>
-                    </p>
-                    <p className="text-xs text-nexus-text-tertiary">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>

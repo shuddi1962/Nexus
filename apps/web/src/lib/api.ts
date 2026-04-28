@@ -833,6 +833,77 @@ class ApiClient {
   async getRecentActivities() {
     return this.request('/dashboard/activities')
   }
+
+  // SMS endpoints
+  async getSMSCampaigns() {
+    return this.request('/sms/campaigns')
+  }
+
+  async createSMSCampaign(data: { name: string; message: string }) {
+    return this.request('/sms/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async sendSMS(to: string, message: string) {
+    return this.request('/sms/send', {
+      method: 'POST',
+      body: JSON.stringify({ to, message }),
+    })
+  }
+
+  // Social media endpoints
+  async getSocialPosts() {
+    return this.request('/social/posts')
+  }
+
+  async createSocialPost(data: { content: string; platforms: string[] }) {
+    return this.request('/social/posts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Courses endpoints
+  async getCourses() {
+    return this.request('/courses')
+  }
+
+  async createCourse(data: { title: string; description?: string; price?: number }) {
+    return this.request('/courses', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Calendar endpoints
+  async getCalendarEvents(params?: { start_date?: string; end_date?: string }) {
+    const queryParams = new URLSearchParams()
+    if (params?.start_date) queryParams.set('start_date', params.start_date)
+    if (params?.end_date) queryParams.set('end_date', params.end_date)
+    const query = queryParams.toString()
+    return this.request(`/calendar/events${query ? `?${query}` : ''}`)
+  }
+
+  async createCalendarEvent(data: { title: string; start_time: string; end_time: string }) {
+    return this.request('/calendar/events', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Email campaigns
+  async getEmailCampaigns() {
+    return this.request('/email/campaigns')
+  }
+
+  async createEmailCampaign(data: { name: string; subject: string }) {
+    return this.request('/email/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
 }
 
 export const apiClient = new ApiClient()

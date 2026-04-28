@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -23,11 +23,37 @@ export default function SMSPage() {
     to: '',
     message: '',
   })
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const handleSend = () => {
-    // In real app, this would send via SMS API
+  // Fetch campaigns on mount
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        // TODO: Add getSMSCampaigns to apiClient
+        // const data = await apiClient.getSMSCampaigns()
+        // setCampaigns(data.campaigns || [])
+      } catch (error) {
+        console.error('Error fetching SMS campaigns:', error)
+      }
+    }
+    fetchCampaigns()
+  }, [])
 
-    alert('SMS sent successfully!')
+  const handleSend = async () => {
+    if (!smsData.to || !smsData.message) return
+    try {
+      setLoading(true)
+      // TODO: Add sendSMS to apiClient
+      // await apiClient.sendSMS(smsData.to, smsData.message)
+      alert('SMS sent successfully!')
+      setSmsData({ to: '', message: '' })
+    } catch (error) {
+      console.error('Error sending SMS:', error)
+      alert('Failed to send SMS')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

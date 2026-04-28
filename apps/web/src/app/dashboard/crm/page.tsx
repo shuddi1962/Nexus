@@ -1,20 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Search, Filter, Download, Upload, MoreHorizontal, Mail, Phone, Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const mockContacts = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', phone: '+1 234 567 890', company: 'Acme Corp', status: 'active', lastContact: '2 hours ago' },
-  { id: 2, name: 'Jane Smith', email: 'jane@techcorp.com', phone: '+1 234 567 891', company: 'TechCorp', status: 'active', lastContact: '1 day ago' },
-  { id: 3, name: 'Bob Johnson', email: 'bob@startup.io', phone: '+1 234 567 892', company: 'Startup Inc', status: 'lead', lastContact: '3 days ago' },
-  { id: 4, name: 'Alice Williams', email: 'alice@enterprise.com', phone: '+1 234 567 893', company: 'Enterprise Co', status: 'customer', lastContact: '1 week ago' },
-  { id: 5, name: 'Charlie Brown', email: 'charlie@smallbiz.com', phone: '+1 234 567 894', company: 'SmallBiz LLC', status: 'inactive', lastContact: '2 weeks ago' },
-]
+import { apiClient } from '@/lib/api'
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-100 text-green-700',
@@ -23,17 +16,45 @@ const statusColors: Record<string, string> = {
   inactive: 'bg-slate-100 text-slate-600',
 }
 
-export default function CRMPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedContacts, setSelectedContacts] = useState<number[]>([])
+interface Contact {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  company?: string
+  tags?: string[]
+  created_at: string
+}
 
-  const filteredContacts = mockContacts.filter(contact =>
-    contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.company.toLowerCase().includes(searchQuery.toLowerCase())
+export default function CRMPage() {
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([])
+
+  // Fetch real contacts
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        setLoading(true)
+        const data = await apiClient.getContacts()
+        setContacts(data || [])
+      } catch (error) {
+        console.error('Error fetching contacts:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchContacts()
+  }, [])
+
+  const filteredContacts = contacts.filter(contact =>
+    contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    contact.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    contact.company?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const toggleSelectContact = (id: number) => {
+  const toggleSelectContact = (id: string) => {
     setSelectedContacts(prev => 
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
     )
@@ -45,6 +66,14 @@ export default function CRMPage() {
     } else {
       setSelectedContacts(filteredContacts.map(c => c.id))
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-slate-400">Loading contacts...</div>
+      </div>
+    )
   }
 
   return (
@@ -148,67 +177,69 @@ export default function CRMPage() {
                 <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredContacts.map((contact) => (
-                <tr key={contact.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedContacts.includes(contact.id)}
-                      onChange={() => toggleSelectContact(contact.id)}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                        {contact.name.split(' ').map(n => n[0]).join('')}
+              <tbody className="divide-y divide-nexus-border">
+                {filteredContacts.map((contact: any) => (
+                  <tr key={contact.id} className="hover:bg-nexus-bg-secondary transition-colors">
+                    <td className="px-4 py-3">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedContacts.includes(contact.id)}
+                        onChange={() => toggleSelectContact(contact.id)}
+                        className="rounded border-nexus-border text-nexus-blue focus:ring-nexus-blue"
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-gradient-to-br from-nexus-blue to-nexus-violet rounded-full flex items-center justify-center text-white font-medium text-sm">
+                          {contact.name?.split(' ').map((n: string) => n[0])?.join('')}
+                        </div>
+                        <div>
+                          <div className="font-medium text-nexus-text-primary">{contact.name}</div>
+                          <div className="text-sm text-nexus-text-secondary">{contact.email}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium text-slate-900">{contact.name}</div>
-                        <div className="text-sm text-slate-500">{contact.email}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 text-nexus-text-secondary">
+                        <Building2 className="w-4 h-4" />
+                        {contact.company || 'N/A'}
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Building2 className="w-4 h-4" />
-                      {contact.company}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={cn("font-medium", statusColors[contact.status])}>
-                      {contact.status}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-500">{contact.lastContact}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-slate-100">
-                        <Mail className="w-4 h-4 text-slate-500" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-slate-100">
-                        <Phone className="w-4 h-4 text-slate-500" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-slate-100">
-                        <MoreHorizontal className="w-4 h-4 text-slate-500" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge className={cn("font-medium", statusColors[contact.status] || 'bg-nexus-bg-secondary text-nexus-text-secondary')}>
+                        {contact.status || 'active'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-nexus-text-secondary">
+                      {contact.created_at ? new Date(contact.created_at).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-nexus-bg-secondary">
+                          <Mail className="w-4 h-4 text-nexus-text-tertiary" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-nexus-bg-secondary">
+                          <Phone className="w-4 h-4 text-nexus-text-tertiary" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-nexus-bg-secondary">
+                          <MoreHorizontal className="w-4 h-4 text-nexus-text-tertiary" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
           </table>
         </div>
         
         {/* Pagination */}
-        <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-          <div className="text-sm text-slate-500">
-            Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredContacts.length}</span> of <span className="font-medium">{mockContacts.length}</span> results
+        <div className="px-4 py-3 border-t border-nexus-border bg-nexus-bg-secondary flex items-center justify-between">
+          <div className="text-sm text-nexus-text-secondary">
+            Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredContacts.length}</span> of <span className="font-medium">{contacts.length}</span> results
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" disabled>Previous</Button>
-            <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600">1</Button>
+            <Button variant="outline" size="sm" className="bg-nexus-blue-light border-nexus-blue text-nexus-blue">1</Button>
             <Button variant="outline" size="sm">Next</Button>
           </div>
         </div>
