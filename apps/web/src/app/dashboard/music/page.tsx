@@ -61,6 +61,7 @@ export default function MusicCreatorPage() {
 
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [generationProgress, setGenerationProgress] = useState(0)
   const [generatedMusic, setGeneratedMusic] = useState<GeneratedMusic | null>(null)
 
@@ -88,37 +89,13 @@ export default function MusicCreatorPage() {
 
   const loadMusicLibrary = async () => {
     try {
-      // Mock music library - would load from API
-      setMusicLibrary([
-        {
-          id: '1',
-          prompt: 'Upbeat electronic track for a tech startup',
-          duration: 60,
-          genre: 'electronic',
-          mood: 'energetic',
-          instruments: ['synth', 'drums', 'bass'],
-          audio_url: 'https://example.com/music-1.mp3',
-          waveform_data: Array.from({ length: 100 }, () => Math.random()),
-          bpm: 128,
-          key: 'C Minor',
-          created_at: '2026-04-20T10:00:00Z'
-        },
-        {
-          id: '2',
-          prompt: 'Calm ambient background music',
-          duration: 120,
-          genre: 'ambient',
-          mood: 'peaceful',
-          instruments: ['strings', 'piano', 'synth'],
-          audio_url: 'https://example.com/music-2.mp3',
-          waveform_data: Array.from({ length: 100 }, () => Math.random()),
-          bpm: 60,
-          key: 'A Major',
-          created_at: '2026-04-19T14:30:00Z'
-        }
-      ])
+      setIsLoading(true)
+      const data = await apiClient.getMusicTracks()
+      setMusicLibrary(data.data || [])
     } catch (error) {
       console.error('Error loading music library:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 

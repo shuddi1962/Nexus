@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/lib/auth'
+import { apiClient } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,7 +44,8 @@ import {
   Bold,
   Italic,
   Underline,
-  Zap
+  Zap,
+  FolderOpen,
 } from 'lucide-react'
 import * as fabric from 'fabric'
 
@@ -52,6 +54,8 @@ interface DesignProject {
   name: string
   canvas: any
   thumbnail: string
+  width: number
+  height: number
   created_at: string
   updated_at: string
 }
@@ -61,8 +65,6 @@ export default function DesignStudioPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null)
   const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null)
-  const [projects, setProjects] = useState<DesignProject[]>([])
-  const [currentProject, setCurrentProject] = useState<DesignProject | null>(null)
   const [tool, setTool] = useState<'select' | 'text' | 'rectangle' | 'circle' | 'triangle' | 'line' | 'image'>('select')
   const [color, setColor] = useState('#000000')
   const [fontSize, setFontSize] = useState([16])
@@ -72,8 +74,11 @@ export default function DesignStudioPage() {
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showTextPanel, setShowTextPanel] = useState(false)
   const [showImagePanel, setShowImagePanel] = useState(false)
-
-  // Canvas dimensions for different platforms
+  const [showProjectList, setShowProjectList] = useState(false)
+  const [projects, setProjects] = useState<any[]>([])
+  const [currentProject, setCurrentProject] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const canvasSizes = {
     instagram: { width: 1080, height: 1080 },
     facebook: { width: 1200, height: 630 },
@@ -91,6 +96,96 @@ export default function DesignStudioPage() {
       initializeCanvas()
     }
   }, [canvasRef.current])
+
+  // Load projects from API
+  useEffect(() => {
+    loadProjects()
+  }, [])
+
+  const loadProjects = async () => {
+    try {
+      setIsLoading(true)
+      const data = await apiClient.getDesignProjects()
+      setProjects(data.data || [])
+    } catch (error) {
+      console.error('Failed to load projects', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const saveProject = async () => {
+    if (!canvas) return
+
+    try {
+      setIsSaving(true)
+      const canvasData = canvas.toJSON()
+
+      if (currentProject) {
+        // Update existing project
+        await apiClient.updateDesignProject(currentProject.id, {
+          canvas_data: canvasData,
+          updated_at: new Date().toISOString(),
+        })
+      } else {
+        // Create new project
+        const name = prompt('Enter project name:', 'Untitled Design')
+        if (!name) return
+
+        const data = await apiClient.createDesignProject({
+          name,
+          width: currentSize.width,
+          height: currentSize.height,
+        })
+
+        if (data.data) {
+          setCurrentProject(data.data)
+          await apiClient.updateDesignProject(data.data.id, {
+            canvas_data: canvasData,
+          })
+        }
+      }
+
+      await loadProjects()
+      alert('Project saved successfully!')
+    } catch (error) {
+      console.error('Failed to save project', error)
+      alert('Failed to save project. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const loadProject = async (project: any) => {
+    if (!canvas) return
+
+    try {
+      setCurrentProject(project)
+      if (project.canvas_data) {
+        canvas.loadFromJSON(project.canvas_data, () => {
+          canvas.renderAll()
+        })
+      }
+      setShowProjectList(false)
+    } catch (error) {
+      console.error('Failed to load project', error)
+    }
+  }
+
+  const deleteProject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) return
+
+    try {
+      await apiClient.deleteDesignProject(projectId)
+      await loadProjects()
+      if (currentProject?.id === projectId) {
+        setCurrentProject(null)
+        canvas?.clear()
+      }
+    } catch (error) {
+      console.error('Failed to delete project', error)
+    }
+  }
 
   const initializeCanvas = useCallback(() => {
     if (!canvasRef.current) return
@@ -392,12 +487,13 @@ export default function DesignStudioPage() {
             <Maximize className="w-4 h-4" />
           </Button>
           <Separator orientation="vertical" className="h-6" />
-          <Button variant="outline" size="sm" onClick={() => setShowGrid(!showGrid)} className="border-nexus-border">
-            <Grid3X3 className="w-4 h-4" />
+          <Button variant="outline" size="sm" onClick={() => setShowProjectList(true)} className="border-nexus-border">
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Projects
           </Button>
-          <Button variant="outline" size="sm" className="border-nexus-border">
+          <Button variant="outline" size="sm" onClick={saveProject} disabled={isSaving} className="border-nexus-border">
             <Save className="w-4 h-4 mr-2" />
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
           <Select onValueChange={(value: 'png' | 'jpg' | 'svg' | 'pdf') => exportCanvas(value)}>
             <SelectTrigger className="w-32 border-nexus-border">
@@ -685,6 +781,56 @@ export default function DesignStudioPage() {
           )}
         </div>
       </div>
+
+      {/* Project List Modal */}
+      {showProjectList && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl p-6 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-nexus-text-primary">Your Projects</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowProjectList(false)}>
+                ✕
+              </Button>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-8 text-nexus-text-secondary">Loading projects...</div>
+            ) : projects.length === 0 ? (
+              <div className="text-center py-8 text-nexus-text-secondary">
+                No projects yet. Create one by designing and clicking Save.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center justify-between p-3 border border-nexus-border rounded-lg hover:bg-nexus-bg-secondary cursor-pointer"
+                    onClick={() => loadProject(project)}
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-medium text-nexus-text-primary">{project.name}</h3>
+                      <p className="text-sm text-nexus-text-secondary">
+                        {project.width}x{project.height} • {new Date(project.updated_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteProject(project.id)
+                      }}
+                      className="text-nexus-red hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

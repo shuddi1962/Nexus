@@ -90,6 +90,7 @@ export default function ImageStudioPage() {
   const [generatingImage, setGeneratingImage] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [aiStyle, setAiStyle] = useState('')
+  const [aiModel, setAiModel] = useState('kie-realistic-v2')
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
 
   const filters = [
@@ -252,27 +253,57 @@ export default function ImageStudioPage() {
       setGeneratingImage(true)
       const data = await apiClient.generateImage({
         prompt,
+        model: aiModel,
         style: aiStyle,
-        size: '1024x1024'
+        width: 1024,
+        height: 1024,
       })
 
-      setGeneratedImages(prev => [data.image_url, ...prev.slice(0, 9)]) // Keep last 10
-    } catch (error) {
+      setGeneratedImages(prev => [data.data || data, ...prev.slice(0, 9)])
+    } catch (error: any) {
       console.error('Error generating image:', error)
-      alert('Failed to generate image. Please check your API keys and try again.')
+      alert(error.message || 'Failed to generate image. Please check your API keys.')
     } finally {
       setGeneratingImage(false)
     }
   }
 
   const handleRemoveBackground = async () => {
-    // This would integrate with background removal API
-    alert('Background removal feature coming soon!')
+    if (!editedImage?.current) return
+
+    try {
+      setGeneratingImage(true)
+      const data = await apiClient.removeBackground(editedImage.current)
+      setEditedImage({
+        ...editedImage,
+        current: data.data?.url || data.url,
+        history: [...editedImage.history, data.data?.url || data.url]
+      })
+    } catch (error: any) {
+      console.error('Error removing background:', error)
+      alert(error.message || 'Failed to remove background.')
+    } finally {
+      setGeneratingImage(false)
+    }
   }
 
   const handleUpscaleImage = async () => {
-    // This would integrate with upscaling API
-    alert('Image upscaling feature coming soon!')
+    if (!editedImage?.current) return
+
+    try {
+      setGeneratingImage(true)
+      const data = await apiClient.upscaleImage(editedImage.current, 2)
+      setEditedImage({
+        ...editedImage,
+        current: data.data?.url || data.url,
+        history: [...editedImage.history, data.data?.url || data.url]
+      })
+    } catch (error: any) {
+      console.error('Error upscaling image:', error)
+      alert(error.message || 'Failed to upscale image.')
+    } finally {
+      setGeneratingImage(false)
+    }
   }
 
   const handleBatchProcess = async () => {
