@@ -1319,6 +1319,38 @@ class ApiClient {
       method: 'DELETE',
     })
   }
+
+  // Trends endpoints
+  async getTrends(params?: { page?: number; limit?: number; region?: string; category?: string; business_id?: string }) {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.set('page', params.page.toString())
+    if (params?.limit) queryParams.set('limit', params.limit.toString())
+    if (params?.region) queryParams.set('region', params.region)
+    if (params?.category) queryParams.set('category', params.category)
+    if (params?.business_id) queryParams.set('business_id', params.business_id)
+    return this.request(`/trends?${queryParams.toString()}`)
+  }
+
+  async getGlobalTrends(region?: string, category?: string) {
+    const queryParams = new URLSearchParams()
+    if (region) queryParams.set('region', region)
+    if (category) queryParams.set('category', category)
+    return this.request(`/trends/global?${queryParams.toString()}`)
+  }
+
+  async getBusinessTrends(businessId: string) {
+    return this.request(`/trends/business/${businessId}`)
+  }
+
+  async syncTrends() {
+    return this.request('/trends/sync', {
+      method: 'POST',
+    })
+  }
+
+  async getKeywordTrends(keyword: string) {
+    return this.request(`/trends/keywords/${encodeURIComponent(keyword)}`)
+  }
 }
 
 export const apiClient = new ApiClient()
