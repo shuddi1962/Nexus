@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, Book, Zap, Shield, Users, Mail, Globe, Code } from 'lucide-react'
+import { Search, Book, Zap, Shield, Globe, Code } from 'lucide-react'
 
 const sections = [
   {

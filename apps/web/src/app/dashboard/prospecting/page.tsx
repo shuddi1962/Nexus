@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { apiClient } from '@/lib/api'
 import {
   Search,
   Users,
@@ -45,18 +46,25 @@ interface Lead {
   tags: string[]
 }
 
+interface Campaign {
+  id: string
+  name: string
+  status: string
+  leadsCount?: number
+}
+
 export default function ProspectingPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLeads, setSelectedLeads] = useState<string[]>([])
   const [leads, setLeads] = useState<Lead[]>([])
-  const [campaigns, setCampaigns] = useState<any[]>([])
-  const [loading, setLoading] = useState(false))
-  
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [loading, setLoading] = useState(false)
+
   useEffect(() => {
     loadLeads()
     loadCampaigns()
   }, [])
-  
+
   const loadLeads = async () => {
     try {
       setLoading(true)
@@ -70,7 +78,7 @@ export default function ProspectingPage() {
       setLoading(false)
     }
   }
-  
+
   const loadCampaigns = async () => {
     try {
       const data = await apiClient.getProspectingCampaigns()
@@ -81,7 +89,7 @@ export default function ProspectingPage() {
       console.error('Error loading campaigns:', error)
     }
   }
-  
+
   const handleScrapeLeads = async () => {
     try {
       setLoading(true)
@@ -97,76 +105,6 @@ export default function ProspectingPage() {
       setLoading(false)
     }
   }
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      email: 'sarah.j@techstartup.com',
-      company: 'TechFlow Solutions',
-      jobTitle: 'VP of Operations',
-      location: 'San Francisco, CA',
-      linkedinUrl: 'linkedin.com/in/sarahjohnson',
-      status: 'qualified',
-      source: 'LinkedIn',
-      score: 85,
-      lastActivity: '2026-04-20T10:30:00Z',
-      tags: ['Tech', 'Operations', 'High Priority']
-    },
-    {
-      id: '2',
-      name: 'Michael Chen',
-      email: 'm.chen@financecorp.com',
-      company: 'Global Finance Corp',
-      jobTitle: 'CTO',
-      location: 'New York, NY',
-      linkedinUrl: 'linkedin.com/in/michaelchen',
-      status: 'contacted',
-      source: 'Website',
-      score: 78,
-      lastActivity: '2026-04-19T14:15:00Z',
-      tags: ['Finance', 'Technology', 'Enterprise']
-    },
-    {
-      id: '3',
-      name: 'Emily Rodriguez',
-      email: 'emily@retailplus.com',
-      company: 'Retail Plus',
-      jobTitle: 'Marketing Director',
-      location: 'Austin, TX',
-      linkedinUrl: 'linkedin.com/in/emilyrodriguez',
-      status: 'new',
-      source: 'Google Maps',
-      score: 65,
-      lastActivity: '2026-04-18T09:45:00Z',
-      tags: ['Retail', 'Marketing', 'SME']
-    },
-    {
-      id: '4',
-      name: 'David Kim',
-      email: 'david.kim@consulting.com',
-      company: 'Strategic Consulting LLC',
-      jobTitle: 'Managing Partner',
-      location: 'Chicago, IL',
-      status: 'rejected',
-      source: 'LinkedIn',
-      score: 45,
-      lastActivity: '2026-04-17T16:20:00Z',
-      tags: ['Consulting', 'Strategy', 'Low Priority']
-    },
-    {
-      id: '5',
-      name: 'Lisa Thompson',
-      email: 'lisa.thompson@healthcare.com',
-      company: 'MedTech Solutions',
-      jobTitle: 'COO',
-      location: 'Boston, MA',
-      linkedinUrl: 'linkedin.com/in/lisathompson',
-      status: 'qualified',
-      source: 'Industry Event',
-      score: 92,
-      lastActivity: '2026-04-16T11:30:00Z',
-      tags: ['Healthcare', 'Operations', 'VIP']
-    }
-  ]
 
   const filteredLeads = leads.filter(lead =>
     lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||

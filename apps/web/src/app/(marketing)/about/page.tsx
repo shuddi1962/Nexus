@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Users, Globe, Shield, Zap } from 'lucide-react'
+import { ArrowRight, Users, Globe, Shield, Zap } from 'lucide-react'
 
 const stats = [
   { value: '12,000+', label: 'Businesses' },

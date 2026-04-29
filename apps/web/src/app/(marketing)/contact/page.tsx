@@ -24,7 +24,7 @@ export default function ContactPage() {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold text-slate-900 mb-4">Contact Us</h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            Have questions? We&apos;d love to hear from you. Send us a message and we&apos;ll respond as soon as possible.
           </p>
         </div>
       </section>

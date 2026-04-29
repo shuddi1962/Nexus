@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { MessageSquare, Users, Hash, Star, Send } from 'lucide-react'
+import { MessageSquare, Users, Hash } from 'lucide-react'
 
 const channels = [
   { name: 'general', description: 'General discussions', members: 1240 },

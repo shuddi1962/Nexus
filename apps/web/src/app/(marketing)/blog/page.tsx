@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, ArrowRight, Calendar, User } from 'lucide-react'
+import { Search, Calendar, User } from 'lucide-react'
 
 const posts = [
   {

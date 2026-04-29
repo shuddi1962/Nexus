@@ -46,7 +46,7 @@ export default function CareersPage() {
             Join our team
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-8">
-            Help us build the future of business software. We're looking for talented people who want to make an impact.
+             Help us build the future of business software. We&apos;re looking for talented people who want to make an impact.
           </p>
         </div>
       </section>
