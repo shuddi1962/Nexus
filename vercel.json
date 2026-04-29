@@ -1,3 +1,13 @@
 {
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "build": {
+    "command": "npm run build",
+    "env": {
+      "NEXT_PUBLIC_APP_NAME": "NEXUS"
+    }
+  },
+  "install": {
+    "command": "npm install"
+  },
+  "outputDirectory": ".next"
 }
