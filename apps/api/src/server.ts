@@ -98,6 +98,10 @@ async function startServer() {
   const { businessRoutes } = await import('./routes/business')
   await server.register(businessRoutes, { prefix: '/api' })
 
+  // Products & Services routes
+  const { productsRoutes } = await import('./routes/products')
+  await server.register(productsRoutes, { prefix: '/api' })
+
   // Trends routes
   const { trendsRoutes } = await import('./routes/trends')
   await server.register(trendsRoutes, { prefix: '/api' })

@@ -47,6 +47,8 @@ export const collections = {
 
   // Commerce
   products: 'products',
+  productImages: 'product_images',
+  services: 'services',
   orders: 'orders',
   invoices: 'invoices',
 

@@ -598,7 +598,7 @@ class ApiClient {
     })
   }
 
-  async getUGCAds(params?: {
+async getUGCAds(params?: {
     status?: 'draft' | 'active' | 'completed' | 'paused'
     platform?: string
   }) {
@@ -607,7 +607,133 @@ class ApiClient {
     if (params?.platform) queryParams.set('platform', params.platform)
 
     const query = queryParams.toString()
-    return this.request(`/commerce/ugc-ads${query ? `?${query}` : ''}`)
+    return this.request(`/commerce/ugc-ads?${query.toString()}`)
+  }
+
+  // Products Catalog endpoints
+  async getProducts(params?: {
+    page?: number
+    limit?: number
+    category?: string
+    search?: string
+    featured?: boolean
+  }) {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.set('page', params.page.toString())
+    if (params?.limit) queryParams.set('limit', params.limit.toString())
+    if (params?.category) queryParams.set('category', params.category)
+    if (params?.search) queryParams.set('search', params.search)
+    if (params?.featured) queryParams.set('featured', params.featured.toString())
+
+    const query = queryParams.toString()
+    return this.request(`/products?${query.toString()}`)
+  }
+
+  async getProduct(productId: string) {
+    return this.request(`/products/${productId}`)
+  }
+
+  async createProduct(product: {
+    name: string
+    description?: string
+    category?: string
+    price?: number
+    currency?: string
+    specifications?: Record<string, string>
+    keywords?: string[]
+    featured?: boolean
+    new_arrival?: boolean
+    in_stock?: boolean
+  }) {
+    return this.request('/products', {
+      method: 'POST',
+      body: JSON.stringify(product),
+    })
+  }
+
+  async updateProduct(productId: string, updates: Partial<{
+    name: string
+    description: string
+    category: string
+    price: number
+    currency: string
+    specifications: Record<string, string>
+    keywords: string[]
+    featured: boolean
+    new_arrival: boolean
+    in_stock: boolean
+  }>) {
+    return this.request(`/products/${productId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+  }
+
+  async deleteProduct(productId: string) {
+    return this.request(`/products/${productId}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async addProductImage(productId: string, image: {
+    url: string
+    alt_text?: string
+    is_primary?: boolean
+    format?: 'square' | 'landscape' | 'portrait'
+    width?: number
+    height?: number
+  }) {
+    return this.request(`/products/${productId}/images`, {
+      method: 'POST',
+      body: JSON.stringify(image),
+    })
+  }
+
+  async deleteProductImage(productId: string, imageId: string) {
+    return this.request(`/products/${productId}/images/${imageId}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Services endpoints
+  async getServices() {
+    return this.request('/services')
+  }
+
+  async createService(service: {
+    name: string
+    description?: string
+    category?: string
+    price?: number
+    currency?: string
+    duration?: string
+    deliverables?: string[]
+  }) {
+    return this.request('/services', {
+      method: 'POST',
+      body: JSON.stringify(service),
+    })
+  }
+
+  async updateService(serviceId: string, updates: Partial<{
+    name: string
+    description: string
+    category: string
+    price: number
+    currency: string
+    duration: string
+    deliverables: string[]
+  }>) {
+    return this.request(`/services/${serviceId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+  }
+
+  async deleteService(serviceId: string) {
+    return this.request(`/services/${serviceId}`, {
+      method: 'DELETE',
+    })
   }
 
   // Site management endpoints
