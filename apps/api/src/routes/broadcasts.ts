@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify'
-import { checkAuth } from '../middleware/auth'
+import { authMiddleware } from '../middleware/auth'
 
 export default async function broadcastRoutes(fastify: FastifyInstance) {
   // Get all broadcasts
   fastify.get('/', {
-    preHandler: checkAuth
+    preHandler: authMiddleware
   }, async (request, reply) => {
     try {
       const userId = (request as any).user.id
@@ -23,7 +23,7 @@ export default async function broadcastRoutes(fastify: FastifyInstance) {
 
   // Create broadcast
   fastify.post('/', {
-    preHandler: checkAuth
+    preHandler: authMiddleware
   }, async (request, reply) => {
     try {
       const userId = (request as any).user.id
@@ -53,7 +53,7 @@ export default async function broadcastRoutes(fastify: FastifyInstance) {
 
   // Send broadcast
   fastify.post('/:id/send', {
-    preHandler: checkAuth
+    preHandler: authMiddleware
   }, async (request, reply) => {
     try {
       const { id } = request.params as any
@@ -96,7 +96,7 @@ export default async function broadcastRoutes(fastify: FastifyInstance) {
 
   // Get broadcast stats
   fastify.get('/stats', {
-    preHandler: checkAuth
+    preHandler: authMiddleware
   }, async (request, reply) => {
     try {
       const userId = (request as any).user.id
