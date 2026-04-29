@@ -54,63 +54,42 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null)
   const [view, setView] = useState<'month' | 'week' | 'day'>('month')
-
-  // Mock data
-  const calendars: Calendar[] = [
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [calendars, setCalendars] = useState<Calendar[]>([
     { id: '1', name: 'Personal', color: '#3B82F6', isDefault: true },
     { id: '2', name: 'Work', color: '#10B981', isDefault: false },
     { id: '3', name: 'NEXUS Events', color: '#F59E0B', isDefault: false },
     { id: '4', name: 'Client Meetings', color: '#EF4444', isDefault: false }
-  ]
+  ])
+  const [loading, setLoading] = useState(false)
 
-  const events: CalendarEvent[] = [
-    {
-      id: '1',
-      title: 'Team Standup',
-      description: 'Daily team standup meeting',
-      startTime: '2026-04-25T09:00:00Z',
-      endTime: '2026-04-25T09:30:00Z',
-      attendees: ['john@nexus.demo', 'sarah@nexus.demo', 'mike@nexus.demo'],
-      type: 'meeting',
-      status: 'confirmed',
-      calendarId: '2'
-    },
-    {
-      id: '2',
-      title: 'Client Demo',
-      description: 'Product demo for ABC Corp',
-      startTime: '2026-04-25T14:00:00Z',
-      endTime: '2026-04-25T15:00:00Z',
-      attendees: ['client@abc.com', 'john@nexus.demo'],
-      location: 'Conference Room A',
-      type: 'meeting',
-      status: 'scheduled',
-      calendarId: '4'
-    },
-    {
-      id: '3',
-      title: 'Project Review',
-      description: 'Q1 project review and planning',
-      startTime: '2026-04-26T10:00:00Z',
-      endTime: '2026-04-26T11:30:00Z',
-      attendees: ['john@nexus.demo', 'sarah@nexus.demo', 'mike@nexus.demo', 'lisa@nexus.demo'],
-      type: 'meeting',
-      status: 'scheduled',
-      calendarId: '2'
-    },
-    {
-      id: '4',
-      title: 'Doctor Appointment',
-      description: 'Annual checkup',
-      startTime: '2026-04-27T15:30:00Z',
-      endTime: '2026-04-27T16:30:00Z',
-      attendees: [],
-      location: 'Medical Center',
-      type: 'appointment',
-      status: 'confirmed',
-      calendarId: '1'
+  useEffect(() => {
+    loadEvents()
+  }, [currentDate, view])
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true)
+      const startDate = new Date(currentDate)
+      startDate.setDate(1)
+      const endDate = new Date(currentDate)
+      endDate.setMonth(endDate.getMonth() + 1)
+      endDate.setDate(0)
+
+      const data = await apiClient.getCalendarEvents({
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString()
+      })
+
+      if (data.data) {
+        setEvents(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading events:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
   const getEventColor = (event: CalendarEvent) => {
     const calendar = calendars.find(c => c.id === event.calendarId)

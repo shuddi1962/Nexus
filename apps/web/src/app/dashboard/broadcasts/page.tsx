@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { apiClient } from '@/lib/api'
 import {
   MonitorSpeaker,
   Send,
@@ -63,9 +64,8 @@ export default function BroadcastingPage() {
   const [selectedBroadcast, setSelectedBroadcast] = useState<string | null>(null)
   const [broadcastContent, setBroadcastContent] = useState('')
   const [selectedChannels, setSelectedChannels] = useState<string[]>([])
-
-  // Mock data
-  const channels: Channel[] = [
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([])
+  const [channels, setChannels] = useState<Channel[]>([
     {
       id: 'email',
       name: 'Email Marketing',
@@ -97,90 +97,60 @@ export default function BroadcastingPage() {
       icon: Smartphone,
       connected: true,
       subscribers: 32100
-    },
-    {
-      id: 'facebook',
-      name: 'Facebook',
-      type: 'social',
-      icon: Users,
-      connected: true,
-      subscribers: 45200
-    },
-    {
-      id: 'twitter',
-      name: 'Twitter/X',
-      type: 'social',
-      icon: Globe,
-      connected: true,
-      subscribers: 12800
     }
-  ]
+  ])
+  const [loading, setLoading] = useState(false)
 
-  const broadcasts: Broadcast[] = [
-    {
-      id: '1',
-      name: 'Product Launch Announcement',
-      type: 'email',
-      status: 'completed',
-      recipients: 12450,
-      sent: 12450,
-      delivered: 11800,
-      opened: 4200,
-      clicked: 890,
-      createdAt: '2026-04-20T10:00:00Z',
-      content: 'Exciting news! Our new AI-powered marketing platform is now live...',
-      channels: ['email']
-    },
-    {
-      id: '2',
-      name: 'Flash Sale Alert',
-      type: 'sms',
-      status: 'completed',
-      recipients: 8760,
-      sent: 8760,
-      delivered: 8500,
-      createdAt: '2026-04-22T14:30:00Z',
-      content: '⚡ FLASH SALE: 50% off all plans! Limited time offer. Visit nexus.app/sale',
-      channels: ['sms']
-    },
-    {
-      id: '3',
-      name: 'Weekly Newsletter',
-      type: 'email',
-      status: 'scheduled',
-      recipients: 12450,
-      sent: 0,
-      delivered: 0,
-      scheduledFor: '2026-04-27T09:00:00Z',
-      createdAt: '2026-04-24T16:00:00Z',
-      content: 'Your weekly digest of marketing tips, industry news, and platform updates...',
-      channels: ['email']
-    },
-    {
-      id: '4',
-      name: 'Appointment Reminders',
-      type: 'voice',
-      status: 'sending',
-      recipients: 150,
-      sent: 87,
-      delivered: 82,
-      createdAt: '2026-04-24T15:45:00Z',
-      content: 'This is a reminder of your appointment tomorrow at 2 PM with our sales team.',
-      channels: ['voice']
-    },
-    {
-      id: '5',
-      name: 'Social Media Campaign',
-      type: 'social',
-      status: 'draft',
-      recipients: 57700,
-      sent: 0,
-      delivered: 0,
-      createdAt: '2026-04-24T12:00:00Z',
-      content: '🚀 Revolutionize your marketing with AI-powered automation...',
-      channels: ['facebook', 'twitter']
+  useEffect(() => {
+    loadBroadcasts()
+  }, [])
+
+  const loadBroadcasts = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getBroadcasts()
+      if (data.data) {
+        setBroadcasts(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading broadcasts:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleCreateBroadcast = async () => {
+    if (!broadcastContent.trim() || selectedChannels.length === 0) return
+
+    try {
+      setLoading(true)
+      await apiClient.createBroadcast({
+        name: 'New Broadcast',
+        type: selectedChannels[0],
+        channels: selectedChannels,
+        message: broadcastContent
+      })
+      setBroadcastContent('')
+      setSelectedChannels([])
+      loadBroadcasts()
+    } catch (error) {
+      console.error('Error creating broadcast:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSendBroadcast = async (id: string) => {
+    try {
+      setLoading(true)
+      await apiClient.sendBroadcast(id)
+      loadBroadcasts()
+    } catch (error) {
+      console.error('Error sending broadcast:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {

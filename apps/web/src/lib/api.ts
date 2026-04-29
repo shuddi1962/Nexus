@@ -1128,6 +1128,28 @@ class ApiClient {
       body: JSON.stringify(data),
     })
   }
+
+  // Broadcasts endpoints
+  async getBroadcasts() {
+    return this.request('/broadcasts')
+  }
+
+  async createBroadcast(data: { name: string; type?: string; channels?: string[]; message?: string }) {
+    return this.request('/broadcasts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async sendBroadcast(id: string) {
+    return this.request(`/broadcasts/${id}/send`, {
+      method: 'POST',
+    })
+  }
+
+  async getBroadcastStats() {
+    return this.request('/broadcasts/stats')
+  }
 }
 
 export const apiClient = new ApiClient()

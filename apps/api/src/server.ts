@@ -84,6 +84,8 @@ async function startServer() {
   await server.register(hostingRoutes, { prefix: '/api' })
   await server.register(codeBuilderRoutes, { prefix: '/api' })
   await server.register(chatHubRoutes, { prefix: '/api' })
+  const { broadcastRoutes } = await import('./routes/broadcasts')
+  await server.register(broadcastRoutes, { prefix: '/api/broadcasts' })
   const { reputationRoutes } = await import('./routes/reputation')
   await server.register(chatbotsRoutes, { prefix: '/api' })
   await server.register(workflowsRoutes, { prefix: '/api' })

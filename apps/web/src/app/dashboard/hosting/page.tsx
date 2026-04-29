@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { apiClient } from '@/lib/api'
 import {
   Building,
   Globe,
@@ -73,101 +74,73 @@ export default function HostingPage() {
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null)
   const [newDomain, setNewDomain] = useState('')
   const [isSearchingDomain, setIsSearchingDomain] = useState(false)
+  const [domains, setDomains] = useState<Domain[]>([])
+  const [websites, setWebsites] = useState<Hosting[]>([])
+  const [dnsRecords, setDnsRecords] = useState<DNSRecord[]>([])
+  const [loading, setLoading] = useState(false)
 
-  // Mock data
-  const domains: Domain[] = [
-    {
-      id: '1',
-      name: 'myagency.com',
-      status: 'active',
-      sslStatus: 'valid',
-      registrar: 'Namecheap',
-      expiresAt: '2027-04-24T00:00:00Z',
-      autoRenew: true,
-      website: 'Marketing Agency Site'
-    },
-    {
-      id: '2',
-      name: 'mystores.com',
-      status: 'active',
-      sslStatus: 'valid',
-      registrar: 'GoDaddy',
-      expiresAt: '2026-08-15T00:00:00Z',
-      autoRenew: true,
-      website: 'E-commerce Store'
-    },
-    {
-      id: '3',
-      name: 'myblog.net',
-      status: 'active',
-      sslStatus: 'expiring',
-      registrar: 'Namecheap',
-      expiresAt: '2026-05-10T00:00:00Z',
-      autoRenew: false,
-      website: 'Personal Blog'
-    },
-    {
-      id: '4',
-      name: 'nexus-demo.app',
-      status: 'active',
-      sslStatus: 'valid',
-      registrar: 'Nexus',
-      expiresAt: '2026-12-31T00:00:00Z',
-      autoRenew: true
-    }
-  ]
+  useEffect(() => {
+    loadDomains()
+    loadWebsites()
+  }, [])
 
-  const hosting: Hosting[] = [
-    {
-      id: '1',
-      domain: 'myagency.com',
-      plan: 'Business Pro',
-      status: 'active',
-      storage: { used: 2.4, total: 10 },
-      bandwidth: { used: 45.2, total: 100 },
-      uptime: 99.9,
-      lastBackup: '2026-04-24T02:00:00Z',
-      ssl: true
-    },
-    {
-      id: '2',
-      domain: 'mystores.com',
-      plan: 'E-commerce Plus',
-      status: 'active',
-      storage: { used: 8.7, total: 50 },
-      bandwidth: { used: 234.1, total: 500 },
-      uptime: 99.8,
-      lastBackup: '2026-04-24T02:30:00Z',
-      ssl: true
+  const loadDomains = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getDomains()
+      if (data.data) {
+        setDomains(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading domains:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
-  const dnsRecords: DNSRecord[] = [
-    {
-      id: '1',
-      type: 'A',
-      name: '@',
-      value: '192.168.1.1',
-      ttl: 3600,
-      status: 'active'
-    },
-    {
-      id: '2',
-      type: 'CNAME',
-      name: 'www',
-      value: '@',
-      ttl: 3600,
-      status: 'active'
-    },
-    {
-      id: '3',
-      type: 'MX',
-      name: '@',
-      value: 'mail.myagency.com',
-      ttl: 3600,
-      status: 'active'
+  const loadWebsites = async () => {
+    try {
+      const data = await apiClient.getWebsites()
+      if (data.data) {
+        setWebsites(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading websites:', error)
     }
-  ]
+  }
+
+  const handleRegisterDomain = async () => {
+    if (!newDomain.trim()) return
+
+    try {
+      setLoading(true)
+      await apiClient.registerDomain({
+        name: newDomain
+      })
+      setNewDomain('')
+      loadDomains()
+    } catch (error) {
+      console.error('Error registering domain:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadDNSRecords = async (domainId: string) => {
+    try {
+      const data = await apiClient.getDNSRecords(domainId)
+      if (data.data) {
+        setDnsRecords(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading DNS records:', error)
+    }
+  }
+
+  const handleDomainSelect = (domainId: string) => {
+    setSelectedDomain(domainId)
+    loadDNSRecords(domainId)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -260,17 +233,17 @@ export default function HostingPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Server className="w-8 h-8 text-green-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">{hosting.length}</div>
-                <div className="text-sm text-gray-600">Hosting Plans</div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Server className="w-8 h-8 text-green-500 mr-3" />
+                <div>
+                  <div className="text-2xl font-bold">{websites.length}</div>
+                  <div className="text-sm text-gray-600">Hosting Plans</div>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
         <Card>
           <CardContent className="p-6">
@@ -408,7 +381,7 @@ export default function HostingPage() {
         <TabsContent value="hosting" className="space-y-6">
           {/* Hosting Plans */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {hosting.map((plan) => (
+            {websites.map((plan: any) => (
               <Card key={plan.id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">

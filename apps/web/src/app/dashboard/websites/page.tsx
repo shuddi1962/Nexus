@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { apiClient } from '@/lib/api'
 import {
   Building,
   Plus,
@@ -64,57 +65,49 @@ interface PageElement {
 export default function WebsitesPage() {
   const [selectedWebsite, setSelectedWebsite] = useState<string | null>(null)
   const [isBuilding, setIsBuilding] = useState(false)
-  const [selectedElement, setSelectedElement] = useState<string | null>(null)
   const [websiteName, setWebsiteName] = useState('')
   const [websiteDomain, setWebsiteDomain] = useState('')
+  const [websites, setWebsites] = useState<Website[]>([])
+  const [loading, setLoading] = useState(false)
 
-  // Mock data
-  const websites: Website[] = [
-    {
-      id: '1',
-      name: 'Marketing Agency Site',
-      domain: 'myagency.nexus.app',
-      status: 'published',
-      template: 'Agency',
-      pages: 5,
-      visitors: 1247,
-      conversions: 23,
-      lastModified: '2026-04-24T10:30:00Z'
-    },
-    {
-      id: '2',
-      name: 'E-commerce Store',
-      domain: 'mystores.nexus.app',
-      status: 'published',
-      template: 'E-commerce',
-      pages: 8,
-      visitors: 3421,
-      conversions: 156,
-      lastModified: '2026-04-23T15:45:00Z'
-    },
-    {
-      id: '3',
-      name: 'Personal Blog',
-      domain: 'myblog.nexus.app',
-      status: 'draft',
-      template: 'Blog',
-      pages: 3,
-      visitors: 0,
-      conversions: 0,
-      lastModified: '2026-04-22T09:20:00Z'
-    },
-    {
-      id: '4',
-      name: 'Landing Page',
-      domain: 'mylaunch.nexus.app',
-      status: 'published',
-      template: 'Landing',
-      pages: 1,
-      visitors: 5678,
-      conversions: 89,
-      lastModified: '2026-04-21T14:15:00Z'
+  useEffect(() => {
+    loadWebsites()
+  }, [])
+
+  const loadWebsites = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getWebsites()
+      if (data.data) {
+        setWebsites(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading websites:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleCreateWebsite = async () => {
+    if (!websiteName.trim()) return
+
+    try {
+      setLoading(true)
+      await apiClient.createWebsite({
+        name: websiteName,
+        domain_id: '1', // This would come from domain selection in production
+        template: 'blank'
+      })
+      setIsBuilding(false)
+      setWebsiteName('')
+      setWebsiteDomain('')
+      loadWebsites()
+    } catch (error) {
+      console.error('Error creating website:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const templates = [
     {
@@ -176,16 +169,6 @@ export default function WebsitesPage() {
       default:
         return 'bg-gray-100 text-gray-800'
     }
-  }
-
-  const handleCreateWebsite = () => {
-    if (!websiteName.trim() || !websiteDomain.trim()) return
-
-    // In real app, this would create a new website
-
-    setIsBuilding(true)
-    setWebsiteName('')
-    setWebsiteDomain('')
   }
 
   return (
@@ -286,32 +269,24 @@ export default function WebsitesPage() {
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="font-medium text-gray-900 mb-2">Properties</h3>
-              {selectedElement ? (
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Font Size</Label>
-                    <Select defaultValue="16">
-                      <SelectTrigger className="h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="12">12px</SelectItem>
-                        <SelectItem value="14">14px</SelectItem>
-                        <SelectItem value="16">16px</SelectItem>
-                        <SelectItem value="18">18px</SelectItem>
-                        <SelectItem value="24">24px</SelectItem>
-                        <SelectItem value="32">32px</SelectItem>
-                      </SelectContent>
-                    </Select>
+              <h3 className="font-medium text-gray-900 mb-2">Website Stats</h3>
+              {selectedWebsite && websites.find((w: any) => w.id === selectedWebsite) ? (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Pages</span>
+                    <span>{websites.find((w: any) => w.id === selectedWebsite)?.pages || 0}</span>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Color</Label>
-                    <input type="color" defaultValue="#000000" className="w-full h-8 rounded" />
+                  <div className="flex justify-between text-sm">
+                    <span>Visitors</span>
+                    <span>{websites.find((w: any) => w.id === selectedWebsite)?.visitors || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Conversions</span>
+                    <span>{websites.find((w: any) => w.id === selectedWebsite)?.conversions || 0}</span>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">Select an element to edit properties</p>
+                <p className="text-sm text-gray-500">Select a website to view stats</p>
               )}
             </div>
           </div>

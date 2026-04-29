@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { apiClient } from '@/lib/api'
 import {
   Code,
   Play,
@@ -70,156 +71,67 @@ export default function CodePage() {
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
   const [codeContent, setCodeContent] = useState('')
   const [selectedLanguage, setSelectedLanguage] = useState('javascript')
-
-  // Mock data
-  const projects: Project[] = [
-    {
-      id: '1',
-      name: 'NEXUS Web Dashboard',
-      type: 'web',
-      status: 'active',
-      lastModified: '2026-04-24T14:30:00Z',
-      collaborators: 3,
-      files: 247,
-      commits: 156
-    },
-    {
-      id: '2',
-      name: 'Marketing Automation API',
-      type: 'api',
-      status: 'active',
-      lastModified: '2026-04-23T10:15:00Z',
-      collaborators: 2,
-      files: 89,
-      commits: 78
-    },
-    {
-      id: '3',
-      name: 'Mobile App Prototype',
-      type: 'mobile',
-      status: 'completed',
-      lastModified: '2026-04-20T16:45:00Z',
-      collaborators: 1,
-      files: 45,
-      commits: 23
-    },
-    {
-      id: '4',
-      name: 'Workflow Automation Scripts',
-      type: 'automation',
-      status: 'active',
-      lastModified: '2026-04-22T09:20:00Z',
-      collaborators: 2,
-      files: 34,
-      commits: 45
-    }
-  ]
-
-  const codeSnippets: CodeSnippet[] = [
-    {
-      id: '1',
-      name: 'API Authentication Middleware',
-      language: 'javascript',
-      description: 'JWT authentication middleware for Node.js APIs',
-      code: `const jwt = require('jsonwebtoken');
-
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-};
-
-module.exports = authenticateToken;`,
-      tags: ['authentication', 'jwt', 'middleware'],
-      usage: 45
-    },
-    {
-      id: '2',
-      name: 'React Custom Hook',
-      language: 'typescript',
-      description: 'Custom hook for API data fetching with loading states',
-      code: `import { useState, useEffect } from 'react';
-
-interface UseApiDataResult<T> {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
-}
-
-function useApiData<T>(url: string): UseApiDataResult<T> {
-  const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(url);
-      const result = await response.json();
-      setData(result);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [projects, setProjects] = useState<Project[]>([])
+  const [codeSnippets, setCodeSnippets] = useState<CodeSnippet[]>([])
+  const [apiEndpoints, setApiEndpoints] = useState<APIEndpoint[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetchData();
-  }, [url]);
+    loadProjects()
+    loadSnippets()
+    loadEndpoints()
+  }, [])
 
-  return { data, loading, error, refetch: fetchData };
-}
-
-export default useApiData;`,
-      tags: ['react', 'hooks', 'api', 'typescript'],
-      usage: 67
+  const loadProjects = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getCodeProjects()
+      if (data.data) {
+        setProjects(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading projects:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
-  const apiEndpoints: APIEndpoint[] = [
-    {
-      id: '1',
-      method: 'GET',
-      path: '/api/users',
-      description: 'Get all users with pagination',
-      status: 'active',
-      lastCalled: '2026-04-24T15:30:00Z'
-    },
-    {
-      id: '2',
-      method: 'POST',
-      path: '/api/users',
-      description: 'Create a new user',
-      status: 'active',
-      lastCalled: '2026-04-24T14:45:00Z'
-    },
-    {
-      id: '3',
-      method: 'PUT',
-      path: '/api/users/:id',
-      description: 'Update user information',
-      status: 'active',
-      lastCalled: '2026-04-24T12:20:00Z'
-    },
-    {
-      id: '4',
-      method: 'DELETE',
-      path: '/api/users/:id',
-      description: 'Delete a user account',
-      status: 'deprecated',
-      lastCalled: '2026-04-20T10:15:00Z'
+  const loadSnippets = async () => {
+    try {
+      const data = await apiClient.getCodeSnippets()
+      if (data.data) {
+        setCodeSnippets(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading snippets:', error)
     }
-  ]
+  }
+
+  const loadEndpoints = async () => {
+    try {
+      const data = await apiClient.getAPIEndpoints()
+      if (data.data) {
+        setApiEndpoints(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading endpoints:', error)
+    }
+  }
+
+  const handleCreateProject = async () => {
+    try {
+      setLoading(true)
+      await apiClient.createCodeProject({
+        name: 'New Project',
+        type: 'web'
+      })
+      loadProjects()
+    } catch (error) {
+      console.error('Error creating project:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {

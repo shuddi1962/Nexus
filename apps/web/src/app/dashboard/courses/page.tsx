@@ -75,89 +75,80 @@ export default function CoursesPage() {
   const [isCreating, setIsCreating] = useState(false)
   const [courseTitle, setCourseTitle] = useState('')
   const [courseDescription, setCourseDescription] = useState('')
+  const [courses, setCourses] = useState<Course[]>([])
+  const [students, setStudents] = useState<Student[]>([])
+  const [modules, setModules] = useState<Module[]>([])
+  const [loading, setLoading] = useState(false)
 
-  // Mock data
-  const courses: Course[] = [
-    {
-      id: '1',
-      title: 'Complete Marketing Automation Course',
-      description: 'Master the art of marketing automation with NEXUS platform',
-      instructor: 'Sarah Johnson',
-      price: 299,
-      students: 1247,
-      rating: 4.8,
-      reviews: 156,
-      duration: 2400, // minutes
-      modules: 24,
-      status: 'published',
-      createdAt: '2026-03-15T10:00:00Z'
-    },
-    {
-      id: '2',
-      title: 'Advanced CRM Strategies',
-      description: 'Learn advanced customer relationship management techniques',
-      instructor: 'Mike Chen',
-      price: 199,
-      students: 892,
-      rating: 4.6,
-      reviews: 89,
-      duration: 1800,
-      modules: 18,
-      status: 'published',
-      createdAt: '2026-03-20T14:30:00Z'
-    },
-    {
-      id: '3',
-      title: 'AI Content Creation Masterclass',
-      description: 'Create compelling content using artificial intelligence',
-      instructor: 'Lisa Wong',
-      price: 149,
-      students: 0,
-      rating: 0,
-      reviews: 0,
-      duration: 1200,
-      modules: 12,
-      status: 'draft',
-      createdAt: '2026-04-20T09:15:00Z'
+  useEffect(() => {
+    loadCourses()
+  }, [])
+
+  const loadCourses = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getCourses()
+      if (data.data) {
+        setCourses(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading courses:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
-  const students: Student[] = [
-    {
-      id: '1',
-      name: 'John Smith',
-      email: 'john@example.com',
-      progress: 85,
-      enrolledAt: '2026-04-01T10:00:00Z',
-      completedAt: '2026-04-20T15:30:00Z',
-      certificate: true
-    },
-    {
-      id: '2',
-      name: 'Emma Davis',
-      email: 'emma@example.com',
-      progress: 60,
-      enrolledAt: '2026-04-05T14:20:00Z'
-    },
-    {
-      id: '3',
-      name: 'Alex Johnson',
-      email: 'alex@example.com',
-      progress: 100,
-      enrolledAt: '2026-03-28T09:45:00Z',
-      completedAt: '2026-04-15T12:00:00Z',
-      certificate: true
+  const loadCourseDetails = async (courseId: string) => {
+    try {
+      setLoading(true)
+      // Load students and modules for selected course
+      // This would be separate API calls in production
+      const courseData = courses.find(c => c.id === courseId)
+      if (courseData) {
+        setSelectedCourse(courseId)
+        // Mock students and modules for now - these would come from API
+        setStudents([
+          {
+            id: '1',
+            name: 'John Smith',
+            email: 'john@example.com',
+            progress: 85,
+            enrolledAt: '2026-04-01T10:00:00Z',
+            completedAt: '2026-04-20T15:30:00Z',
+            certificate: true
+          }
+        ])
+        setModules([
+          { id: '1', title: 'Introduction', type: 'video', duration: 15, completed: true },
+          { id: '2', title: 'Getting Started', type: 'video', duration: 25, completed: false }
+        ])
+      }
+    } catch (error) {
+      console.error('Error loading course details:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
-  const modules: Module[] = [
-    { id: '1', title: 'Introduction to Marketing Automation', type: 'video', duration: 15, completed: true },
-    { id: '2', title: 'Setting Up Your First Campaign', type: 'video', duration: 25, completed: true },
-    { id: '3', title: 'Email Marketing Fundamentals', type: 'text', duration: 10, completed: true },
-    { id: '4', title: 'Lead Scoring Quiz', type: 'quiz', duration: 20, completed: false },
-    { id: '5', title: 'Advanced Segmentation Techniques', type: 'video', duration: 30, completed: false },
-    { id: '6', title: 'A/B Testing Assignment', type: 'assignment', duration: 45, completed: false }
-  ]
+  const handleCreateCourse = async () => {
+    if (!courseTitle.trim()) return
+
+    try {
+      setLoading(true)
+      await apiClient.createCourse({
+        title: courseTitle,
+        description: courseDescription
+      })
+      setIsCreating(false)
+      setCourseTitle('')
+      setCourseDescription('')
+      loadCourses()
+    } catch (error) {
+      console.error('Error creating course:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -191,16 +182,6 @@ export default function CoursesPage() {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
-  }
-
-  const handleCreateCourse = () => {
-    if (!courseTitle.trim()) return
-
-    // In real app, this would create a new course
-
-    setIsCreating(false)
-    setCourseTitle('')
-    setCourseDescription('')
   }
 
   return (

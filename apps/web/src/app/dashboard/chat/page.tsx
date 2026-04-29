@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { apiClient } from '@/lib/api'
 import {
   MessageSquare,
   Send,
@@ -78,9 +79,10 @@ export default function ChatPage() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  // Mock data
-  const chats: Chat[] = [
+  // Convert mock data to state
+  const [chats, setChats] = useState<any[]>([
     {
       id: '1',
       name: 'Marketing Team',
@@ -98,152 +100,99 @@ export default function ChatPage() {
       type: 'direct',
       platform: 'internal',
       lastMessage: 'Can we schedule a call for tomorrow?',
-      lastMessageTime: '2026-04-24T14:45:00Z',
-      unreadCount: 0,
+      lastMessageTime: '2026-04-24T14:15:00Z',
+      unreadCount: 1,
       participants: ['sarah@nexus.demo'],
       isOnline: true
-    },
-    {
-      id: '3',
-      name: 'Customer Support',
-      type: 'channel',
-      platform: 'slack',
-      lastMessage: 'New ticket from ABC Corp',
-      lastMessageTime: '2026-04-24T14:20:00Z',
-      unreadCount: 12,
-      participants: ['support-team'],
-      isOnline: true
-    },
-    {
-      id: '4',
-      name: 'WhatsApp Business',
-      type: 'direct',
-      platform: 'whatsapp',
-      lastMessage: 'Thank you for your help!',
-      lastMessageTime: '2026-04-24T13:15:00Z',
-      unreadCount: 1,
-      participants: ['customer-123'],
-      isOnline: false
-    },
-    {
-      id: '5',
-      name: 'Telegram Bot',
-      type: 'direct',
-      platform: 'telegram',
-      lastMessage: 'Automated response sent',
-      lastMessageTime: '2026-04-24T12:30:00Z',
-      unreadCount: 0,
-      participants: ['bot-user'],
-      isOnline: true
     }
-  ]
+  ])
 
-  const messages: Message[] = [
-    {
-      id: '1',
-      chatId: '1',
-      sender: 'John Smith',
-      content: 'Hey team, great work on the new campaign!',
-      timestamp: '2026-04-24T15:25:00Z',
-      type: 'text',
-      status: 'read',
-      reactions: [{ emoji: '👍', count: 2, users: ['sarah', 'mike'] }]
-    },
-    {
-      id: '2',
-      chatId: '1',
-      sender: 'Sarah Johnson',
-      content: 'Thanks! The click-through rates are much higher than expected.',
-      timestamp: '2026-04-24T15:27:00Z',
-      type: 'text',
-      status: 'read'
-    },
-    {
-      id: '3',
-      chatId: '1',
-      sender: 'Mike Chen',
-      content: 'Let\'s schedule a review meeting for next week.',
-      timestamp: '2026-04-24T15:30:00Z',
-      type: 'text',
-      status: 'sent'
+  const [messages, setMessages] = useState<any[]>([])
+
+  // Load chats from API
+  useEffect(() => {
+    loadChats()
+  }, [])
+
+  const loadChats = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getChats()
+      if (data.data && data.data.length > 0) {
+        setChats(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading chats:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
+  // Load messages when chat is selected
+  useEffect(() => {
+    if (selectedChat) {
+      loadMessages(selectedChat)
+    } else {
+      setMessages([])
+    }
+  }, [selectedChat])
+
+  const loadMessages = async (chatId: string) => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getChatMessages(chatId)
+      if (data.data && data.data.length > 0) {
+        setMessages(data.data)
+      } else {
+        setMessages([])
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error)
+      setMessages([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !selectedChat) return
+
+    try {
+      const data = await apiClient.sendMessage({
+        chat_id: selectedChat,
+        content: messageInput,
+        type: 'text',
+      })
+      setMessages([...messages, data.data || { id: Date.now(), content: messageInput, sender: 'You', timestamp: new Date().toISOString() }])
+      setMessageInput('')
+    } catch (error: any) {
+      console.error('Error sending message:', error)
+    }
+  }
+
+  // Mock integrations for UI
   const integrations: Integration[] = [
     {
       id: '1',
       name: 'Slack Workspace',
-      platform: 'Slack',
-      status: 'connected',
+      platform: 'slack',
+      status: 'connected' as const,
       lastSync: '2026-04-24T15:00:00Z',
       messages: 1247
-    },
-    {
-      id: '2',
-      name: 'WhatsApp Business',
-      platform: 'WhatsApp',
-      status: 'connected',
-      lastSync: '2026-04-24T14:45:00Z',
-      messages: 892
-    },
-    {
-      id: '3',
-      name: 'Telegram Bot',
-      platform: 'Telegram',
-      status: 'connected',
-      lastSync: '2026-04-24T14:30:00Z',
-      messages: 567
-    },
-    {
-      id: '4',
-      name: 'Discord Server',
-      platform: 'Discord',
-      status: 'error',
-      lastSync: '2026-04-23T10:15:00Z',
-      messages: 234
     }
   ]
 
-  const getPlatformIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case 'whatsapp':
-        return <Phone className="w-4 h-4 text-green-500" />
-      case 'telegram':
-        return <Send className="w-4 h-4 text-blue-500" />
-      case 'discord':
-        return <Globe className="w-4 h-4 text-purple-500" />
-      case 'slack':
-        return <MessageSquare className="w-4 h-4 text-orange-500" />
-      default:
-        return <MessageSquare className="w-4 h-4 text-gray-500" />
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-nexus-text-tertiary">Loading chats...</div>
+      </div>
+    )
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return 'bg-green-100 text-green-800'
-      case 'disconnected':
-        return 'bg-gray-100 text-gray-800'
-      case 'error':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const handleSendMessage = () => {
-    if (!messageInput.trim()) return
-
-    // In real app, this would send the message
-
-    setMessageInput('')
-  }
-
-  const filteredChats = chats.filter(chat =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredChats = searchQuery
+    ? chats.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : chats
 
   return (
     <div className="h-screen flex">
@@ -365,11 +314,11 @@ export default function ChatPage() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.filter(m => m.chatId === selectedChat).map((message) => (
+              {messages.filter((m: any) => m.chatId === selectedChat).map((message: any) => (
                 <div key={message.id} className="flex space-x-3">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-medium text-gray-600">
-                      {message.sender.split(' ').map(n => n[0]).join('')}
+                      {message.sender.split(' ').map((n: string) => n[0]).join('')}
                     </span>
                   </div>
                   <div className="flex-1">
@@ -387,7 +336,7 @@ export default function ChatPage() {
                     </div>
                     {message.reactions && message.reactions.length > 0 && (
                       <div className="flex space-x-1">
-                        {message.reactions.map((reaction, index) => (
+                        {message.reactions.map((reaction: any, index: number) => (
                           <button
                             key={index}
                             className="bg-gray-200 hover:bg-gray-300 rounded-full px-2 py-1 text-xs flex items-center space-x-1"
@@ -481,21 +430,21 @@ export default function ChatPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label className="text-sm font-medium">Participants</Label>
-                    <div className="mt-2 space-y-2">
-                      {chats.find(c => c.id === selectedChat)?.participants.map((participant, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium text-gray-600">
-                              {participant.split('@')[0][0].toUpperCase()}
-                            </span>
+                    <div>
+                      <Label className="text-sm font-medium">Participants</Label>
+                      <div className="mt-2 space-y-2">
+                        {chats.find((c: any) => c.id === selectedChat)?.participants.map((participant: string, index: number) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                              <span className="text-xs font-medium text-gray-600">
+                                {participant.split('@')[0][0].toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm">{participant}</span>
                           </div>
-                          <span className="text-sm">{participant}</span>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -579,4 +528,33 @@ export default function ChatPage() {
       )}
     </div>
   )
+
+  // Helper functions
+  function getPlatformIcon(platform: string) {
+    switch (platform.toLowerCase()) {
+      case 'whatsapp':
+        return <Phone className="w-4 h-4 text-green-500" />
+      case 'telegram':
+        return <Send className="w-4 h-4 text-blue-500" />
+      case 'discord':
+        return <Globe className="w-4 h-4 text-indigo-500" />
+      case 'slack':
+        return <MessageSquare className="w-4 h-4 text-orange-500" />
+      default:
+        return <MessageSquare className="w-4 h-4 text-gray-500" />
+    }
+  }
+
+  function getStatusColor(status: string) {
+    switch (status) {
+      case 'connected':
+        return 'bg-green-100 text-green-800'
+      case 'disconnected':
+        return 'bg-gray-100 text-gray-800'
+      case 'error':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
 }
