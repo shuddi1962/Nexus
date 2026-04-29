@@ -12,6 +12,10 @@ class ApiClient {
     this.tokens = tokens
   }
 
+  async call(endpoint: string, options: RequestInit = {}): Promise<any> {
+    return this.request(endpoint, options)
+  }
+
   private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${this.baseURL}${endpoint}`
 

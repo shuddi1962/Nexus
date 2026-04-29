@@ -26,10 +26,8 @@ export default function EmailMarketingPage() {
     const fetchCampaigns = async () => {
       try {
         setLoading(true)
-        // TODO: Add getEmailCampaigns to apiClient
-        // const data = await apiClient.getEmailCampaigns()
-        // setCampaigns(data.campaigns || [])
-        setCampaigns([])
+        const data = await apiClient.getEmailCampaigns()
+        setCampaigns(data.campaigns || [])
       } catch (error) {
         console.error('Error fetching campaigns:', error)
       } finally {
@@ -43,9 +41,8 @@ export default function EmailMarketingPage() {
     if (!newCampaign.name.trim() || !newCampaign.subject.trim()) return
     try {
       setIsCreating(true)
-      // TODO: Add createEmailCampaign to apiClient
-      // const campaign = await apiClient.createEmailCampaign(newCampaign)
-      // setCampaigns([campaign, ...campaigns])
+      const result = await apiClient.createEmailCampaign(newCampaign)
+      setCampaigns([result.campaign, ...campaigns])
       setNewCampaign({ name: '', subject: '' })
     } catch (error) {
       console.error('Error creating campaign:', error)

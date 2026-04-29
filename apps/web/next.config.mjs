@@ -8,9 +8,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
@@ -25,12 +22,9 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
   },
-  // Core Web Vitals optimizations
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   generateEtags: false,
-  // Performance headers
   async headers() {
     return [
       {
@@ -50,6 +44,11 @@ const nextConfig = {
       '@': path.resolve(__dirname, 'src'),
     };
     return config;
+  },
+  turbopack: {
+    resolveAlias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
   },
 }
 

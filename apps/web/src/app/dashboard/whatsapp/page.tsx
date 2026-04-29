@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { apiClient } from '@/lib/api'
 import {
   MessageCircle,
   Send,
@@ -26,73 +27,78 @@ import {
   Search
 } from 'lucide-react'
 
-interface Conversation {
-  id: string
-  name: string
-  phone: string
-  lastMessage: string
-  timestamp: string
-  unread: number
-  status: 'active' | 'resolved'
-}
-
-interface Message {
-  id: string
-  content: string
-  sender: 'user' | 'contact'
-  timestamp: string
-  type: 'text' | 'image' | 'document'
-}
-
 export default function WhatsAppPage() {
-  const [selectedConversation, setSelectedConversation] = useState<string | null>('1')
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
   const [messageText, setMessageText] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [conversations, setConversations] = useState<any[]>([])
+  const [messages, setMessages] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const conversations: Conversation[] = [
-    {
-      id: '1',
-      name: 'John Smith',
-      phone: '+1 (555) 123-4567',
-      lastMessage: 'Thanks for the update!',
-      timestamp: '2 min ago',
-      unread: 2,
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      phone: '+1 (555) 987-6543',
-      lastMessage: 'When will my order ship?',
-      timestamp: '15 min ago',
-      unread: 0,
-      status: 'active'
-    },
-    {
-      id: '3',
-      name: 'Tech Solutions Inc',
-      phone: '+1 (555) 456-7890',
-      lastMessage: 'Perfect, thank you!',
-      timestamp: '1 hour ago',
-      unread: 0,
-      status: 'resolved'
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        setLoading(true)
+        const data = await apiClient.call('/whatsapp/conversations')
+        setConversations(data.conversations || [])
+        if (data.conversations?.length > 0 && !selectedConversation) {
+          setSelectedConversation(data.conversations[0].id)
+        }
+      } catch (error) {
+        console.error('Error fetching conversations:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    fetchConversations()
+  }, [])
 
-  const messages: Message[] = [
-    { id: '1', content: 'Hi, I have a question about my order', sender: 'contact', timestamp: '10:30 AM', type: 'text' },
-    { id: '2', content: 'Hello! I\'d be happy to help. What\'s your order number?', sender: 'user', timestamp: '10:31 AM', type: 'text' },
-    { id: '3', content: 'It\'s ORD-12345', sender: 'contact', timestamp: '10:32 AM', type: 'text' },
-    { id: '4', content: 'Let me check that for you.', sender: 'user', timestamp: '10:33 AM', type: 'text' },
-    { id: '5', content: 'Your order has shipped and will arrive tomorrow!', sender: 'user', timestamp: '10:35 AM', type: 'text' },
-    { id: '6', content: 'Thanks for the update!', sender: 'contact', timestamp: '10:36 AM', type: 'text' }
-  ]
+  useEffect(() => {
+    if (!selectedConversation) return
+    const fetchMessages = async () => {
+      try {
+        const data = await apiClient.call(`/whatsapp/conversations/${selectedConversation}/messages`)
+        setMessages(data.messages || [])
+      } catch (error) {
+        console.error('Error fetching messages:', error)
+      }
+    }
+    fetchMessages()
+  }, [selectedConversation])
 
-  const handleSendMessage = () => {
-    if (!messageText.trim()) return
-    // In real app, this would send via WhatsApp API
-    alert('Message sent!')
-    setMessageText('')
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedConversation) return
+    try {
+      const conv = conversations.find(c => c.id === selectedConversation)
+        await apiClient.call('/whatsapp/send', {
+        method: 'POST',
+        body: JSON.stringify({
+          to: conv?.phone,
+          message: messageText,
+          conversation_id: selectedConversation
+        })
+      })
+      const newMsg = {
+        id: Date.now().toString(),
+        content: messageText,
+        sender: 'user',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        type: 'text'
+      }
+      setMessages([...messages, newMsg])
+      setMessageText('')
+    } catch (error) {
+      console.error('Error sending message:', error)
+      alert('Failed to send message')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-nexus-text-tertiary">Loading conversations...</div>
+      </div>
+    )
   }
 
   return (
@@ -123,8 +129,8 @@ export default function WhatsAppPage() {
             <MessageCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-nexus-text-primary">24</div>
-            <p className="text-xs text-nexus-text-secondary">+3 from yesterday</p>
+            <div className="text-2xl font-bold text-nexus-text-primary">{conversations.filter(c => c.status === 'active').length}</div>
+            <p className="text-xs text-nexus-text-secondary">Active conversations</p>
           </CardContent>
         </Card>
 
@@ -134,8 +140,8 @@ export default function WhatsAppPage() {
             <Send className="h-4 w-4 text-nexus-blue" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-nexus-text-primary">1,247</div>
-            <p className="text-xs text-nexus-text-secondary">Last 30 days</p>
+            <div className="text-2xl font-bold text-nexus-text-primary">{messages.filter(m => m.sender === 'user').length}</div>
+            <p className="text-xs text-nexus-text-secondary">Total sent</p>
           </CardContent>
         </Card>
 
@@ -152,12 +158,12 @@ export default function WhatsAppPage() {
 
         <Card className="border-nexus-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-nexus-text-primary">Resolution Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-nexus-green" />
+            <CardTitle className="text-sm font-medium text-nexus-text-primary">Total Chats</CardTitle>
+            <Users className="h-4 w-4 text-nexus-violet" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-nexus-text-primary">94%</div>
-            <p className="text-xs text-nexus-text-secondary">This month</p>
+            <div className="text-2xl font-bold text-nexus-text-primary">{conversations.length}</div>
+            <p className="text-xs text-nexus-text-secondary">All time</p>
           </CardContent>
         </Card>
       </div>
@@ -181,7 +187,7 @@ export default function WhatsAppPage() {
               </div>
               <div className="overflow-y-auto max-h-[536px]">
                 {conversations
-                  .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()))
                   .map((conv) => (
                     <div
                       key={conv.id}
@@ -191,10 +197,12 @@ export default function WhatsAppPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium text-nexus-text-primary">{conv.name}</h3>
-                        <span className="text-xs text-nexus-text-tertiary">{conv.timestamp}</span>
+                        <h3 className="font-medium text-nexus-text-primary">{conv.name || conv.phone}</h3>
+                        <span className="text-xs text-nexus-text-tertiary">
+                          {conv.last_message_at ? new Date(conv.last_message_at).toLocaleDateString() : 'No date'}
+                        </span>
                       </div>
-                      <p className="text-sm text-nexus-text-secondary truncate">{conv.lastMessage}</p>
+                      <p className="text-sm text-nexus-text-secondary truncate">{conv.last_message || 'No messages yet'}</p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-nexus-text-tertiary">{conv.phone}</span>
                         {conv.unread > 0 && (
@@ -218,7 +226,7 @@ export default function WhatsAppPage() {
                       </div>
                       <div>
                         <h3 className="font-medium text-nexus-text-primary">
-                          {conversations.find(c => c.id === selectedConversation)?.name}
+                          {conversations.find(c => c.id === selectedConversation)?.name || 'Unknown'}
                         </h3>
                         <p className="text-sm text-nexus-text-secondary">
                           {conversations.find(c => c.id === selectedConversation)?.phone}
@@ -226,7 +234,7 @@ export default function WhatsAppPage() {
                       </div>
                     </div>
                     <Badge className="bg-nexus-green/10 text-nexus-green border-nexus-green/20">
-                      Active
+                      {conversations.find(c => c.id === selectedConversation)?.status || 'active'}
                     </Badge>
                   </div>
 
@@ -246,7 +254,7 @@ export default function WhatsAppPage() {
                         >
                           <p className="text-sm">{msg.content}</p>
                           <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-white/70' : 'text-nexus-text-tertiary'}`}>
-                            {msg.timestamp}
+                            {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                           </p>
                         </div>
                       </div>

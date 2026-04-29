@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { apiClient } from '@/lib/api'
 import {
   MessageSquare,
   Send,
@@ -30,9 +31,8 @@ export default function SMSPage() {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        // TODO: Add getSMSCampaigns to apiClient
-        // const data = await apiClient.getSMSCampaigns()
-        // setCampaigns(data.campaigns || [])
+        const data = await apiClient.getSMSCampaigns()
+        setCampaigns(data.campaigns || [])
       } catch (error) {
         console.error('Error fetching SMS campaigns:', error)
       }
@@ -44,8 +44,7 @@ export default function SMSPage() {
     if (!smsData.to || !smsData.message) return
     try {
       setLoading(true)
-      // TODO: Add sendSMS to apiClient
-      // await apiClient.sendSMS(smsData.to, smsData.message)
+      await apiClient.sendSMS(smsData.to, smsData.message)
       alert('SMS sent successfully!')
       setSmsData({ to: '', message: '' })
     } catch (error) {

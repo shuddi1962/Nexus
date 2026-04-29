@@ -26,9 +26,12 @@
     "seed:demo": "cd apps/api && npm run seed"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
     "concurrently": "^8.2.2",
-    "next": "14.2.15"
+    "next": "^14.2.15",
+    "turbo": "^2.0.0"
   },
-  "packageManager": "npm@10.0.0"
+  "packageManager": "npm@10.0.0",
+  "dependencies": {
+    "react-is": "^19.2.5"
+  }
 }

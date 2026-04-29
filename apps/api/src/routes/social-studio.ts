@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth'
 import { insforge } from '../lib/insforge'
 import { logger } from '../lib/logger'
 import { decryptKey } from '../lib/encryption'
+import { redis } from '../lib/redis'
 import axios from 'axios'
 
 const POST_TEMPLATES = [
