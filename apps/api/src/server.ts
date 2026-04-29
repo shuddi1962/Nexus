@@ -102,6 +102,10 @@ async function startServer() {
   const { trendsRoutes } = await import('./routes/trends')
   await server.register(trendsRoutes, { prefix: '/api' })
 
+  // Social Studio routes
+  const { socialStudioRoutes } = await import('./routes/social-studio')
+  await server.register(socialStudioRoutes, { prefix: '/api' })
+
   // Start background jobs
   const { scheduleRulesProcessing } = await import('./jobs/rules-processor')
   const { scheduleAdSync } = await import('./jobs/ad-sync')

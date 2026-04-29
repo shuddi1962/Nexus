@@ -1351,6 +1351,61 @@ class ApiClient {
   async getKeywordTrends(keyword: string) {
     return this.request(`/trends/keywords/${encodeURIComponent(keyword)}`)
   }
+
+  // Social Studio endpoints
+  async getPostTemplates() {
+    return this.request('/social/studio/templates')
+  }
+
+  async getSocialPlatforms() {
+    return this.request('/social/studio/platforms')
+  }
+
+  async generatePost(params: {
+    template_type: string
+    platform: string
+    business_id?: string
+    trend_data?: any
+    custom_prompt?: string
+    num_posts?: number
+  }) {
+    return this.request('/social/studio/generate', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  }
+
+  async queuePosts(posts: any[], scheduled_date: string, scheduled_time: string) {
+    return this.request('/social/studio/queue', {
+      method: 'POST',
+      body: JSON.stringify({ posts, scheduled_date, scheduled_time }),
+    })
+  }
+
+  async getPostQueue(params?: { page?: number; limit?: number }) {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.set('page', params.page.toString())
+    if (params?.limit) queryParams.set('limit', params.limit.toString())
+    return this.request(`/social/studio/queue?${queryParams.toString()}`)
+  }
+
+  async researchHashtags(platform: string, keyword?: string) {
+    const queryParams = new URLSearchParams()
+    queryParams.set('platform', platform)
+    if (keyword) queryParams.set('keyword', keyword)
+    return this.request(`/social/studio/hashtags?${queryParams.toString()}`)
+  }
+
+  async getCalendar(start_date: string, end_date: string) {
+    return this.request(`/social/studio/calendar?start_date=${start_date}&end_date=${end_date}`)
+  }
+
+  async publishPost(post_id: string, platforms: string[]) {
+    return this.request('/social/studio/publish', {
+      method: 'POST',
+      body: JSON.stringify({ post_id, platforms }),
+    })
+  }
 }
 
 export const apiClient = new ApiClient()
