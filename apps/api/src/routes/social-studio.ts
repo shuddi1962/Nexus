@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { authenticate } from '../middleware/auth'
 import { insforge } from '../lib/insforge'
 import { logger } from '../lib/logger'
-import { decryptApiKey, getOpenRouterModel } from '../lib/vault'
+import { decryptKey } from '../lib/encryption'
 import axios from 'axios'
 
 const POST_TEMPLATES = [
@@ -57,19 +57,24 @@ export async function socialStudioRoutes(fastify: FastifyInstance) {
 
       const prompt = buildPostPrompt(template_type, platform, platformGuidelines, businessContext, trend_data, custom_prompt)
 
-      const apiKey = await decryptApiKey('openrouter')
-      if (!apiKey) {
+      const apiKeyResult = await insforge.from('api_keys_vault')
+        .select('*')
+        .eq('provider', 'openrouter')
+        .eq('category', 'language_models')
+        .single()
+
+      if (!apiKeyResult) {
         return { error: 'OpenRouter API key not configured', posts: [] }
       }
 
-      const model = await getOpenRouterModel('gpt-4o-mini')
+      const encryptedKey = decryptKey(apiKeyResult.encrypted_key, process.env.ENCRYPTION_KEY!)
       
       const generatedPosts = []
       for (let i = 0; i < num_posts; i++) {
         const response = await axios.post(
           'https://openrouter.ai/api/v1/chat/completions',
           {
-            model: model.id,
+            model: 'openai/gpt-4o-mini',
             messages: [
               {
                 role: 'system',
@@ -88,7 +93,7 @@ export async function socialStudioRoutes(fastify: FastifyInstance) {
           },
           {
             headers: {
-              'Authorization': `Bearer ${apiKey}`,
+              'Authorization': `Bearer ${encryptedKey}`,
               'Content-Type': 'application/json',
               'HTTP-Referer': process.env.FRONTEND_URL,
               'X-Title': 'NEXUS Social Studio'

@@ -55,3 +55,5 @@ export function roleMiddleware(allowedRoles: string[]) {
     }
   }
 }
+
+export const authenticate = authMiddleware
