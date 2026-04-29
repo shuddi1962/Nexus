@@ -70,6 +70,27 @@ export const collections = {
   // Chat Hub
   chats: 'chats',
   chatIntegrations: 'chat_integrations',
+
+  // Business Profiles
+  businesses: 'businesses',
+  businessProducts: 'business_products',
+  businessTeam: 'business_team',
+  
+  // Social & Trends
+  socialAccounts: 'social_accounts',
+  trends: 'trends',
+  hashtags: 'hashtags',
+  calendars: 'calendars',
+  scheduledPosts: 'scheduled_posts',
+  
+  // RSS & Content
+  rssFeeds: 'rss_feeds',
+  contentItems: 'content_items',
+  
+  // Marketing
+  emailCampaigns: 'email_campaigns',
+  smsCampaigns: 'sms_campaigns',
+  whatsappMessages: 'whatsapp_messages',
 }
 
 // Helper functions

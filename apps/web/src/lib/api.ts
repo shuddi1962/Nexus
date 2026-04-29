@@ -1196,6 +1196,129 @@ class ApiClient {
   async getBroadcastStats() {
     return this.request('/broadcasts/stats')
   }
+
+  // Business endpoints
+  async getBusinesses() {
+    return this.request('/businesses')
+  }
+
+  async getBusiness(id: string) {
+    return this.request(`/businesses/${id}`)
+  }
+
+  async createBusiness(business: {
+    name: string
+    tagline?: string
+    description?: string
+    industry?: string
+    sub_industry?: string[]
+    business_type?: 'product' | 'service' | 'hybrid'
+    country?: string
+    state?: string
+    city?: string
+    address?: string
+    phone?: string[]
+    email?: string
+    website?: string
+    logo?: string
+    brand_colors?: string[]
+    brand_voice?: string
+    brand_guidelines?: string
+    target_audience?: string
+    pain_points?: string[]
+    unique_value?: string
+    competitor_keywords?: string[]
+  }) {
+    return this.request('/businesses', {
+      method: 'POST',
+      body: JSON.stringify(business),
+    })
+  }
+
+  async updateBusiness(id: string, business: Partial<{
+    name: string
+    tagline: string
+    description: string
+    industry: string
+    sub_industry: string[]
+    business_type: 'product' | 'service' | 'hybrid'
+    country: string
+    state: string
+    city: string
+    address: string
+    phone: string[]
+    email: string
+    website: string
+    logo: string
+    brand_colors: string[]
+    brand_voice: string
+    brand_guidelines: string
+    target_audience: string
+    pain_points: string[]
+    unique_value: string
+    competitor_keywords: string[]
+  }>) {
+    return this.request(`/businesses/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(business),
+    })
+  }
+
+  async deleteBusiness(id: string) {
+    return this.request(`/businesses/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async analyzeBusiness(id: string) {
+    return this.request(`/businesses/${id}/analyze`, {
+      method: 'POST',
+    })
+  }
+
+  async getBusinessProducts(businessId: string) {
+    return this.request(`/businesses/${businessId}/products`)
+  }
+
+  async addBusinessProduct(businessId: string, product: {
+    name: string
+    category?: string
+    description?: string
+    price?: number
+    currency?: string
+    keywords?: string[]
+    featured?: boolean
+    new_arrival?: boolean
+    in_stock?: boolean
+  }) {
+    return this.request(`/businesses/${businessId}/products`, {
+      method: 'POST',
+      body: JSON.stringify(product),
+    })
+  }
+
+  async updateBusinessProduct(businessId: string, productId: string, product: Partial<{
+    name: string
+    category: string
+    description: string
+    price: number
+    currency: string
+    keywords: string[]
+    featured: boolean
+    new_arrival: boolean
+    in_stock: boolean
+  }>) {
+    return this.request(`/businesses/${businessId}/products/${productId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(product),
+    })
+  }
+
+  async deleteBusinessProduct(businessId: string, productId: string) {
+    return this.request(`/businesses/${businessId}/products/${productId}`, {
+      method: 'DELETE',
+    })
+  }
 }
 
 export const apiClient = new ApiClient()

@@ -43,6 +43,7 @@ const navigation = [
     icon: Home,
     items: [
       { name: 'Home', href: '/dashboard', icon: Home },
+      { name: 'Business Profile', href: '/dashboard/business', icon: Building },
       { name: 'Contacts & CRM', href: '/dashboard/crm', icon: Users },
       { name: 'Inbox', href: '/dashboard/inbox', icon: MessageSquare },
       { name: 'Pipelines', href: '/dashboard/pipelines', icon: GitBranch },

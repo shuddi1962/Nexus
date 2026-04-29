@@ -94,6 +94,10 @@ async function startServer() {
   await server.register(voiceRoutes, { prefix: '/api' })
   await server.register(reputationRoutes, { prefix: '/api' })
 
+  // Business routes
+  const { businessRoutes } = await import('./routes/business')
+  await server.register(businessRoutes, { prefix: '/api' })
+
   // Start background jobs
   const { scheduleRulesProcessing } = await import('./jobs/rules-processor')
   const { scheduleAdSync } = await import('./jobs/ad-sync')
