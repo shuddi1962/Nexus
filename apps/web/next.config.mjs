@@ -1,12 +1,15 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    ignoreBuildErrors: false,  // NEVER set to true
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: false, // NEVER set to true
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: [
@@ -14,14 +17,13 @@ const nextConfig = {
       { protocol: 'https', hostname: 'source.unsplash.com' },
       { protocol: 'https', hostname: 'images.pexels.com' },
       { protocol: 'https', hostname: 'api.pexels.com' },
-      { protocol: 'https', hostname: 'wk49fyqm.us-east.insforge.app' },
+      { protocol: 'https', hostname: 'aev8u7h7.us-east.insforge.app' },
+      { protocol: 'https', hostname: '*.insforge.app' },
     ],
     formats: ['image/webp', 'image/avif'],
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
-    optimizeCss: false,
-    scrollRestoration: true,
   },
   // Core Web Vitals optimizations
   swcMinify: true,
@@ -34,22 +36,10 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         ],
       },
     ]
@@ -57,7 +47,7 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(new URL('.', import.meta.url).pathname, 'src'),
+      '@': path.resolve(__dirname, 'src'),
     };
     return config;
   },
