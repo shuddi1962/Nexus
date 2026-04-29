@@ -51,7 +51,7 @@ const navigation = [
       { name: 'Prospecting', href: '/dashboard/prospecting', icon: Search },
     ],
   },
-  {
+    {
     name: 'Marketing',
     icon: PenTool,
     items: [
@@ -61,6 +61,7 @@ const navigation = [
       { name: 'Email Marketing', href: '/dashboard/email', icon: Mail },
       { name: 'SMS Marketing', href: '/dashboard/sms', icon: Phone },
       { name: 'WhatsApp', href: '/dashboard/whatsapp', icon: Phone },
+      { name: 'RSS Feed Manager', href: '/dashboard/rss', icon: TrendingUp },
       { name: 'Auto-Indexing', href: '/dashboard/indexing', icon: Search },
       { name: 'Site Manager', href: '/dashboard/sites', icon: Building },
       { name: 'Keywords', href: '/dashboard/keywords', icon: Search },
