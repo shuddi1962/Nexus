@@ -413,4 +413,43 @@ export class AuthService {
       return false
     }
   }
+
+  static async getUserSessions(userId: string): Promise<any[]> {
+    try {
+      const sessions = await insforge.get(`/collections/${collections.sessions}`, {
+        params: { 
+          user_id: `eq.${userId}`,
+          expires_at: `gt.${new Date().toISOString()}`,
+        },
+      })
+      
+      return sessions.data.map((session: any) => ({
+        id: session.id,
+        ip: session.ip,
+        user_agent: session.user_agent,
+        created_at: session.created_at,
+        expires_at: session.expires_at,
+      }))
+    } catch (error) {
+      logger.error('Get user sessions error', { error, userId })
+      return []
+    }
+  }
+
+  static async revokeAllSessions(userId: string): Promise<void> {
+    try {
+      const sessions = await insforge.get(`/collections/${collections.sessions}`, {
+        params: { user_id: `eq.${userId}` },
+      })
+      
+      for (const session of sessions.data) {
+        await insforge.delete(`/collections/${collections.sessions}/${session.id}`)
+      }
+      
+      logger.info('All sessions revoked', { userId })
+    } catch (error) {
+      logger.error('Revoke all sessions error', { error, userId })
+      throw error
+    }
+  }
 }

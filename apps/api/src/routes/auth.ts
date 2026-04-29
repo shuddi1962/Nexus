@@ -547,4 +547,45 @@ export async function authRoutes(app: FastifyInstance) {
       reply.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=oauth_failed`)
     }
   })
+
+  // Get all active sessions for current user
+  app.get('/auth/sessions', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      const sessions = await AuthService.getUserSessions(authRequest.user.id)
+      
+      reply.send(sessions)
+    } catch (error) {
+      logger.error('Get sessions error', { error })
+      reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
+  // Revoke all sessions (logout everywhere)
+  app.post('/auth/sessions/revoke-all', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const authRequest = request as any
+      await AuthService.revokeAllSessions(authRequest.user.id)
+      
+      reply.send({ message: 'All sessions revoked successfully' })
+    } catch (error) {
+      logger.error('Revoke all sessions error', { error })
+      reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
+  // Revoke specific session
+  app.post('/auth/sessions/revoke', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const { refresh_token } = request.body as { refresh_token: string }
+      const authRequest = request as any
+      
+      await AuthService.revokeSession(authRequest.user.id, refresh_token)
+      
+      reply.send({ message: 'Session revoked successfully' })
+    } catch (error) {
+      logger.error('Revoke session error', { error })
+      reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
 }
