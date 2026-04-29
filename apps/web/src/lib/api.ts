@@ -1129,6 +1129,52 @@ class ApiClient {
     })
   }
 
+  // Prospecting endpoints
+  async getProspectingCampaigns() {
+    return this.request('/prospecting/campaigns')
+  }
+
+  async createProspectingCampaign(data: { name: string; description?: string; sources?: string[] }) {
+    return this.request('/prospecting/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async getScrapedLeads(params?: { campaign_id?: string; status?: string; search?: string }) {
+    const queryParams = new URLSearchParams()
+    if (params?.campaign_id) queryParams.set('campaign_id', params.campaign_id)
+    if (params?.status) queryParams.set('status', params.status)
+    if (params?.search) queryParams.set('search', params.search)
+    const query = queryParams.toString()
+    return this.request(`/prospecting/leads${query ? `?${query}` : ''}`)
+  }
+
+  async scrapeLeads(data: { source: string; query: string; campaign_id?: string; limit?: number }) {
+    return this.request('/prospecting/scrape', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updateLead(id: string, updates: any) {
+    return this.request(`/prospecting/leads/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
+  }
+
+  async getOutreachSequences() {
+    return this.request('/prospecting/sequences')
+  }
+
+  async createOutreachSequence(data: { name: string; campaign_id?: string; steps?: any[] }) {
+    return this.request('/prospecting/sequences', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
   // Broadcasts endpoints
   async getBroadcasts() {
     return this.request('/broadcasts')

@@ -48,9 +48,55 @@ interface Lead {
 export default function ProspectingPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLeads, setSelectedLeads] = useState<string[]>([])
-
-  // Mock leads data
-  const leads: Lead[] = [
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [loading, setLoading] = useState(false))
+  
+  useEffect(() => {
+    loadLeads()
+    loadCampaigns()
+  }, [])
+  
+  const loadLeads = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getScrapedLeads()
+      if (data.data) {
+        setLeads(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading leads:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const loadCampaigns = async () => {
+    try {
+      const data = await apiClient.getProspectingCampaigns()
+      if (data.data) {
+        setCampaigns(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading campaigns:', error)
+    }
+  }
+  
+  const handleScrapeLeads = async () => {
+    try {
+      setLoading(true)
+      await apiClient.scrapeLeads({
+        source: 'linkedin',
+        query: searchQuery
+      })
+      alert('Lead scraping job queued!')
+      loadLeads()
+    } catch (error) {
+      console.error('Error scraping leads:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
     {
       id: '1',
       name: 'Sarah Johnson',
@@ -123,9 +169,9 @@ export default function ProspectingPage() {
   ]
 
   const filteredLeads = leads.filter(lead =>
-    lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lead.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchQuery.toLowerCase())
+    lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    lead.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    lead.email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const toggleLead = (leadId: string) => {
