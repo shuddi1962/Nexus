@@ -1465,3 +1465,217 @@ async function syncWebflowContent(site: any, credentials: any) {
 
   return { synced, total_items: response.data.items.length }
 }
+
+// RSS Feed Management
+app.get('/content/feeds', { preHandler: authMiddleware }, async (request, reply) => {
+  try {
+    const authRequest = request as any
+    const orgId = authRequest.user.org_id
+
+    const result = await insforge.get(`/collections/${collections.content_sources}`, {
+      params: { org_id: `eq.${orgId}`, type: 'eq.rss' }
+    })
+
+    // Add health status for each feed
+    const feedsWithHealth = (result.data || []).map((feed: any) => ({
+      ...feed,
+      health_status: feed.last_fetched ? 'healthy' : 'never_fetched',
+      next_fetch: feed.last_fetched
+        ? new Date(new Date(feed.last_fetched).getTime() + feed.fetch_interval * 60000).toISOString()
+        : 'pending'
+    }))
+
+    reply.send(feedsWithHealth)
+  } catch (error) {
+    logger.error('Error fetching RSS feeds:', error)
+    reply.code(500).send({ error: 'Internal server error' })
+  }
+})
+
+app.post('/content/feeds', { preHandler: authMiddleware }, async (request, reply) => {
+  try {
+    const authRequest = request as any
+    const orgId = authRequest.user.org_id
+
+    const { name, url, fetch_interval = 30 } = request.body as {
+      name: string
+      url: string
+      fetch_interval?: number
+    }
+
+    if (!name || !url) {
+      return reply.code(400).send({ error: 'Name and URL are required' })
+    }
+
+    // Validate RSS feed by doing a test fetch
+    try {
+      await axios.get(url, {
+        timeout: 10000,
+        headers: { 'User-Agent': 'NexusBot/1.0' }
+      })
+    } catch (err) {
+      return reply.code(400).send({ error: 'Invalid RSS feed URL or feed is not accessible' })
+    }
+
+    const feedData = {
+      org_id: orgId,
+      name,
+      url,
+      type: 'rss' as const,
+      status: 'active' as const,
+      fetch_interval,
+      last_fetched: null,
+      last_successful_poll: null,
+      total_items_found: 0,
+      created_at: new Date().toISOString()
+    }
+
+    const result = await insforge.post(`/collections/${collections.content_sources}`, feedData)
+    reply.code(201).send(result.data)
+  } catch (error) {
+    logger.error('Error creating RSS feed:', error)
+    reply.code(500).send({ error: 'Internal server error' })
+  }
+})
+
+app.patch('/content/feeds/:id', { preHandler: authMiddleware }, async (request, reply) => {
+  try {
+    const { id } = request.params as { id: string }
+    const updates = request.body as any
+
+    const result = await insforge.patch(`/collections/${collections.content_sources}/${id}`, updates)
+    reply.send(result.data)
+  } catch (error) {
+    logger.error('Error updating RSS feed:', error)
+    reply.code(500).send({ error: 'Internal server error' })
+  }
+})
+
+app.delete('/content/feeds/:id', { preHandler: authMiddleware }, async (request, reply) => {
+  try {
+    const { id } = request.params as { id: string }
+
+    await insforge.delete(`/collections/${collections.content_sources}/${id}`)
+    reply.send({ message: 'RSS feed deleted successfully' })
+  } catch (error) {
+    logger.error('Error deleting RSS feed:', error)
+    reply.code(500).send({ error: 'Internal server error' })
+  }
+})
+
+// RSS Feed Polling (Background Job)
+app.post('/content/feeds/poll', { preHandler: authMiddleware }, async (request, reply) => {
+  try {
+    const authRequest = request as any
+    const orgId = authRequest.user.org_id
+    const { feed_id } = request.body as { feed_id?: string }
+
+    // Get feeds to poll
+    let query: any = { org_id: `eq.${orgId}`, type: 'eq.rss', status: 'eq.active' }
+    if (feed_id) {
+      query.id = `eq.${feed_id}`
+    }
+
+    const feedsResult = await insforge.get(`/collections/${collections.content_sources}`, {
+      params: query
+    })
+
+    const feeds = feedsResult.data || []
+    let totalPolled = 0
+    let totalNewItems = 0
+
+    for (const feed of feeds) {
+      try {
+        // Check if it's time to poll
+        if (feed.last_fetched) {
+          const lastFetched = new Date(feed.last_fetched).getTime()
+          const intervalMs = feed.fetch_interval * 60000
+          if (Date.now() - lastFetched < intervalMs) {
+            continue // Not time yet
+          }
+        }
+
+        // Fetch RSS feed
+        const response = await axios.get(feed.url, {
+          timeout: 30000,
+          headers: { 'User-Agent': 'NexusBot/1.0' }
+        })
+
+        // Parse RSS/XML (simplified - in production use a proper RSS parser)
+        const $ = cheerio.load(response.data)
+        const items = $('item, entry').toArray()
+
+        let newItems = 0
+        for (const item of items) {
+          const $item = $(item)
+          const title = $item.find('title').text().trim()
+          const link = $item.find('link').text().trim() || $item.find('link').attr('href')
+          const description = $item.find('description, summary').text().trim()
+          const pubDate = $item.find('pubDate, published, updated').text().trim()
+
+          // Check for duplicates
+          const existing = await insforge.get(`/collections/${collections.articles}`, {
+            params: { url: `eq.${link}`, org_id: `eq.${orgId}` }
+          })
+
+          if (existing.data && existing.data.length === 0 && title) {
+            // Extract content
+            let content = description
+            try {
+              if (link) {
+                const articleResult = await axios.get(link, {
+                  timeout: 10000,
+                  headers: { 'User-Agent': 'NexusBot/1.0' }
+                })
+                const article$ = cheerio.load(articleResult.data)
+                $('script, style, nav, footer').remove()
+                content = article$('body').text().trim() || description
+              }
+            } catch (e) {
+              // Use description if article fetch fails
+            }
+
+            await insforge.post(`/collections/${collections.articles}`, {
+              org_id: orgId,
+              title: title || 'Untitled',
+              content,
+              excerpt: description || '',
+              url: link,
+              status: 'draft',
+              tags: ['rss', feed.name],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            newItems++
+          }
+        }
+
+        // Update feed status
+        await insforge.patch(`/collections/${collections.content_sources}/${feed.id}`, {
+          last_fetched: new Date().toISOString(),
+          last_successful_poll: new Date().toISOString(),
+          total_items_found: (feed.total_items_found || 0) + newItems
+        })
+
+        totalPolled++
+        totalNewItems += newItems
+      } catch (error: any) {
+        logger.error(`Error polling feed ${feed.name}:`, error.message)
+        // Update last_fetched even on error to prevent rapid retries
+        await insforge.patch(`/collections/${collections.content_sources}/${feed.id}`, {
+          last_fetched: new Date().toISOString()
+        })
+      }
+    }
+
+    reply.send({
+      success: true,
+      feeds_polled: totalPolled,
+      new_items: totalNewItems,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    logger.error('Error polling RSS feeds:', error)
+    reply.code(500).send({ error: 'Internal server error' })
+  }
+})
