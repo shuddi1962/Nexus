@@ -4,6 +4,11 @@ import { authMiddleware } from '../middleware/auth'
 import { logger } from '../lib/logger'
 import { insforge, collections } from '../lib/insforge'
 import { randomBytes } from 'crypto'
+import axios from 'axios'
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3001/auth/oauth/google/callback'
 
 export async function authRoutes(app: FastifyInstance) {
   // Register
@@ -372,11 +377,174 @@ export async function authRoutes(app: FastifyInstance) {
           role: user.role,
           plan: user.plan,
         },
-        ...tokens,
-      })
+...tokens,
+        })
     } catch (error) {
       logger.error('Login error', { error })
       reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
+  // Google OAuth - Get authorization URL
+  app.get('/auth/oauth/google', async (request, reply) => {
+    const state = randomBytes(32).toString('hex')
+    
+    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&response_type=code&scope=openid%20email%20profile&access_type=offline&state=${state}`
+
+    reply.send({ oauth_url: oauthUrl, state })
+  })
+
+  // Google OAuth callback
+  app.get('/auth/oauth/google/callback', async (request, reply) => {
+    try {
+      const { code, state } = request.query as { code: string; state: string }
+
+      if (!code) {
+        return reply.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=no_code`)
+      }
+
+      // Exchange code for tokens
+      const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: GOOGLE_REDIRECT_URI,
+      })
+
+      const { access_token, id_token } = tokenResponse.data
+
+      // Get user info from Google
+      const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${access_token}` },
+      })
+
+      const { email, name, picture } = userInfoResponse.data
+
+      // Find or create user
+      let user = await AuthService.findUserByEmail(email)
+
+      if (!user) {
+        // Create new user
+        const newUser = await AuthService.createUser({
+          email,
+          name: name || email.split('@')[0],
+          password: randomBytes(32).toString('hex'), // Random password for OAuth users
+        })
+
+        user = newUser
+
+        // Update with Google info
+        await insforge.patch(`/collections/${collections.users}/${user.id}`, {
+          avatar: picture,
+          email_verified: true,
+        })
+      }
+
+      if (user.suspended) {
+        return reply.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=suspended`)
+      }
+
+      // Create session
+      const tokens = await AuthService.createSession(user.id, request.ip, request.headers['user-agent'])
+
+      // Redirect to frontend with tokens
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+      const redirectUrl = new URL(`${frontendUrl}/dashboard`)
+      redirectUrl.searchParams.set('access_token', tokens.access_token)
+      redirectUrl.searchParams.set('refresh_token', tokens.refresh_token)
+      redirectUrl.searchParams.set('oauth', 'true')
+
+      reply.redirect(redirectUrl.toString())
+    } catch (error) {
+      logger.error('Google OAuth callback error', { error })
+      reply.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=oauth_failed`)
+    }
+  })
+
+  // LinkedIn OAuth - Get authorization URL
+  app.get('/auth/oauth/linkedin', async (request, reply) => {
+    const clientId = process.env.LINKEDIN_CLIENT_ID || ''
+    const redirectUri = process.env.LINKEDIN_REDIRECT_URI || 'http://localhost:3001/auth/oauth/linkedin/callback'
+    const state = randomBytes(32).toString('hex')
+
+    const oauthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=r_liteprofile%20r_emailaddress&state=${state}`
+
+    reply.send({ oauth_url: oauthUrl, state })
+  })
+
+  // LinkedIn OAuth callback
+  app.get('/auth/oauth/linkedin/callback', async (request, reply) => {
+    try {
+      const { code, state } = request.query as { code: string; state: string }
+
+      if (!code) {
+        return reply.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=no_code`)
+      }
+
+      const clientId = process.env.LINKEDIN_CLIENT_ID || ''
+      const clientSecret = process.env.LINKEDIN_CLIENT_SECRET || ''
+      const redirectUri = process.env.LINKEDIN_REDIRECT_URI || 'http://localhost:3001/auth/oauth/linkedin/callback'
+
+      // Exchange code for tokens
+      const tokenResponse = await axios.post('https://www.linkedin.com/oauth/v2/accessToken', 
+        new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: redirectUri,
+          client_id: clientId,
+          client_secret: clientSecret,
+        }),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      )
+
+      const { access_token } = tokenResponse.data
+
+      // Get user info from LinkedIn
+      const [profileResponse, emailResponse] = await Promise.all([
+        axios.get('https://api.linkedin.com/v2/me', {
+          headers: { Authorization: `Bearer ${access_token}` },
+        }),
+        axios.get('https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))', {
+          headers: { Authorization: `Bearer ${access_token}` },
+        }),
+      ])
+
+      const profile = profileResponse.data
+      const emailData = emailResponse.data
+      const email = emailData?.elements?.[0]?.['handle~']?.emailAddress || `${profile.id}@linkedin.local`
+      const name = `${profile.localizedFirstName || ''} ${profile.localizedLastName || ''}`.trim() || email.split('@')[0]
+
+      // Find or create user
+      let user = await AuthService.findUserByEmail(email)
+
+      if (!user) {
+        const newUser = await AuthService.createUser({
+          email,
+          name,
+          password: randomBytes(32).toString('hex'),
+        })
+        user = newUser
+      }
+
+      if (user.suspended) {
+        return reply.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=suspended`)
+      }
+
+      // Create session
+      const tokens = await AuthService.createSession(user.id, request.ip, request.headers['user-agent'])
+
+      // Redirect to frontend with tokens
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+      const redirectUrl = new URL(`${frontendUrl}/dashboard`)
+      redirectUrl.searchParams.set('access_token', tokens.access_token)
+      redirectUrl.searchParams.set('refresh_token', tokens.refresh_token)
+      redirectUrl.searchParams.set('oauth', 'true')
+
+      reply.redirect(redirectUrl.toString())
+    } catch (error) {
+      logger.error('LinkedIn OAuth callback error', { error })
+      reply.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=oauth_failed`)
     }
   })
 }
